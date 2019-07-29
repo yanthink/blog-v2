@@ -1,17 +1,24 @@
-import { Avatar, Icon, Menu, Spin } from 'antd';
+import { Avatar, Icon, Menu } from 'antd';
 import { ClickParam } from 'antd/es/menu';
 import { FormattedMessage } from 'umi-plugin-react/locale';
 import React from 'react';
 import { connect } from 'dva';
 import router from 'umi/router';
+import { parse, stringify } from 'qs';
 
 import { ConnectProps, ConnectState } from '@/models/connect';
-import { CurrentUser } from '@/models/user';
+import { UserType } from '@/models/user';
 import HeaderDropdown from '../HeaderDropdown';
 import styles from './index.less';
 
+export function getPageQuery(): {
+  [key: string]: string;
+} {
+  return parse(window.location.href.split('?')[1]);
+}
+
 export interface GlobalHeaderRightProps extends ConnectProps {
-  currentUser?: CurrentUser;
+  currentUser?: UserType;
   menu?: boolean;
 }
 
@@ -32,12 +39,30 @@ class AvatarDropdown extends React.Component<GlobalHeaderRightProps> {
     router.push(`/account/${key}`);
   };
 
+  onLoginClick = () => {
+    const { redirect } = getPageQuery();
+    // redirect
+    if (window.location.pathname !== '/auth/login' && !redirect) {
+      router.replace({
+        pathname: '/auth/login',
+        search: stringify({
+          redirect: window.location.href,
+        }),
+      });
+    }
+  };
+
   render(): React.ReactNode {
     const { currentUser = {}, menu } = this.props;
     if (!menu) {
       return (
         <span className={`${styles.action} ${styles.account}`}>
-          <Avatar size="small" className={styles.avatar} src={currentUser.avatar} alt="avatar" />
+          <Avatar
+            size="small"
+            className={styles.avatar}
+            src={currentUser.user_info && currentUser.user_info.avatarUrl}
+            alt="avatar"
+          />
           <span className={styles.name}>{currentUser.name}</span>
         </span>
       );
@@ -63,15 +88,26 @@ class AvatarDropdown extends React.Component<GlobalHeaderRightProps> {
     return currentUser && currentUser.name ? (
       <HeaderDropdown overlay={menuHeaderDropdown}>
         <span className={`${styles.action} ${styles.account}`}>
-          <Avatar size="small" className={styles.avatar} src={currentUser.avatar} alt="avatar" />
+          <Avatar
+            size="small"
+            className={styles.avatar}
+            src={currentUser.user_info && currentUser.user_info.avatarUrl}
+            alt="avatar"
+          />
           <span className={styles.name}>{currentUser.name}</span>
         </span>
       </HeaderDropdown>
     ) : (
-      <Spin size="small" style={{ marginLeft: 8, marginRight: 8 }} />
+      <a className={`${styles.action} ${styles.account}`} onClick={this.onLoginClick}>
+        <Avatar className={styles.avatar} alt="登录" size="small" />
+        <span className={styles.name} style={{ color: 'rgba(0,0,0,.65)' }}>
+          账户中心
+        </span>
+      </a>
     );
   }
 }
+
 export default connect(({ user }: ConnectState) => ({
   currentUser: user.currentUser,
 }))(AvatarDropdown);

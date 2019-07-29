@@ -7,13 +7,13 @@ import moment from 'moment';
 
 import { NoticeItem } from '@/models/global';
 import NoticeIcon from '../NoticeIcon';
-import { CurrentUser } from '@/models/user';
+import { UserType } from '@/models/user';
 import { ConnectProps, ConnectState } from '@/models/connect';
 import styles from './index.less';
 
 export interface GlobalHeaderRightProps extends ConnectProps {
   notices?: NoticeItem[];
-  currentUser?: CurrentUser;
+  currentUser?: UserType;
   fetchingNotices?: boolean;
   onNoticeVisibleChange?: (visible: boolean) => void;
   onNoticeClear?: (tabName?: string) => void;

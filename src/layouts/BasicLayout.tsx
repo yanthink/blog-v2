@@ -9,24 +9,28 @@ import ProLayout, {
   BasicLayoutProps as ProLayoutProps,
   Settings,
 } from '@ant-design/pro-layout';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import { BackTop } from 'antd';
 import Link from 'umi/link';
+import NProgress from 'nprogress';
 import { connect } from 'dva';
 import { formatMessage } from 'umi-plugin-react/locale';
-
 import Authorized from '@/utils/Authorized';
 import RightContent from '@/components/GlobalHeader/RightContent';
-import { ConnectState, Dispatch } from '@/models/connect';
+import { ConnectState, Dispatch, Loading } from '@/models/connect';
 import { isAntDesignPro } from '@/utils/utils';
 import logo from '../assets/logo.svg';
+import 'nprogress/nprogress.css';
 
 export interface BasicLayoutProps extends ProLayoutProps {
   breadcrumbNameMap: {
     [path: string]: MenuDataItem;
   };
   settings: Settings;
+  loading: Loading;
   dispatch: Dispatch;
 }
+
 export type BasicLayoutContext = { [K in 'location']: BasicLayoutProps[K] } & {
   breadcrumbNameMap: {
     [path: string]: MenuDataItem;
@@ -70,8 +74,12 @@ const footerRender: BasicLayoutProps['footerRender'] = (_, defaultDom) => {
   );
 };
 
+let lastHref: string;
+let waitLoadingDelay = 200;
+let waitLoadingTimeout: any;
+
 const BasicLayout: React.FC<BasicLayoutProps> = props => {
-  const { dispatch, children, settings } = props;
+  const { dispatch, children, settings, loading } = props;
   /**
    * constructor
    */
@@ -85,6 +93,7 @@ const BasicLayout: React.FC<BasicLayoutProps> = props => {
         type: 'settings/getSetting',
       });
     }
+    waitLoadingDelay = 50;
   }, []);
 
   /**
@@ -96,6 +105,25 @@ const BasicLayout: React.FC<BasicLayoutProps> = props => {
       type: 'global/changeLayoutCollapsed',
       payload,
     });
+
+  const [waitLoadingState, setWaitLoadingState] = useState(false);
+  useEffect(() => {
+    if (NProgress.isStarted()) {
+      if (!loading.global && !waitLoadingState) {
+        NProgress.done();
+      }
+    }
+  }, [loading.global, waitLoadingState]);
+  const { href } = window.location;
+  if (lastHref !== href) {
+    setWaitLoadingState(true);
+    NProgress.start();
+    lastHref = href;
+    clearTimeout(waitLoadingTimeout);
+    waitLoadingTimeout = setTimeout(() => {
+      setWaitLoadingState(false);
+    }, waitLoadingDelay);
+  }
 
   return (
     <ProLayout
@@ -125,11 +153,13 @@ const BasicLayout: React.FC<BasicLayoutProps> = props => {
       {...settings}
     >
       {children}
+      <BackTop />
     </ProLayout>
   );
 };
 
-export default connect(({ global, settings }: ConnectState) => ({
+export default connect(({ global, settings, loading }: ConnectState) => ({
   collapsed: global.collapsed,
   settings,
+  loading,
 }))(BasicLayout);

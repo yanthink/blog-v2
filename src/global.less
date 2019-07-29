@@ -33,15 +33,53 @@ ol {
   .ant-table {
     width: 100%;
     overflow-x: auto;
+
     &-thead > tr,
     &-tbody > tr {
       > th,
       > td {
         white-space: pre;
+
         > span {
           display: block;
         }
       }
     }
   }
+}
+
+// 定宽模式样式覆盖
+@media (min-width: @screen-xl) {
+  .ant-pro-grid-content.wide > .ant-page-header {
+    padding: 16px 0;
+  }
+
+  .ant-pro-grid-content.wide > .ant-pro-page-header-wrap-children-content {
+    margin: 24px 0 0 0;
+  }
+
+  .ant-pro-grid-content.wide .ant-page-header-heading-extra {
+    top: 38px;
+    right: 0;
+  }
+}
+
+@media (max-width: @screen-xl) {
+  .ant-pro-top-nav-header-main.wide .ant-pro-top-nav-header-logo {
+    padding-left: 24px;
+  }
+}
+
+// nprogress
+body #nprogress .bar {
+  background-color: #13c2c2;
+}
+
+body #nprogress .spinner {
+  top: 23px;
+}
+
+body #nprogress .spinner-icon {
+  border-top-color: #13c2c2;
+  border-left-color: #13c2c2;
 }

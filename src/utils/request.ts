@@ -4,6 +4,8 @@
  */
 import { extend } from 'umi-request';
 import { notification } from 'antd';
+import cookie from 'cookie';
+import { getToken } from '@/utils/authority';
 
 const codeMessage = {
   200: '服务器成功返回请求的数据。',
@@ -26,16 +28,27 @@ const codeMessage = {
 /**
  * 异常处理程序
  */
-const errorHandler = (error: { response: Response }): void => {
+const errorHandler = async (error: { response: Response }): Promise<void> => {
   const { response } = error;
   if (response && response.status) {
-    const errorText = codeMessage[response.status] || response.statusText;
     const { status, url } = response;
+
+    if (status === 401) {
+      // @ts-ignore https://umijs.org/zh/guide/with-dva.html#faq
+      window.g_app._store.dispatch({ type: 'login/logout' });
+    }
+
+    const errorText = codeMessage[response.status] || response.statusText;
+    const { message: msg } = await response.json();
 
     notification.error({
       message: `请求错误 ${status}: ${url}`,
-      description: errorText,
+      description: msg || errorText,
     });
+
+    const error: any = new Error(msg || errorText);
+    error.response = response;
+    throw error;
   }
 };
 
@@ -43,8 +56,50 @@ const errorHandler = (error: { response: Response }): void => {
  * 配置request请求时的默认参数
  */
 const request = extend({
+  prefix: '/api',
   errorHandler, // 默认错误处理
   credentials: 'include', // 默认请求是否带上cookie
+  headers: {
+    Accept: `application/x.sheng.${API_VERSION || 'v1'}+json`, // eslint-disable-line
+    'Content-Type': 'application/json; charset=utf-8',
+  },
+});
+
+// request拦截器, 改变url 或 options.
+/* eslint no-param-reassign:0 */
+request.interceptors.request.use((url, options) => {
+  const { headers } = options;
+
+  options.headers = {
+    ...headers,
+    Authorization: getToken(),
+    'X-XSRF-TOKEN': cookie.parse(document.cookie)['XSRF-TOKEN'],
+  };
+
+  return { url, options };
+});
+
+// response拦截器, 处理response
+request.interceptors.response.use(response => {
+  /* eslint no-undef:0, valid-typeof:0 */
+  if (typeof phpdebugbar !== undefined) {
+    try {
+      const {
+        ajaxHandler: { headerName },
+      } = phpdebugbar;
+      const debugBarData = response.headers.get(headerName);
+      const debugBarId = response.headers.get(`${headerName}-id`);
+      if (debugBarData) {
+        const { id, data } = JSON.parse(decodeURIComponent(debugBarData));
+        phpdebugbar.addDataSet(data, id);
+      } else if (debugBarId && phpdebugbar.openHandler) {
+        phpdebugbar.loadDataSet(debugBarId, '(ajax)');
+      }
+    } catch (e) {
+      //
+    }
+  }
+  return response;
 });
 
 export default request;

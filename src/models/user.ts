@@ -3,21 +3,26 @@ import { Reducer } from 'redux';
 
 import { queryCurrent, query as queryUsers } from '@/services/user';
 
-export interface CurrentUser {
-  avatar?: string;
+export interface UserType {
+  id?: number;
   name?: string;
-  title?: string;
-  group?: string;
-  signature?: string;
-  tags?: {
-    key: string;
-    label: string;
-  }[];
+  email?: string;
+  user_info?: {
+    city?: string;
+    gender?: number;
+    country?: string;
+    language?: string;
+    nickName?: string;
+    province?: string;
+    avatarUrl?: string;
+  };
+  created_at?: string;
+  updated_at?: string;
   unreadCount?: number;
 }
 
 export interface UserModelState {
-  currentUser?: CurrentUser;
+  currentUser?: UserType;
 }
 
 export interface UserModelType {
@@ -49,11 +54,16 @@ const UserModel: UserModelType = {
       });
     },
     *fetchCurrent(_, { call, put }) {
-      const response = yield call(queryCurrent);
-      yield put({
-        type: 'saveCurrentUser',
-        payload: response,
-      });
+      const { data: user } = yield call(queryCurrent);
+      if (user && user.name) {
+        yield put({
+          type: 'saveCurrentUser',
+          payload: user,
+        });
+      } else {
+        // @ts-ignore https://umijs.org/zh/guide/with-dva.html#faq
+        window.g_app._store.dispatch({ type: 'login/logout' });
+      }
     },
   },
 

@@ -1,5 +1,21 @@
+import { CurrentAuthorityType } from '@/components/Authorized/renderAuthorize';
+
+let gToken = '';
+
+export function getToken(): string {
+  if (!gToken) {
+    gToken = localStorage.getItem('token') || '';
+  }
+  return gToken;
+}
+
+export function setToken(token: string = ''): void {
+  gToken = token;
+  localStorage.setItem('token', token);
+}
+
 // use localStorage to store the authority info, which might be sent from server in actual project.
-export function getAuthority(str?: string): string | string[] {
+export function getAuthority(str?: string): CurrentAuthorityType {
   // return localStorage.getItem('antd-pro-authority') || ['admin', 'user'];
   const authorityString =
     typeof str === 'undefined' ? localStorage.getItem('antd-pro-authority') : str;
@@ -23,7 +39,7 @@ export function getAuthority(str?: string): string | string[] {
   return authority;
 }
 
-export function setAuthority(authority: string | string[]): void {
+export function setAuthority(authority: CurrentAuthorityType = []): void {
   const proAuthority = typeof authority === 'string' ? [authority] : authority;
   return localStorage.setItem('antd-pro-authority', JSON.stringify(proAuthority));
 }

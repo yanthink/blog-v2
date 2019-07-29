@@ -4,6 +4,7 @@
 import ThemeColorReplacer from 'webpack-theme-color-replacer';
 import generate from '@ant-design/colors/lib/generate';
 import path from 'path';
+import fs from 'fs';
 
 function getModulePackageName(module: { context: string }) {
   if (!module.context) return null;
@@ -25,6 +26,11 @@ function getModulePackageName(module: { context: string }) {
 }
 
 export default (config: any) => {
+  if (process.env.NODE_ENV !== 'production') {
+    const configStr = '/* eslint-disable */\nexport default ' + config.toString();
+    fs.writeFileSync('./.webpack.config.js', configStr);
+  }
+
   // preview.pro.ant.design only do not use in your production;
   if (
     process.env.ANT_DESIGN_PRO_ONLY_DO_NOT_USE_IN_YOUR_PRODUCTION === 'site' ||

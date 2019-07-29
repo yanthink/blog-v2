@@ -1,0 +1,52 @@
+@import '~antd/es/style/themes/default.less';
+
+.listContent {
+  .description {
+    max-width: 720px;
+    line-height: 22px;
+
+    strong {
+      color: @volcano-6;
+      font-weight: 500;
+    }
+
+    em {
+      color: @volcano-6;
+      font-weight: 500;
+      font-style: normal;
+    }
+  }
+
+  .extra {
+    margin-top: 16px;
+    color: @text-color-secondary;
+    line-height: 22px;
+
+    & > :global(.ant-avatar) {
+      position: relative;
+      top: 1px;
+      width: 20px;
+      height: 20px;
+      margin-right: 8px;
+      vertical-align: top;
+    }
+
+    & > em {
+      margin-left: 16px;
+      color: @disabled-color;
+      font-style: normal;
+    }
+  }
+}
+
+@media screen and (max-width: @screen-xs) {
+  .listContent {
+    .extra {
+      & > em {
+        display: block;
+        margin-top: 8px;
+        margin-left: 0;
+      }
+    }
+  }
+}

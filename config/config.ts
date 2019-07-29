@@ -1,18 +1,15 @@
 import { IConfig, IPlugin } from 'umi-types';
+import defaultSettings from './defaultSettings'; // https://umijs.org/config/
 
-import defaultSettings from './defaultSettings';
-// https://umijs.org/config/
 import slash from 'slash2';
 import webpackPlugin from './plugin.config';
+import routerData from './router.config';
 
-const { pwa, primaryColor } = defaultSettings;
-
-// preview.pro.ant.design only do not use in your production ;
+const { pwa, primaryColor } = defaultSettings; // preview.pro.ant.design only do not use in your production ;
 // preview.pro.ant.design 专用环境变量，请不要在你的项目中使用它。
+
 const { ANT_DESIGN_PRO_ONLY_DO_NOT_USE_IN_YOUR_PRODUCTION } = process.env;
-
 const isAntDesignProPreview = ANT_DESIGN_PRO_ONLY_DO_NOT_USE_IN_YOUR_PRODUCTION === 'site';
-
 const plugins: IPlugin[] = [
   [
     'umi-plugin-react',
@@ -41,8 +38,7 @@ const plugins: IPlugin[] = [
               importWorkboxFrom: 'local',
             },
           }
-        : false,
-      // default close dll, because issue https://github.com/ant-design/ant-design-pro/issues/4665
+        : false, // default close dll, because issue https://github.com/ant-design/ant-design-pro/issues/4665
       // dll features https://webpack.js.org/plugins/dll-plugin/
       // dll: {
       //   include: ['dva', 'dva/router', 'dva/saga', 'dva/fetch'],
@@ -59,9 +55,8 @@ const plugins: IPlugin[] = [
       autoAddMenu: true,
     },
   ],
-];
+]; // 针对 preview.pro.ant.design 的 GA 统计代码
 
-// 针对 preview.pro.ant.design 的 GA 统计代码
 if (isAntDesignProPreview) {
   plugins.push([
     'umi-plugin-ga',
@@ -88,43 +83,25 @@ export default {
   },
   devtool: isAntDesignProPreview ? 'source-map' : false,
   // umi routes: https://umijs.org/zh/guide/router.html
-  routes: [
-    {
-      path: '/',
-      component: '../layouts/BasicLayout',
-      Routes: ['src/pages/Authorized'],
-      authority: ['admin', 'user'],
-      routes: [
-        {
-          path: '/',
-          name: 'welcome',
-          icon: 'smile',
-          component: './Welcome',
-        },
-        {
-          component: './404',
-        },
-      ],
-    },
-    {
-      component: './404',
-    },
-  ],
+  routes: routerData,
   // Theme for antd: https://ant.design/docs/react/customize-theme-cn
   theme: {
     'primary-color': primaryColor,
   },
   define: {
     ANT_DESIGN_PRO_ONLY_DO_NOT_USE_IN_YOUR_PRODUCTION:
-      ANT_DESIGN_PRO_ONLY_DO_NOT_USE_IN_YOUR_PRODUCTION || '', // preview.pro.ant.design only do not use in your production ; preview.pro.ant.design 专用环境变量，请不要在你的项目中使用它。
+      ANT_DESIGN_PRO_ONLY_DO_NOT_USE_IN_YOUR_PRODUCTION || '',
+    // preview.pro.ant.design only do not use in your production ; preview.pro.ant.design 专用环境变量，请不要在你的项目中使用它。
+    API_VERSION: 'v2',
   },
   ignoreMomentLocale: true,
   lessLoaderOptions: {
     javascriptEnabled: true,
   },
   disableRedirectHoist: true,
+  disableCSSModules: false,
   cssLoaderOptions: {
-    modules: true,
+    modules: false,
     getLocalIdent: (
       context: {
         resourcePath: string;
@@ -158,13 +135,42 @@ export default {
     basePath: '/',
   },
   chainWebpack: webpackPlugin,
-  /*
   proxy: {
-    '/server/api/': {
-      target: 'https://preview.pro.ant.design/',
+    '/api': {
+      target: 'http://api.blog.test/',
       changeOrigin: true,
-      pathRewrite: { '^/server': '' },
+    },
+    '/_debugbar': {
+      target: 'http://api.blog.test/',
+      changeOrigin: true,
     },
   },
-  */
+  extraBabelPlugins: [
+    [
+      'prismjs',
+      {
+        languages: [
+          'css',
+          'javascript',
+          'bash',
+          'ini',
+          'java',
+          'json',
+          'less',
+          'php',
+          'jsx',
+          'tsx',
+          'sass',
+          'scss',
+          'sql',
+          'stylus',
+          'typescript',
+          'yaml',
+        ],
+        plugins: ['line-numbers'],
+        theme: 'okaidia',
+        css: true,
+      },
+    ],
+  ],
 } as IConfig;

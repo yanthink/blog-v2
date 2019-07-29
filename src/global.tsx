@@ -66,6 +66,7 @@ if (pwa) {
       return true;
     })
     .catch(() => {
+      /* eslint no-console:0 */
       console.log('serviceWorker unregister error');
     });
 }

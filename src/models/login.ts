@@ -1,14 +1,9 @@
-import { AnyAction, Reducer } from 'redux';
-import { parse, stringify } from 'qs';
+import { AnyAction } from 'redux';
 
 import { EffectsCommandMap } from 'dva';
 import { routerRedux } from 'dva/router';
-
-export function getPageQuery(): {
-  [key: string]: string;
-} {
-  return parse(window.location.href.split('?')[1]);
-}
+import { setAuthority, setToken } from '@/utils/authority';
+import { reloadAuthorized } from '@/utils/Authorized';
 
 export type Effect = (
   action: AnyAction,
@@ -21,9 +16,6 @@ export interface ModelType {
   effects: {
     logout: Effect;
   };
-  reducers: {
-    changeLoginStatus: Reducer<{}>;
-  };
 }
 
 const Model: ModelType = {
@@ -35,28 +27,20 @@ const Model: ModelType = {
 
   effects: {
     *logout(_, { put }) {
-      const { redirect } = getPageQuery();
-      // redirect
-      if (window.location.pathname !== '/user/login' && !redirect) {
-        yield put(
-          routerRedux.replace({
-            pathname: '/user/login',
-            search: stringify({
-              redirect: window.location.href,
-            }),
-          }),
-        );
-      }
-    },
-  },
+      // @ts-ignore https://umijs.org/zh/guide/with-dva.html#faq
+      window.g_app._store.dispatch({
+        type: 'user/saveCurrentUser',
+        payload: [],
+      });
 
-  reducers: {
-    changeLoginStatus(state, { payload }) {
-      return {
-        ...state,
-        status: payload.status,
-        type: payload.type,
-      };
+      setToken('');
+      setAuthority([]);
+      reloadAuthorized();
+
+      // redirect
+      if (window.location.pathname !== '/articles/list') {
+        yield put(routerRedux.replace('/articles/list'));
+      }
     },
   },
 };
