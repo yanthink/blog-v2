@@ -9,7 +9,7 @@ import React, { Component } from 'react';
 import { get } from 'lodash';
 import { Dispatch } from 'redux';
 import { connect } from 'dva';
-import router from 'umi/router';
+import { router } from 'umi';
 import { FormComponentProps } from 'antd/es/form';
 import { UploadChangeParam } from 'antd/lib/upload';
 import { PageHeaderWrapper } from '@ant-design/pro-layout';
@@ -119,7 +119,7 @@ class ArticleEdit extends Component<ArticleEditProps, ArticleEditState> {
   };
 
   renderMarkdown = (text: string) => {
-    let html = marked(text, { breaks: true });
+    let html = marked(text, { headerIds: false, breaks: true });
     if (/language-/.test(html)) {
       const container = document.createElement('div');
       container.innerHTML = html;

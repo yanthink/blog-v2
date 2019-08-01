@@ -1,11 +1,11 @@
 import { Button, Result } from 'antd';
 import React from 'react';
-import router from 'umi/router';
-import Redirect from 'umi/redirect';
+import { router, Redirect } from 'umi';
 
-const NoFoundPage: React.FC<{}> = () => (
-  <>
-    <Redirect from="/" to="/articles/list" />
+const NoFoundPage: React.FC<{ location: { pathname: string } }> = ({ location }) =>
+  location.pathname === '/' ? (
+    <Redirect to="/articles/list" />
+  ) : (
     <Result
       status="404"
       title="404"
@@ -16,7 +16,6 @@ const NoFoundPage: React.FC<{}> = () => (
         </Button>
       }
     />
-  </>
-);
+  );
 
 export default NoFoundPage;

@@ -2,10 +2,11 @@ import { PageHeaderWrapper } from '@ant-design/pro-layout';
 import { Card, Button, Form, List, Tag, Icon } from 'antd';
 import React, { Component } from 'react';
 import { Dispatch } from 'redux';
-import { Link, withRouter } from 'umi';
+import { Link, withRouter, router } from 'umi';
 import { FormComponentProps } from 'antd/es/form';
 import { connect } from 'dva';
 import { get } from 'lodash';
+import { parse, stringify } from 'qs';
 import ArticleListContent from './components/ArticleListContent';
 import { StateType } from './model';
 import { ArticleType, TagType } from './data.d';
@@ -27,6 +28,7 @@ interface ArticleListProps extends FormComponentProps {
   articlesList: StateType;
   loading: boolean;
   location: {
+    pathname: string;
     query: { [key: string]: string };
     search: string;
   };
@@ -36,53 +38,53 @@ interface ArticleListState {
   allTags: TagType[];
 }
 
+let scrollToTopFlag = 0;
+
 class ArticleList extends Component<ArticleListProps, ArticleListState> {
   state: ArticleListState = {
     allTags: [],
   };
 
   async componentWillMount() {
-    this.queryList();
+    this.queryList(this.props.location.search);
+
     const { data: allTags } = await queryAllTags();
     this.setState({ allTags });
   }
 
-  componentDidUpdate({ articlesList, location }: ArticleListProps) {
-    if (location.search !== this.props.location.search) {
-      this.queryList();
-    }
-
-    if (articlesList.pagination.current !== this.props.articlesList.pagination.current) {
-      scrollToTop(window, 174);
+  componentWillReceiveProps(nextProps: Readonly<ArticleListProps>): void {
+    if (nextProps.location.search !== this.props.location.search) {
+      this.queryList(nextProps.location.search);
     }
   }
 
-  queryList = (pagination?: { page?: number; pageSize?: number }) => {
-    const {
-      dispatch,
-      form: { getFieldsValue },
-      location: { query },
-    } = this.props;
-    const values = getFieldsValue();
+  componentDidUpdate(prevProps: Readonly<ArticleListProps>) {
+    if (scrollToTopFlag === 2 && !this.props.loading) {
+      scrollToTop(window, 174);
+      scrollToTopFlag = 0;
+    }
+
+    if (prevProps.location.query.page !== this.props.location.query.page) {
+      scrollToTopFlag = 1;
+    }
+
+    if (scrollToTopFlag === 1 && this.props.loading) {
+      scrollToTopFlag = 2;
+    }
+  }
+
+  queryList = (params: object | string) => {
+    const query = params instanceof Object ? params : parse(params.replace(/^\?/, ''));
 
     const queryParams = {
       ...defaultQueryParams,
       ...query,
-      ...pagination,
-      ...values,
     };
 
-    dispatch({
+    this.props.dispatch({
       type: 'articlesList/fetch',
       payload: queryParams,
     });
-  };
-
-  handelPaginationChange = (page: number, pageSize?: number) => {
-    const {
-      articlesList: { pagination },
-    } = this.props;
-    this.queryList({ ...pagination, page, pageSize });
   };
 
   render() {
@@ -90,9 +92,10 @@ class ArticleList extends Component<ArticleListProps, ArticleListState> {
       form,
       articlesList: { list, pagination },
       loading,
-      location: { query },
+      location: { pathname, search },
     } = this.props;
     const { getFieldDecorator } = form;
+    const query = parse(search.replace(/^\?/, ''));
 
     const HeaderAction = (
       <Link to="/articles/create">
@@ -103,7 +106,9 @@ class ArticleList extends Component<ArticleListProps, ArticleListState> {
     );
 
     const title =
-      query && query.keyword ? `关于 “${query.keyword}” 的搜索结果, 共 ${pagination.total} 条` : '';
+      !loading && query && query.keyword
+        ? `关于 “${query.keyword}” 的搜索结果, 共 ${pagination.total} 条`
+        : '';
 
     return (
       // @ts-ignore
@@ -112,10 +117,12 @@ class ArticleList extends Component<ArticleListProps, ArticleListState> {
           <Form layout="inline">
             <StandardFormRow title="所属类目" block style={{ paddingBottom: 11 }}>
               <FormItem>
-                {getFieldDecorator('tagIds')(
+                {getFieldDecorator('tagIds', {
+                  initialValue: query.tagIds,
+                })(
                   <TagSelect expandable>
                     {this.state.allTags.map(tag => (
-                      <TagSelect.Option value={tag.id} key={tag.id}>
+                      <TagSelect.Option value={String(tag.id)} key={String(tag.id)}>
                         {tag.name}
                       </TagSelect.Option>
                     ))}
@@ -140,7 +147,17 @@ class ArticleList extends Component<ArticleListProps, ArticleListState> {
             className={styles.list}
             pagination={{
               ...pagination,
-              onChange: this.handelPaginationChange,
+              itemRender(page, type, originalElement) {
+                return (
+                  // @ts-ignore
+                  <Link
+                    {...originalElement.props}
+                    to={`${pathname}?${stringify({ ...query, page })}`}
+                  >
+                    {type === 'page' && page}
+                  </Link>
+                );
+              },
             }}
             renderItem={(article: ArticleType) => (
               <List.Item
@@ -197,20 +214,16 @@ class ArticleList extends Component<ArticleListProps, ArticleListState> {
 }
 
 const WarpForm = Form.create<ArticleListProps>({
-  onValuesChange(
-    { dispatch, articlesList: { pagination } }: ArticleListProps,
-    changedValues,
-    allValues,
-  ) {
-    const queryParams = {
-      ...defaultQueryParams,
-      ...pagination,
-      ...allValues,
-    };
+  onValuesChange({ location: { pathname, search } }: ArticleListProps, changedValues, allValues) {
+    const query = parse(search.substr(1));
 
-    dispatch({
-      type: 'articlesList/fetch',
-      payload: queryParams,
+    router.push({
+      pathname,
+      search: stringify({
+        ...query,
+        ...allValues,
+        page: 1,
+      }),
     });
   },
 })(ArticleList);

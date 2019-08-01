@@ -3,7 +3,7 @@ import { ClickParam } from 'antd/es/menu';
 import { FormattedMessage } from 'umi-plugin-react/locale';
 import React from 'react';
 import { connect } from 'dva';
-import router from 'umi/router';
+import { router } from 'umi';
 import { parse, stringify } from 'qs';
 
 import { ConnectProps, ConnectState } from '@/models/connect';

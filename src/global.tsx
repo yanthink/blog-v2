@@ -1,7 +1,7 @@
-import { Button, message, notification } from 'antd';
-
 import React from 'react';
+import { Button, message, notification } from 'antd';
 import { formatMessage } from 'umi-plugin-react/locale';
+import { dynamicLoad } from '@/utils/utils';
 import defaultSettings from '../config/defaultSettings';
 
 const { pwa } = defaultSettings;
@@ -69,4 +69,8 @@ if (pwa) {
       /* eslint no-console:0 */
       console.log('serviceWorker unregister error');
     });
+}
+
+if (window.location.hostname === 'www.einsition.com') {
+  dynamicLoad('https://hm.baidu.com/hm.js?ac1bc08008f195f8b3c753b4b718104b');
 }

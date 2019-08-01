@@ -8,7 +8,7 @@ import cookie from 'cookie';
 import React, { Component } from 'react';
 import { Dispatch } from 'redux';
 import { connect } from 'dva';
-import router from 'umi/router';
+import { router } from 'umi';
 import { FormComponentProps } from 'antd/es/form';
 import { UploadChangeParam } from 'antd/lib/upload';
 import { PageHeaderWrapper } from '@ant-design/pro-layout';
@@ -104,7 +104,7 @@ class ArticleCreate extends Component<ArticleCreateProps, ArticleCreateState> {
   };
 
   renderMarkdown = (text: string) => {
-    let html = marked(text, { breaks: true });
+    let html = marked(text, { headerIds: false, breaks: true });
     if (/language-/.test(html)) {
       const container = document.createElement('div');
       container.innerHTML = html;

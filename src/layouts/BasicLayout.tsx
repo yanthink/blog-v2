@@ -74,7 +74,7 @@ const footerRender: BasicLayoutProps['footerRender'] = (_, defaultDom) => {
   );
 };
 
-let lastHref: string;
+let lastPathname: string;
 let waitLoadingDelay = 200;
 let waitLoadingTimeout: any;
 
@@ -93,7 +93,7 @@ const BasicLayout: React.FC<BasicLayoutProps> = props => {
         type: 'settings/getSetting',
       });
     }
-    waitLoadingDelay = 50;
+    waitLoadingDelay = 80;
   }, []);
 
   /**
@@ -114,11 +114,11 @@ const BasicLayout: React.FC<BasicLayoutProps> = props => {
       }
     }
   }, [loading.global, waitLoadingState]);
-  const { href } = window.location;
-  if (lastHref !== href) {
+  const { pathname } = window.location;
+  if (lastPathname !== pathname) {
     setWaitLoadingState(true);
     NProgress.start();
-    lastHref = href;
+    lastPathname = pathname;
     clearTimeout(waitLoadingTimeout);
     waitLoadingTimeout = setTimeout(() => {
       setWaitLoadingState(false);

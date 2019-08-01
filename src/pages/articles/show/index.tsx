@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, Icon, Spin, Tag, Row, Col } from 'antd';
+import { Card, Icon, Spin, Tag, Row, Col, Button } from 'antd';
 import { FormComponentProps } from 'antd/es/form';
 import { Dispatch } from 'redux';
 import { connect } from 'dva';
@@ -11,6 +11,7 @@ import emojiToolkit from 'emoji-toolkit';
 import marked from 'marked';
 import Prism from 'prismjs';
 import { showTime, dynamicLoad } from '@/utils/utils';
+import Authorized from '@/utils/Authorized';
 import Tocify from './tocify';
 import { StateType } from './model';
 import 'emoji-assets/sprites/joypixels-sprite-32.min.css';
@@ -77,9 +78,36 @@ export default class ArticleShow extends React.Component<ArticleShowProps, Artic
     const renderer = new marked.Renderer();
     renderer.heading = (text, level) => {
       const anchor = this.tocify.add(text, level);
-      return `<a id=${anchor} class="anchor-fix"><h${level}>${text}</h${level}></a>\n`;
+      return `<a id="${anchor}" href="#${anchor}" class="anchor-fix"><h${level}>${text}</h${level}></a>\n`;
     };
-    marked.setOptions({ renderer, breaks: true });
+    renderer.link = (href: string, title: string, text: string) => {
+      let url = href;
+      let target: boolean | string = false;
+
+      if (url.slice(0, 1) !== '#') {
+        const urlParams = new URL(href, window.location.origin);
+
+        url = urlParams.href;
+
+        target = urlParams.host !== window.location.host ? '_blank' : false;
+      }
+
+      if (!url) {
+        return text;
+      }
+
+      let out = `<a href="${url}"`;
+      if (title) {
+        out += ` title="${title}"`;
+      }
+      if (target !== false) {
+        out += ` target="${target}"`;
+      }
+      out += `>${text}</a>`;
+
+      return out;
+    };
+    marked.setOptions({ renderer, headerIds: true, breaks: true });
   }
 
   async componentWillMount() {
@@ -151,11 +179,21 @@ export default class ArticleShow extends React.Component<ArticleShowProps, Artic
     const {
       articlesShow: { article },
       loading,
+      match: { params },
     } = this.props;
     const { dataLoaded } = this.state;
 
+    const HeaderAction = (
+      <Link to={`/articles/${params.id}/edit`}>
+        <Button type="primary" icon="edit">
+          编辑文章
+        </Button>
+      </Link>
+    );
+
     return (
-      <PageHeaderWrapper>
+      // @ts-ignore
+      <PageHeaderWrapper extra={Authorized.check('articles.update', HeaderAction, null)}>
         <Row gutter={24} type="flex">
           <Col xl={18} lg={24} md={24} sm={24} xs={24}>
             <Card bordered={false}>

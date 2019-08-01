@@ -1,5 +1,24 @@
 export default [
   {
+    path: '/demos',
+    component: '../layouts/BlankLayout',
+    routes: [
+      {
+        path: 'yt-simplemde-editor',
+        name: 'ytSimplemdeEditor',
+        component: './demos/YtSimplemdeEditor',
+      },
+      {
+        path: 'yt-emoji-picker',
+        name: 'ytEmojiPicker',
+        component: './demos/YtEmojiPicker',
+      },
+      {
+        component: './404',
+      },
+    ],
+  },
+  {
     path: '/auth',
     component: '../layouts/AuthLayout',
     routes: [
@@ -7,6 +26,9 @@ export default [
         path: 'login',
         name: 'login',
         component: './auth/login',
+      },
+      {
+        component: './404',
       },
     ],
   },
