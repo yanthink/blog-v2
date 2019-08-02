@@ -1,0 +1,90 @@
+@import '~antd/es/style/themes/default.less';
+
+.emojiWrapper {
+  box-sizing: border-box;
+  padding: 16px 30px;
+
+  :global {
+    h3 {
+      font-size: @heading-3-size;
+    }
+
+    ol {
+      height: 40px;
+      padding-left: 0;
+      line-height: 40px;
+      li {
+        display: inline-block;
+        margin-bottom: 0;
+        padding: 0 2px;
+        cursor: pointer;
+      }
+      .modifier {
+        position: relative;
+        display: inline-block;
+        width: 15px;
+        height: 15px;
+        border-radius: 10px;
+
+        &.active::after {
+          position: absolute;
+          top: 2px;
+          left: 2px;
+          display: block;
+          box-sizing: unset;
+          width: 7px;
+          height: 7px;
+          border: 2px solid #fff;
+          border-radius: 10px;
+          content: "";
+        }
+      }
+    }
+
+    ul {
+      display: table;
+      margin-top: 16px;
+      padding: 0 30px;
+
+      li {
+        float: left;
+        width: 300px;
+        height: 40px;
+        margin-right: 20px;
+        padding: 8px;
+        cursor: pointer;
+        transition: color .3s ease-in-out, background-color .3s ease-in-out;
+        &:hover {
+          color: white;
+          background-color: @primary-color;
+          .joypixels {
+            transform: scale(1, 1);
+          }
+          .shortname {
+            margin-left: 8px;
+          }
+        }
+
+        > div {
+          height: 24px;
+          line-height: 24px;
+          vertical-align: middle;
+        }
+
+        .emoji {
+          display: inline-block;
+          width: 32px;
+        }
+
+        .joypixels {
+          transition: transform .3s ease-in-out, -webkit-transform .3s ease-in-out
+        }
+
+        .shortname {
+          font-size: 14px;
+          transition: font-size .3s ease-in-out, margin-left .3s ease-in-out;
+        }
+      }
+    }
+  }
+}

@@ -64,7 +64,10 @@ class ArticleList extends Component<ArticleListProps, ArticleListState> {
       scrollToTopFlag = 0;
     }
 
-    if (prevProps.location.query.page !== this.props.location.query.page) {
+    if (
+      prevProps.location.query.page !== this.props.location.query.page
+      && this.props.location.query.page
+    ) {
       scrollToTopFlag = 1;
     }
 
@@ -189,13 +192,13 @@ class ArticleList extends Component<ArticleListProps, ArticleListState> {
                     >
                       {article.highlight && article.highlight.title
                         ? article.highlight.title.map((html, key) => (
-                            <span
-                              key={key}
-                              dangerouslySetInnerHTML={{
-                                __html: html,
-                              }}
-                            />
-                          ))
+                          <span
+                            key={key}
+                            dangerouslySetInnerHTML={{
+                              __html: html,
+                            }}
+                          />
+                        ))
                         : article.title}
                     </Link>
                   }
@@ -214,15 +217,11 @@ class ArticleList extends Component<ArticleListProps, ArticleListState> {
 }
 
 const WarpForm = Form.create<ArticleListProps>({
-  onValuesChange({ location: { pathname, search } }: ArticleListProps, changedValues, allValues) {
-    const query = parse(search.substr(1));
-
+  onValuesChange({ location: { pathname } }: ArticleListProps, changedValues, allValues) {
     router.push({
       pathname,
       search: stringify({
-        ...query,
         ...allValues,
-        page: 1,
       }),
     });
   },
@@ -231,9 +230,9 @@ const WarpForm = Form.create<ArticleListProps>({
 export default withRouter(
   connect(
     ({
-      articlesList,
-      loading,
-    }: {
+       articlesList,
+       loading,
+     }: {
       articlesList: StateType;
       loading: { models: { [key: string]: boolean } };
     }) => ({

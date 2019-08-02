@@ -1,3 +1,4 @@
+// @ts-ignore
 import { MenuTheme } from 'antd/es/menu';
 
 export type ContentWidth = 'Fluid' | 'Fixed';

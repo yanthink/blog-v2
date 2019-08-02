@@ -8,14 +8,15 @@ import emojiToolkit from 'emoji-toolkit';
 import marked from 'marked';
 import Prism from 'prismjs';
 import { getToken } from '@/utils/authority';
-import styles from './YtSimplemdeEditor.less';
+import styles from './index.less';
 
 const uploadUrl = '/api/attachments/upload';
 
 emojiToolkit.sprites = true;
 emojiToolkit.spriteSize = 32;
 
-export interface YtSimplemdeEditorProps extends FormComponentProps {}
+export interface YtSimplemdeEditorProps extends FormComponentProps {
+}
 
 function beforeUpload(file: File): boolean {
   const isLt200K = file.size / 1024 < 200;
@@ -25,7 +26,7 @@ function beforeUpload(file: File): boolean {
   return isLt200K;
 }
 
-class YtSimplemdeEditor extends React.Component<YtSimplemdeEditorProps> {
+class Index extends React.Component<YtSimplemdeEditorProps> {
   handleSubmit = (e?: React.FormEvent) => {
     e && e.preventDefault();
     const { form } = this.props;
@@ -130,4 +131,4 @@ class YtSimplemdeEditor extends React.Component<YtSimplemdeEditorProps> {
   }
 }
 
-export default Form.create<YtSimplemdeEditorProps>()(YtSimplemdeEditor);
+export default Form.create<YtSimplemdeEditorProps>()(Index);

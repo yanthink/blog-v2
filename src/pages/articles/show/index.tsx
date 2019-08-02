@@ -40,9 +40,9 @@ interface ArticleShowProps extends FormComponentProps {
 
 @connect(
   ({
-    loading,
-    articlesShow,
-  }: {
+     loading,
+     articlesShow,
+   }: {
     loading: { models: { [key: string]: boolean } };
     articlesShow: StateType;
   }) => ({
@@ -138,7 +138,7 @@ export default class ArticleShow extends React.Component<ArticleShowProps, Artic
       // @ts-ignore
       jQuery(this.markdown)
         .find('img')
-        .each(function() {
+        .each(function () {
           // @ts-ignore
           jQuery(this).wrap(`<a href="${jQuery(this).attr('src')}" class="fluidbox"></a>`);
         })
@@ -221,12 +221,12 @@ export default class ArticleShow extends React.Component<ArticleShowProps, Artic
                   <span>
                     <Icon type="tags-o" style={{ marginRight: 4 }} />
                     {article &&
-                      article.tags &&
-                      article.tags.map(tag => (
-                        <Link key={tag.id} to={`/article/list?tags[0]=${tag.id}`}>
-                          <Tag>{tag.name}</Tag>
-                        </Link>
-                      ))}
+                    article.tags &&
+                    article.tags.map(tag => (
+                      <Link key={tag.id} to={`/article/list?tags[0]=${tag.id}`}>
+                        <Tag>{tag.name}</Tag>
+                      </Link>
+                    ))}
                   </span>
                 </div>
               </div>

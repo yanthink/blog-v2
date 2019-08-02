@@ -1,9 +1,9 @@
 import React from 'react';
 import EmojiPicker from 'yt-emoji-picker';
 import 'yt-emoji-picker/dist/style.css';
-import styles from './YtEmojiPicker.less';
+import styles from './index.less';
 
-const YtEmojiPicker: React.FC<{}> = () => {
+const Index: React.FC<{}> = () => {
   const emojiPickerProps = {
     emojiToolkit: {
       sprites: true,
@@ -25,4 +25,4 @@ const YtEmojiPicker: React.FC<{}> = () => {
   );
 };
 
-export default YtEmojiPicker;
+export default Index;

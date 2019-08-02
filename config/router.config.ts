@@ -6,15 +6,26 @@ export default [
       {
         path: 'yt-simplemde-editor',
         name: 'ytSimplemdeEditor',
-        component: './demos/YtSimplemdeEditor',
+        component: './demos/ytSimplemdeEditor',
       },
       {
         path: 'yt-emoji-picker',
         name: 'ytEmojiPicker',
-        component: './demos/YtEmojiPicker',
+        component: './demos/ytEmojiPicker',
       },
       {
         component: './404',
+      },
+    ],
+  },
+  {
+    path: '/tools',
+    component: '../layouts/BlankLayout',
+    routes: [
+      {
+        path: 'emoji-cheat-sheet',
+        name: 'emojiCheatSheet',
+        component: './tools/emojiCheatSheet',
       },
     ],
   },
