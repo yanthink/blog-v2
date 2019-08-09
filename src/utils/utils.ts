@@ -80,3 +80,17 @@ export function dynamicLoad(srcs: string | string[]): Promise<any> {
     }),
   );
 }
+
+export function randomString(len: number) {
+  const text = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+
+  const rdmIndex = (text: string) => Math.random() * text.length || 0;
+
+  let rdmString = '';
+
+  while (rdmString.length < len) {
+    rdmString += text.charAt(rdmIndex(text));
+  }
+
+  return rdmString;
+}

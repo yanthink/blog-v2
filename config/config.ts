@@ -74,6 +74,7 @@ if (isAntDesignProPreview) {
 
 export default {
   plugins,
+  publicPath: '/',
   block: {
     defaultGitUrl: 'https://github.com/ant-design/pro-blocks',
   },
@@ -142,6 +143,10 @@ export default {
     },
     '/_debugbar': {
       target: 'http://api.blog.test/',
+      changeOrigin: true,
+    },
+    '/wss': {
+      target: 'wss://api.blog.test/',
       changeOrigin: true,
     },
   },

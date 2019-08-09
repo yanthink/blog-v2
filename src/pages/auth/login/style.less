@@ -3,12 +3,59 @@
 .main {
   width: 368px;
   margin: 60px auto 0;
-  padding: @padding-lg;
+  padding: @padding-md @padding-lg;
   background-color: white;
   box-shadow: @shadow-1-down;
 
+  :global {
+    .ant-tabs .ant-tabs-bar {
+      margin-bottom: 24px;
+      text-align: center;
+    }
+
+    .antd-pro-login-submit {
+      width: 100%;
+      margin-top: 24px;
+    }
+  }
+
   @media screen and (max-width: @screen-sm) {
     width: 95%;
+  }
+
+  .qrcodeBox {
+    text-align: center;
+
+    i {
+      margin-top: 60px;
+      color: @error-color;
+      font-size: 40px;
+      vertical-align: middle;
+    }
+
+    .noticeTitle {
+      display: inline-block;
+      margin-top: 60px;
+      margin-left: 12px;
+      font-size: 28px;
+      vertical-align: middle;
+    }
+
+    .noticeBtn {
+      width: 90%;
+      margin-top: 20px;
+      margin-bottom: 80px;
+    }
+
+    p {
+      margin-bottom: .2em;
+      color: rgba(0, 0, 0, .45);
+      font-size: 14px;
+    }
+
+    img {
+      margin: 24px auto 36px auto;
+    }
   }
 
   .title {
@@ -38,13 +85,6 @@
 
     .register {
       float: right;
-    }
-  }
-
-  :global {
-    .antd-pro-login-submit {
-      width: 100%;
-      margin-top: 24px;
     }
   }
 }
