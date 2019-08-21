@@ -9,9 +9,6 @@ import { createEmojiDataFromStrategy, EmojiDataType, EmojiType, createEmojisSele
 import 'emoji-assets/sprites/joypixels-sprite-32.min.css';
 import styles from './index.less';
 
-emojiToolkit.sprites = true;
-emojiToolkit.spriteSize = 32;
-
 export interface CategoriesType {
   [key: string]: { title: string; emoji: string; }
 }
@@ -95,6 +92,9 @@ class EmojiCheatSheet extends React.Component {
 
   render() {
     const { emojiData, modifier, term } = this.state;
+
+    emojiToolkit.sprites = true;
+    emojiToolkit.spriteSize = 32;
 
     const emojisSelectorData = this.emojisSelector(categories, emojiData, modifier, term);
 

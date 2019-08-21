@@ -151,13 +151,35 @@ class ArticleList extends Component<ArticleListProps, ArticleListState> {
             pagination={{
               ...pagination,
               itemRender(page, type, originalElement) {
+                let children: any = page;
+
+                if (type === 'prev') {
+                  children = <Icon type="left" />;
+                } else if (type === 'next') {
+                  children = <Icon type="right" />;
+                } else if (type === 'jump-prev') {
+                  children = (
+                    <div className="ant-pagination-item-container">
+                      <Icon className="ant-pagination-item-link-icon" type="double-left" />
+                      <span className="ant-pagination-item-ellipsis">•••</span>
+                    </div>
+                  );
+                } else if (type === 'jump-next') {
+                  children = (
+                    <div className="ant-pagination-item-container">
+                      <Icon className="ant-pagination-item-link-icon" type="double-right" />
+                      <span className="ant-pagination-item-ellipsis">•••</span>
+                    </div>
+                  );
+                }
+
                 return (
                   // @ts-ignore
                   <Link
                     {...originalElement.props}
                     to={`${pathname}?${stringify({ ...query, page })}`}
                   >
-                    {type === 'page' && page}
+                    {children}
                   </Link>
                 );
               },

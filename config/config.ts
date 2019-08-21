@@ -136,6 +136,7 @@ export default {
     basePath: '/',
   },
   chainWebpack: webpackPlugin,
+  treeShaking: true,
   proxy: {
     '/api': {
       target: 'http://api.blog.test/',
@@ -178,4 +179,9 @@ export default {
       },
     ],
   ],
+  copy: [{
+    from: 'node_modules/emoji-assets',
+    to: 'emoji-assets',
+    toType: 'dir'
+  }],
 } as IConfig;

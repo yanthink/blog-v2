@@ -9,6 +9,7 @@ export interface ArticleType {
   author_id?: number;
   comment_count?: number;
   read_count?: number;
+  current_read_count?: number;
   like_count?: number;
   created_at?: string;
   updated_at?: string;

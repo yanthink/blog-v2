@@ -8,6 +8,7 @@ import emojiToolkit from 'emoji-toolkit';
 import marked from 'marked';
 import Prism from 'prismjs';
 import { getToken } from '@/utils/authority';
+import 'emoji-assets/sprites/joypixels-sprite-32.min.css';
 import styles from './index.less';
 
 const uploadUrl = '/api/attachments/upload';
@@ -39,7 +40,7 @@ class Index extends React.Component<YtSimplemdeEditorProps> {
   };
 
   renderMarkdown = (text: string) => {
-    let html = marked(text, { breaks: true });
+    let html = marked(text, { headerIds: false, gfm: true, breaks: true });
     if (/language-/.test(html)) {
       const container = document.createElement('div');
       container.innerHTML = html;
@@ -116,6 +117,10 @@ class Index extends React.Component<YtSimplemdeEditorProps> {
         enabled: true,
         autoComplete: true,
         insertConvertTo: 'unicode',
+        emojiToolkit: {
+          sprites: true,
+          spriteSize: 32,
+        },
       },
     };
 

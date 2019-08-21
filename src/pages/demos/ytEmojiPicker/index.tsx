@@ -1,6 +1,7 @@
 import React from 'react';
 import EmojiPicker from 'yt-emoji-picker';
 import 'yt-emoji-picker/dist/style.css';
+import 'emoji-assets/sprites/joypixels-sprite-32.min.css';
 import styles from './index.less';
 
 const Index: React.FC<{}> = () => {

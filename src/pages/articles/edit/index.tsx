@@ -18,15 +18,13 @@ import { ArticleType, TagType } from '../list/data';
 import { queryArticle } from '../show/service';
 import { queryAllTags } from '../list/service';
 import 'yt-simplemde-editor/dist/style.css';
+import 'emoji-assets/sprites/joypixels-sprite-32.min.css';
 import styles from './style.less';
 
 const FormItem = Form.Item;
 const { Option } = Select;
 
 const uploadUrl = '/api/attachments/upload';
-
-emojiToolkit.sprites = true;
-emojiToolkit.spriteSize = 32;
 
 type GetBase64Callback = (base64: any) => void;
 
@@ -119,13 +117,18 @@ class ArticleEdit extends Component<ArticleEditProps, ArticleEditState> {
   };
 
   renderMarkdown = (text: string) => {
-    let html = marked(text, { headerIds: false, breaks: true });
+    let html = marked(text, { headerIds: false, gfm: true, breaks: true });
     if (/language-/.test(html)) {
       const container = document.createElement('div');
       container.innerHTML = html;
       Prism.highlightAllUnder(container);
       html = container.innerHTML;
     }
+
+    emojiToolkit.emojiSize = 32;
+    emojiToolkit.imagePathPNG = '/emoji-assets/png/32/';
+    emojiToolkit.sprites = false;
+
     return emojiToolkit.toImage(html);
   };
 
@@ -210,6 +213,10 @@ class ArticleEdit extends Component<ArticleEditProps, ArticleEditState> {
         enabled: true,
         autoComplete: false,
         insertConvertTo: 'unicode',
+        emojiToolkit: {
+          sprites: true,
+          spriteSize: 32,
+        },
       },
     };
 

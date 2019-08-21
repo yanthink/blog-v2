@@ -99,7 +99,7 @@ class AvatarDropdown extends React.Component<GlobalHeaderRightProps> {
       </HeaderDropdown>
     ) : (
       <a className={`${styles.action} ${styles.account}`} onClick={this.onLoginClick}>
-        <Avatar className={styles.avatar} alt="登录" size="small" />
+        <Avatar className={styles.avatar} icon="user" alt="登录" size="small" />
         <span className={styles.name} style={{ color: 'rgba(0,0,0,.65)' }}>
           账户中心
         </span>

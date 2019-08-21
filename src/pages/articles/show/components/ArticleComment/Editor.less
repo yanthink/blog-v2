@@ -1,0 +1,46 @@
+@import '~antd/es/style/themes/default.less';
+
+.avatar {
+  border: 1px solid white;
+  box-shadow: @shadow-1-down;
+}
+
+.actions {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  margin-top: -12px;
+}
+
+.emojiPickerBtn {
+  font-size: 20px;
+}
+
+.submitBtn {
+  width: 100px;
+}
+
+.emojiPickerPopup {
+  :global {
+    .emoji {
+      width: 40px;
+      height: 40px;
+    }
+  }
+}
+
+.comment {
+  :global {
+    .ant-comment-content-author {
+      margin: 0;
+    }
+  }
+}
+
+.content {
+  :global {
+    .ant-form-item-control {
+      line-height: normal;
+    }
+  }
+}

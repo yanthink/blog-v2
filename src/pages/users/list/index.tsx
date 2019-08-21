@@ -1,12 +1,12 @@
-import { Card, Col, Form, Button, Input, Row, Table } from 'antd';
+import { Card, Col, Form, Button, Input, Row, Table, Icon } from 'antd';
 import React, { Component } from 'react';
 import { Dispatch } from 'redux';
+import { Link, router } from 'umi';
+import { parse, stringify } from 'qs';
 import { FormComponentProps } from 'antd/es/form';
 import { PageHeaderWrapper } from '@ant-design/pro-layout';
-import { PaginationConfig } from 'antd/es/table';
 import { connect } from 'dva';
 import { StateType } from './model';
-import { QueryParamsType } from './data.d';
 import styles from './style.less';
 
 const FormItem = Form.Item;
@@ -17,16 +17,22 @@ interface UserListProps extends FormComponentProps {
   dispatch: Dispatch<any>;
   loading: boolean;
   userList: StateType;
+  location: {
+    pathname: string;
+    query: { [key: string]: string };
+    search: string;
+  };
 }
 
-interface UserListState {}
+interface UserListState {
+}
 
 /* eslint react/no-multi-comp:0 */
 @connect(
   ({
-    userList,
-    loading,
-  }: {
+     userList,
+     loading,
+   }: {
     userList: StateType;
     loading: {
       models: {
@@ -65,23 +71,24 @@ class UserList extends Component<UserListProps, UserListState> {
   ];
 
   componentWillMount() {
-    this.queryList();
+    this.queryList(this.props.location.search);
   }
 
-  queryList = (pagination?: PaginationConfig) => {
-    const {
-      dispatch,
-      form: { getFieldsValue },
-    } = this.props;
-    const values = getFieldsValue();
+  componentWillReceiveProps(nextProps: Readonly<UserListProps>): void {
+    if (nextProps.location.search !== this.props.location.search) {
+      this.queryList(nextProps.location.search);
+    }
+  }
 
-    const queryParams: QueryParamsType = {
+  queryList = (params: object | string) => {
+    const query = params instanceof Object ? params : parse(params.replace(/^\?/, ''));
+
+    const queryParams = {
       ...defaultQueryParams,
-      ...pagination,
-      ...values,
+      ...query,
     };
 
-    dispatch({
+    this.props.dispatch({
       type: 'userList/fetch',
       payload: queryParams,
     });
@@ -89,13 +96,21 @@ class UserList extends Component<UserListProps, UserListState> {
 
   handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    this.queryList();
+
+    const { location: { pathname }, form: { getFieldsValue } } = this.props;
+
+    router.push({
+      pathname,
+      search: stringify({
+        ...getFieldsValue(),
+      }),
+    });
   };
 
   handleFormReset = () => {
     const { form } = this.props;
     form.resetFields();
-    this.queryList();
+    this.queryList({});
   };
 
   renderSearchForm() {
@@ -135,7 +150,10 @@ class UserList extends Component<UserListProps, UserListState> {
     const {
       userList: { list, pagination },
       loading,
+      location: { pathname, search },
     } = this.props;
+
+    const query = parse(search.replace(/^\?/, ''));
 
     return (
       <PageHeaderWrapper>
@@ -144,10 +162,46 @@ class UserList extends Component<UserListProps, UserListState> {
             <div className={styles.searchForm}>{this.renderSearchForm()}</div>
             <Table
               dataSource={list}
-              pagination={pagination}
+              pagination={{
+                ...pagination,
+                itemRender(page, type, originalElement) {
+                  let children: any = page;
+
+                  console.info(page, type);
+
+                  if (type === 'prev') {
+                    children = <Icon type="left" />;
+                  } else if (type === 'next') {
+                    children = <Icon type="right" />;
+                  } else if (type === 'jump-prev') {
+                    children = (
+                      <div className="ant-pagination-item-container">
+                        <Icon className="ant-pagination-item-link-icon" type="double-left" />
+                        <span className="ant-pagination-item-ellipsis">•••</span>
+                      </div>
+                    );
+                  } else if (type === 'jump-next') {
+                    children = (
+                      <div className="ant-pagination-item-container">
+                        <Icon className="ant-pagination-item-link-icon" type="double-right" />
+                        <span className="ant-pagination-item-ellipsis">•••</span>
+                      </div>
+                    );
+                  }
+
+                  return (
+                    // @ts-ignore
+                    <Link
+                      {...originalElement.props}
+                      to={`${pathname}?${stringify({ ...query, page })}`}
+                    >
+                      {children}
+                    </Link>
+                  );
+                },
+              }}
               columns={this.columns}
               loading={loading}
-              onChange={this.queryList}
               rowKey="id"
             />
           </div>

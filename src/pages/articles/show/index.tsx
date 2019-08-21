@@ -1,38 +1,47 @@
 import React from 'react';
-import { Card, Icon, Spin, Tag, Row, Col, Button } from 'antd';
+import { Card, Row, Col, Button, Skeleton, Modal, message } from 'antd';
 import { FormComponentProps } from 'antd/es/form';
 import { Dispatch } from 'redux';
 import { connect } from 'dva';
-import { Link } from 'umi';
+import { Link, router } from 'umi';
+import { stringify } from 'qs';
 import { PageHeaderWrapper } from '@ant-design/pro-layout';
-import { get } from 'lodash';
-// @ts-ignore
-import emojiToolkit from 'emoji-toolkit';
-import marked from 'marked';
-import Prism from 'prismjs';
-import { showTime, dynamicLoad } from '@/utils/utils';
+import { getPageQuery } from '@/components/GlobalHeader/AvatarDropdown';
 import Authorized from '@/utils/Authorized';
-import Tocify from './tocify';
+import { UserModelState } from '@/models/user';
 import { StateType } from './model';
-import 'emoji-assets/sprites/joypixels-sprite-32.min.css';
-import 'yt-simplemde-editor/dist/style.css';
+import ArticleContent from './components/ArticleContent';
+import ArticleComment from './components/ArticleComment';
+import Tocify from './components/ArticleContent/tocify';
 import styles from './style.less';
+
+const { confirm } = Modal;
+
+const withReplysLimit = 3;
 
 const defaultQueryParams = {
   include: 'author,tags',
 };
 
-emojiToolkit.sprites = true;
-emojiToolkit.spriteSize = 32;
+const defaultFetchCommentsQueryParams = {
+  include: `user,replys:limit(${withReplysLimit}),replys.user,replys.parent.user`,
+  pageSize: 10,
+};
 
 interface ArticleShowState {
-  dataLoaded: boolean;
+  fetchingArticle: boolean;
+  fetchingComments: boolean;
+  tocify?: Tocify;
 }
 
 interface ArticleShowProps extends FormComponentProps {
   dispatch: Dispatch<any>;
-  loading: boolean;
+  loading: {
+    effects: { [key: string]: boolean };
+    models: { [key: string]: boolean }
+  };
   articlesShow: StateType;
+  user: UserModelState;
   match: {
     params: { [K in 'id']: string };
   };
@@ -41,147 +50,207 @@ interface ArticleShowProps extends FormComponentProps {
 @connect(
   ({
      loading,
+     user,
      articlesShow,
    }: {
-    loading: { models: { [key: string]: boolean } };
+    loading: { effects: { [key: string]: boolean }; models: { [key: string]: boolean } };
+    user: UserModelState;
     articlesShow: StateType;
   }) => ({
-    loading: loading.models.articlesShow,
+    loading,
+    user,
     articlesShow,
   }),
 )
 export default class ArticleShow extends React.Component<ArticleShowProps, ArticleShowState> {
   state: ArticleShowState = {
-    dataLoaded: false,
+    fetchingArticle: true,
+    fetchingComments: true,
   };
 
-  markup = '';
-
-  markdown: any;
-
-  fetchArticlePromise?: Promise<any>;
-
-  fetchArticleResolve: any;
-
-  tocify: Tocify;
+  commentBoxId = '';
 
   constructor(props: ArticleShowProps) {
     super(props);
 
     this.state = {
-      dataLoaded: false,
-    };
-
-    this.markup = '';
-
-    this.tocify = new Tocify();
-    const renderer = new marked.Renderer();
-    renderer.heading = (text, level) => {
-      const anchor = this.tocify.add(text, level);
-      return `<a id="${anchor}" href="#${anchor}" class="anchor-fix"><h${level}>${text}</h${level}></a>\n`;
-    };
-    renderer.link = (href: string, title: string, text: string) => {
-      let url = href;
-      let target: boolean | string = false;
-
-      if (url.slice(0, 1) !== '#') {
-        const urlParams = new URL(href, window.location.origin);
-
-        url = urlParams.href;
-
-        target = urlParams.host !== window.location.host ? '_blank' : false;
-      }
-
-      if (!url) {
-        return text;
-      }
-
-      let out = `<a href="${url}"`;
-      if (title) {
-        out += ` title="${title}"`;
-      }
-      if (target !== false) {
-        out += ` target="${target}"`;
-      }
-      out += `>${text}</a>`;
-
-      return out;
-    };
-    marked.setOptions({ renderer, headerIds: true, breaks: true });
+      fetchingArticle: true,
+      fetchingComments: true,
+    }
   }
 
   async componentWillMount() {
-    const {
-      dispatch,
-      match: { params },
-    } = this.props;
+    const { dispatch, match: { params } } = this.props;
+
     dispatch({
       type: 'articlesShow/fetchArticle',
       id: params.id,
       payload: { ...defaultQueryParams },
     });
 
-    this.fetchArticlePromise = new Promise(resolve => (this.fetchArticleResolve = resolve));
-  }
-
-  async componentDidMount() {
-    await dynamicLoad('/fluidbox/jquery.min.js');
-    await dynamicLoad('/fluidbox/jquery.ba-throttle-debounce.min.js');
-    await dynamicLoad('/fluidbox/jquery.fluidbox.min.js');
-    await dynamicLoad('/fluidbox/fluidbox.min.css');
-    await this.fetchArticlePromise;
-
-    this.setState({ dataLoaded: true }, () => {
-      Prism.highlightAllUnder(this.markdown);
-
-      /* eslint no-undef:0, func-names:0 */
-      // @ts-ignore
-      jQuery(this.markdown)
-        .find('img')
-        .each(function () {
-          // @ts-ignore
-          jQuery(this).wrap(`<a href="${jQuery(this).attr('src')}" class="fluidbox"></a>`);
-        })
-        .promise()
-        // @ts-ignore
-        .done(() => jQuery('a.fluidbox').fluidbox());
+    dispatch({
+      type: 'articlesShow/fetchComments',
+      id: params.id,
+      payload: { ...defaultFetchCommentsQueryParams },
     });
   }
 
   componentDidUpdate(prevProps: ArticleShowProps) {
-    if (prevProps.loading && this.props.loading === false) {
-      this.fetchArticleResolve();
+    /* eslint react/no-did-update-set-state:0 */
+    if (
+      prevProps.loading.effects['articlesShow/fetchArticle'] &&
+      this.props.loading.effects['articlesShow/fetchArticle'] === false
+    ) {
+      this.setState({ fetchingArticle: false });
+    }
+
+    if (
+      prevProps.loading.effects['articlesShow/fetchComments'] &&
+      this.props.loading.effects['articlesShow/fetchComments'] === false
+    ) {
+      this.setState({ fetchingComments: false });
     }
   }
 
-  componentWillUnmount() {
-    const renderer = new marked.Renderer();
-    marked.setOptions({ renderer, breaks: true });
-  }
-
-  setMarkdownRef = (ref: any) => {
-    this.markdown = ref;
+  setTocify = (tocify: Tocify) => {
+    this.commentBoxId = tocify.add('评论区', 1);
+    this.setState({ tocify });
   };
 
-  createMarkup() {
-    const {
-      articlesShow: { article },
-      match: { params },
-    } = this.props;
-    if (!this.markup && article && article.content && String(article.id) === params.id) {
-      this.tocify.reset();
-      this.markup = emojiToolkit.toImage(marked(article.content));
+  loginConfirm = () => {
+    confirm({
+      title: '登录确认?',
+      content: '您还没有登录，点击【确定】前去登录。',
+      okText: '确定',
+      cancelText: '取消',
+      onOk() {
+        const { redirect } = getPageQuery();
+        // redirect
+        if (window.location.pathname !== '/auth/login' && !redirect) {
+          router.replace({
+            pathname: '/auth/login',
+            search: stringify({
+              redirect: window.location.href,
+            }),
+          });
+        }
+      },
+      onCancel() {
+      },
+    });
+  };
+
+  handleCommentLike = (commentId: number) => {
+    const { dispatch, user: { currentUser } } = this.props;
+
+    if (!currentUser || !currentUser.name) {
+      this.loginConfirm();
+      return;
     }
-    return { __html: this.markup };
-  }
+
+    dispatch({
+      type: 'articlesShow/commentLike',
+      commentId,
+    });
+  };
+
+  handleReplyLike = (commentId: number, replyId: number) => {
+    const { dispatch, user: { currentUser } } = this.props;
+
+    if (!currentUser || !currentUser.name) {
+      this.loginConfirm();
+      return;
+    }
+
+    dispatch({
+      type: 'articlesShow/replyLike',
+      commentId,
+      replyId,
+    });
+  };
+
+  handleCommentSubmit = (values: { content: string }, callback?: () => void) => {
+    const { dispatch, user: { currentUser }, match: { params } } = this.props;
+
+    if (!currentUser || !currentUser.name) {
+      this.loginConfirm();
+      return;
+    }
+
+    dispatch({
+      type: 'articlesShow/sendComment',
+      articleId: params.id,
+      payload: {
+        ...defaultFetchCommentsQueryParams,
+        ...values,
+      },
+      callback: () => {
+        message.success('评论成功！');
+        if (callback) {
+          callback();
+        }
+      },
+    });
+  };
+
+  handleReplySubmit = (
+    values: { content: string, commentId: number, replyId?: number },
+    callback?: () => void,
+  ) => {
+    const { dispatch, user: { currentUser } } = this.props;
+    const { content, commentId, replyId } = values;
+
+    if (!currentUser || !currentUser.name) {
+      this.loginConfirm();
+      return;
+    }
+
+    dispatch({
+      type: 'articlesShow/sendReply',
+      commentId,
+      payload: {
+        content,
+        parent_id: replyId,
+        include: 'user,parent.user',
+      },
+      callback: () => {
+        message.success('评论成功！');
+        if (callback) {
+          callback();
+        }
+      },
+    });
+  };
+
+  handleFetchMoreComments = () => {
+    const { dispatch, match: { params } } = this.props;
+
+    dispatch({
+      type: 'articlesShow/appendFetchComments',
+      articleId: params.id,
+      payload: { ...defaultFetchCommentsQueryParams },
+    });
+  };
+
+  handleFetchMoreReplys = (commentId: number) => {
+    const { dispatch } = this.props;
+
+    dispatch({
+      type: 'articlesShow/appendFetchReplys',
+      commentId,
+      payload: { include: 'user,parent.user' },
+    });
+  };
 
   render() {
     const {
-      articlesShow: { article },
+      user,
       loading,
+      articlesShow: { article, comments, commentsPagination },
       match: { params },
     } = this.props;
-    const { dataLoaded } = this.state;
+
+    const { fetchingArticle, fetchingComments, tocify } = this.state;
 
     const HeaderAction = (
       <Link to={`/articles/${params.id}/edit`}>
@@ -197,50 +266,39 @@ export default class ArticleShow extends React.Component<ArticleShowProps, Artic
         <Row gutter={24} type="flex">
           <Col xl={18} lg={24} md={24} sm={24} xs={24}>
             <Card bordered={false}>
-              <div className={styles.header}>
-                <h1>{get(article, 'title')}</h1>
-                <div className={styles.meta}>
-                  <Link
-                    style={{ color: 'inherit' }}
-                    to={`/article/list?author_id=${get(article, 'author.id')}`}
-                  >
-                    {get(article, 'author.name')}
-                  </Link>
-                  <span style={{ margin: '0 6px' }}>⋅</span>
-                  <span>
-                    于
-                    <Icon type="clock-circle-o" style={{ margin: '0 4px' }} />
-                    {showTime(get(article, 'created_at', ''))}
-                  </span>
-                  <span style={{ margin: '0 6px' }}>⋅</span>
-                  <span>
-                    <Icon type="eye-o" style={{ marginRight: 4 }} />
-                    {get(article, 'current_read_count')} 阅读
-                  </span>
-                  <span style={{ margin: '0 6px' }}>⋅</span>
-                  <span>
-                    <Icon type="tags-o" style={{ marginRight: 4 }} />
-                    {article &&
-                    article.tags &&
-                    article.tags.map(tag => (
-                      <Link key={tag.id} to={`/article/list?tags[0]=${tag.id}`}>
-                        <Tag>{tag.name}</Tag>
-                      </Link>
-                    ))}
-                  </span>
-                </div>
+              <Skeleton
+                active
+                paragraph={{ rows: 13 }}
+                loading={fetchingArticle}
+              >
+                <ArticleContent article={article} getTocify={this.setTocify} />
+              </Skeleton>
+            </Card>
+            <Card bordered={false} style={{ marginTop: 20 }}>
+              <div id={this.commentBoxId}>
+                <Skeleton
+                  active
+                  avatar
+                  paragraph={{ rows: 3 }}
+                  loading={fetchingComments}
+                >
+                  <ArticleComment
+                    currentUser={user.currentUser || {}}
+                    article={article || {}}
+                    data={comments || []}
+                    pagination={commentsPagination}
+                    commentsLoading={loading.effects['articlesShow/appendFetchComments']}
+                    onFetchMoreComments={this.handleFetchMoreComments}
+                    onFetchMoreReplys={this.handleFetchMoreReplys}
+                    onCommentLike={this.handleCommentLike}
+                    onReplyLike={this.handleReplyLike}
+                    onCommentSubmit={this.handleCommentSubmit}
+                    onReplySubmit={this.handleReplySubmit}
+                    commentSubmitting={loading.effects['articlesShow/sendComment']}
+                    replySubmitting={loading.effects['articlesShow/sendReply']}
+                  />
+                </Skeleton>
               </div>
-              {loading || !dataLoaded ? (
-                <div style={{ textAlign: 'center', padding: '20px' }}>
-                  <Spin indicator={<Icon type="loading" style={{ fontSize: 32 }} spin />} />
-                </div>
-              ) : (
-                <div
-                  ref={this.setMarkdownRef}
-                  className={`${styles.content} markdown-body`}
-                  dangerouslySetInnerHTML={this.createMarkup()}
-                />
-              )}
             </Card>
           </Col>
           <Col xl={6} lg={0} md={0} sm={0} xs={0}>
@@ -251,7 +309,15 @@ export default class ArticleShow extends React.Component<ArticleShowProps, Artic
                 style={{ width: '100%', height: '100%' }}
               />
             </Card>
-            {this.markup && this.tocify.tocItems.length > 0 && this.tocify.render()}
+            <div className={styles.tocifyBox}>
+              <Skeleton
+                active
+                paragraph={{ rows: 10 }}
+                loading={!tocify}
+              >
+                {tocify && tocify.render()}
+              </Skeleton>
+            </div>
           </Col>
         </Row>
       </PageHeaderWrapper>
