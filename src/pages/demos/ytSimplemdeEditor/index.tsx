@@ -13,9 +13,6 @@ import styles from './index.less';
 
 const uploadUrl = '/api/attachments/upload';
 
-emojiToolkit.sprites = true;
-emojiToolkit.spriteSize = 32;
-
 export interface YtSimplemdeEditorProps extends FormComponentProps {
 }
 
@@ -58,6 +55,7 @@ class Index extends React.Component<YtSimplemdeEditorProps> {
     const editorProps: SimpleMDEEditorProps = {
       // 配置文档 https://github.com/sparksuite/simplemde-markdown-editor#configuration
       options: {
+        autoDownloadFontAwesome: false,
         spellChecker: false,
         autosave: {
           enabled: true,
@@ -117,10 +115,6 @@ class Index extends React.Component<YtSimplemdeEditorProps> {
         enabled: true,
         autoComplete: true,
         insertConvertTo: 'unicode',
-        emojiToolkit: {
-          sprites: true,
-          spriteSize: 32,
-        },
       },
     };
 

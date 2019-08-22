@@ -47,8 +47,15 @@ body #nprogress .spinner-icon {
   line-height: normal;
 }
 
+// emoji
 span.joypixels {
-  margin: 0 !important;
+  margin: -11.6px -12.6px -14px 1.4px;
+  transform: scale(0.5625, 0.5625);
+  transform-origin: left;
+}
+
+.emoji span.joypixels {
+  margin: 0;
   transform: scale(0.75, 0.75);
   transform-origin: left;
 }
@@ -57,11 +64,12 @@ img.joypixels {
   width: 18px;
   height: 18px;
   margin: -3px .1em 0 .1em;
-
 }
 
-.markdown-body table {
-  margin-bottom: 16px;
+.emoji img.joypixels {
+  width: 24px;
+  height: 24px;
+  margin: 0;
 }
 
 @media (max-width: @screen-xs) {
@@ -90,6 +98,10 @@ img.joypixels {
     }
 
     .ant-pro-sider-menu-logo {
+      padding-left: 12px;
+    }
+
+    .ant-pro-global-header-trigger {
       padding-left: 12px;
     }
 

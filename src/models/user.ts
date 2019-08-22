@@ -61,7 +61,7 @@ const UserModel: UserModelType = {
         });
       } else {
         // @ts-ignore https://umijs.org/zh/guide/with-dva.html#faq
-        window.g_app._store.dispatch({ type: 'login/logout' });
+        // window.g_app._store.dispatch({ type: 'login/logout' });
       }
     },
   },

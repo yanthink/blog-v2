@@ -125,10 +125,6 @@ class ArticleEdit extends Component<ArticleEditProps, ArticleEditState> {
       html = container.innerHTML;
     }
 
-    emojiToolkit.emojiSize = 32;
-    emojiToolkit.imagePathPNG = '/emoji-assets/png/32/';
-    emojiToolkit.sprites = false;
-
     return emojiToolkit.toImage(html);
   };
 
@@ -157,8 +153,9 @@ class ArticleEdit extends Component<ArticleEditProps, ArticleEditState> {
     };
 
     const editorProps: SimpleMDEEditorProps = {
+      // 配置文档 https://github.com/sparksuite/simplemde-markdown-editor#configuration
       options: {
-        // see https://github.com/sparksuite/simplemde-markdown-editor#configuration
+        autoDownloadFontAwesome: false,
         spellChecker: false,
         previewRender: this.renderMarkdown,
         tabSize: 4,
@@ -213,10 +210,6 @@ class ArticleEdit extends Component<ArticleEditProps, ArticleEditState> {
         enabled: true,
         autoComplete: false,
         insertConvertTo: 'unicode',
-        emojiToolkit: {
-          sprites: true,
-          spriteSize: 32,
-        },
       },
     };
 

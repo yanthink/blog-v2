@@ -33,11 +33,11 @@ const plugins: IPlugin[] = [
       },
       pwa: pwa
         ? {
-            workboxPluginMode: 'InjectManifest',
-            workboxOptions: {
-              importWorkboxFrom: 'local',
-            },
-          }
+          workboxPluginMode: 'InjectManifest',
+          workboxOptions: {
+            importWorkboxFrom: 'local',
+          },
+        }
         : false, // default close dll, because issue https://github.com/ant-design/ant-design-pro/issues/4665
       // dll features https://webpack.js.org/plugins/dll-plugin/
       // dll: {
@@ -179,9 +179,16 @@ export default {
       },
     ],
   ],
-  copy: [{
-    from: 'node_modules/emoji-assets',
-    to: 'emoji-assets',
-    toType: 'dir'
-  }],
+  copy: [
+    {
+      from: 'node_modules/emoji-assets',
+      to: 'emoji-assets',
+      toType: 'dir'
+    },
+    {
+      from: 'node_modules/font-awesome',
+      to: 'font-awesome',
+      toType: 'dir'
+    },
+  ],
 } as IConfig;

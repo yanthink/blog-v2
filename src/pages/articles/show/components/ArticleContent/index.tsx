@@ -108,9 +108,6 @@ export default class ArticleContent extends React.Component<ArticleContentProps>
     if (article && article.content) {
       this.tocify.reset();
 
-      emojiToolkit.emojiSize = 32;
-      emojiToolkit.imagePathPNG = '/emoji-assets/png/32/';
-      emojiToolkit.sprites = false;
       const markup = emojiToolkit.toImage(marked(article.content));
 
       return { __html: markup };

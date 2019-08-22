@@ -269,17 +269,15 @@ class ArticleComment extends React.Component<ArticleCommentProps, ArticleComment
   render() {
     const { currentUser, data, pagination, onCommentLike, commentSubmitting } = this.props;
 
-    emojiToolkit.emojiSize = 32;
-    emojiToolkit.imagePathPNG = '/emoji-assets/png/32/';
-    emojiToolkit.sprites = false;
-
     const commentEditorProps = {
+      placeholder: '支持 markdown 语法！',
       className: styles.commentEditorBox,
       currentUser,
       submitting: commentSubmitting,
       onSubmit: this.handleCommentSubmit,
       minRows: 5,
       maxLength: 1024,
+      preview: true,
     };
 
     /* eslint react/no-children-prop: 0 */

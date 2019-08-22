@@ -6,10 +6,6 @@ import styles from './index.less';
 
 const Index: React.FC<{}> = () => {
   const emojiPickerProps = {
-    emojiToolkit: {
-      sprites: true,
-      spriteSize: 32,
-    },
     onSelect(emoji: any) {
       /* eslint no-console: 0 */
       console.info(emoji);

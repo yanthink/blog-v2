@@ -2,6 +2,8 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { Avatar, Button, Comment, Form, Icon, Input } from 'antd';
 import { get } from 'lodash';
+import marked from 'marked';
+import Prism from 'prismjs';
 import EmojiPicker from 'yt-emoji-picker';
 // @ts-ignore
 import emojiToolkit from 'emoji-toolkit';
@@ -24,6 +26,7 @@ interface ArticleCommentEditorProps {
   onSubmit: (values: { content: string }, callback?: () => void) => void;
   minRows: number;
   maxLength: number;
+  preview?: boolean;
 }
 
 /* eslint max-len: 0 */
@@ -41,6 +44,8 @@ class ArticleCommentEditor extends React.Component<ArticleCommentEditorProps, Ar
   emojiPickerBtn: any;
 
   textarea: any;
+
+  previewRef: any;
 
   componentDidMount() {
     ArticleCommentEditor.stackCount++;
@@ -62,10 +67,6 @@ class ArticleCommentEditor extends React.Component<ArticleCommentEditorProps, Ar
       document.body.appendChild(ArticleCommentEditor.emojiPickerPopup);
 
       const emojiPickerProps = {
-        emojiToolkit: {
-          sprites: true,
-          spriteSize: 32,
-        },
         onSelect: this.handleEmojiSelect,
         search: true,
         recentCount: 36,
@@ -73,6 +74,12 @@ class ArticleCommentEditor extends React.Component<ArticleCommentEditorProps, Ar
       };
 
       ReactDOM.render(<EmojiPicker {...emojiPickerProps} />, ArticleCommentEditor.emojiPickerPopup);
+    }
+  }
+
+  componentDidUpdate() {
+    if (this.previewRef && this.state.value) {
+      Prism.highlightAllUnder(this.previewRef);
     }
   }
 
@@ -92,6 +99,10 @@ class ArticleCommentEditor extends React.Component<ArticleCommentEditorProps, Ar
       delete ArticleCommentEditor.instance;
     }
   }
+
+  setPreviewRef = (ref: any) => {
+    this.previewRef = ref;
+  };
 
   handleSubmit = (e?: React.FormEvent) => {
     e && e.preventDefault();
@@ -121,9 +132,6 @@ class ArticleCommentEditor extends React.Component<ArticleCommentEditorProps, Ar
   toggleEmojiPickerPopup = (emojiPickerBtn: any) => {
     if (ArticleCommentEditor.emojiPickerPopup) {
       ArticleCommentEditor.instance = this;
-
-      emojiToolkit.sprites = true;
-      emojiToolkit.spriteSize = 32;
 
       if (ArticleCommentEditor.emojiPickerPopup.style.display === 'none') {
         ArticleCommentEditor.emojiPickerPopup.style.visibility = 'hidden';
@@ -173,6 +181,7 @@ class ArticleCommentEditor extends React.Component<ArticleCommentEditorProps, Ar
       submitting,
       minRows = 5,
       maxLength = 1024,
+      preview,
     } = this.props;
 
     const { value } = this.state;
@@ -217,7 +226,7 @@ class ArticleCommentEditor extends React.Component<ArticleCommentEditorProps, Ar
                   <Button
                     className={styles.submitBtn}
                     htmlType="submit"
-                    disabled={submitting}
+                    loading={submitting}
                     onClick={this.handleSubmit}
                     type="primary"
                     icon="message"
@@ -227,6 +236,20 @@ class ArticleCommentEditor extends React.Component<ArticleCommentEditorProps, Ar
                 </div>
               </div>
             </FormItem>
+            {
+              preview && value &&
+              <FormItem>
+                <div
+                  ref={this.setPreviewRef}
+                  className={styles.preview}
+                  dangerouslySetInnerHTML={{
+                    __html: emojiToolkit.toImage(
+                      marked(value),
+                    ),
+                  }}
+                />
+              </FormItem>
+            }
           </div>
         }
       />

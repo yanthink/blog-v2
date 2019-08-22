@@ -1,7 +1,12 @@
 import React from 'react';
 import { Button, message, notification } from 'antd';
+// @ts-ignore
+import emojiToolkit from 'emoji-toolkit';
 import { dynamicLoad } from '@/utils/utils';
 import defaultSettings from '../config/defaultSettings';
+
+emojiToolkit.sprites = true;
+emojiToolkit.spriteSize = 32;
 
 const { pwa } = defaultSettings;
 // if pwa is true
@@ -54,7 +59,8 @@ if (pwa) {
       description: '请点击“刷新”按钮或者手动刷新页面',
       btn,
       key,
-      onClose: async () => {},
+      onClose: async () => {
+      },
     });
   });
 } else if ('serviceWorker' in navigator) {
