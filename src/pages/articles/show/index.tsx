@@ -274,7 +274,7 @@ export default class ArticleShow extends React.Component<ArticleShowProps, Artic
                 <ArticleContent article={article} getTocify={this.setTocify} />
               </Skeleton>
             </Card>
-            <Card bordered={false} style={{ marginTop: 20 }}>
+            <Card bordered={false} className={styles.commentCard}>
               <div id={this.commentBoxId}>
                 <Skeleton
                   active

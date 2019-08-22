@@ -1,12 +1,7 @@
 export default {
-  'menu.articles.list': 'Articles',
-  'menu.articles.show': 'Articles Show',
-  'menu.articles.create': 'Articles Create',
-  'menu.articles.edit': 'Articles Edit',
-  'menu.user.list': 'User Manage',
-
   'menu.welcome': 'Welcome',
   'menu.more-blocks': 'More Blocks',
+
   'menu.home': 'Home',
   'menu.login': 'Login',
   'menu.register': 'Register',

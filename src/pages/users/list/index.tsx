@@ -167,8 +167,6 @@ class UserList extends Component<UserListProps, UserListState> {
                 itemRender(page, type, originalElement) {
                   let children: any = page;
 
-                  console.info(page, type);
-
                   if (type === 'prev') {
                     children = <Icon type="left" />;
                   } else if (type === 'next') {

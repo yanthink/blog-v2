@@ -185,7 +185,7 @@ class ArticleComment extends React.Component<ArticleCommentProps, ArticleComment
       currentUser,
       submitting: replySubmitting,
       onSubmit: this.handleReplySubmit,
-      rows: 1,
+      minRows: 1,
       maxLength: 1024,
     };
 
@@ -241,15 +241,17 @@ class ArticleComment extends React.Component<ArticleCommentProps, ArticleComment
                         onClick={() => onReplyLike(comment.id as number, reply.id as number)}
                       />
                     </Tooltip>
-                    <span style={{ paddingLeft: 8, cursor: 'auto' }}>{reply.like_count}</span>
+                    <span style={{ paddingLeft: 4, cursor: 'auto' }}>{reply.like_count}</span>
                   </span>,
-                  <a
+                  <span
                     key="comment-basic-reply"
                     className={styles.replyBtn}
                     onClick={() => this.handleReplyBtnClick(comment, reply)}
                   >
-                    回复
-                  </a>,
+                    <Tooltip title={`回复 ${get(reply, 'user.name')}`}>
+                      <Icon type="message" /> 回复
+                    </Tooltip>
+                  </span>,
                 ]}
               />
               {
@@ -276,7 +278,7 @@ class ArticleComment extends React.Component<ArticleCommentProps, ArticleComment
       currentUser,
       submitting: commentSubmitting,
       onSubmit: this.handleCommentSubmit,
-      rows: 5,
+      minRows: 5,
       maxLength: 1024,
     };
 
@@ -319,15 +321,14 @@ class ArticleComment extends React.Component<ArticleCommentProps, ArticleComment
                         onClick={() => onCommentLike(item.id as number)}
                       />
                     </Tooltip>
-                    <span style={{ paddingLeft: 8, cursor: 'auto' }}>{item.like_count}</span>
+                    <span style={{ paddingLeft: 4, cursor: 'auto' }}>{item.like_count}</span>
                   </span>,
-                  <a
+                  <span
                     key="comment-basic-reply"
-                    className={styles.replyBtn}
                     onClick={() => this.handleCommentBtnClick(item)}
                   >
-                    回复
-                  </a>,
+                    <Icon type="message" /> 评论
+                  </span>,
                 ]}
                 children={this.renderReplys(item)}
               />

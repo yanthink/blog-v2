@@ -136,10 +136,9 @@ class ArticleList extends Component<ArticleListProps, ArticleListState> {
           </Form>
         </Card>
         <Card
+          className={styles.listCard}
           title={title}
-          style={{ marginTop: 24 }}
           bordered={false}
-          bodyStyle={{ padding: '8px 32px 32px 32px' }}
         >
           <List
             size="large"

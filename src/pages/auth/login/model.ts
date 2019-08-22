@@ -2,7 +2,7 @@ import { AnyAction } from 'redux';
 import { EffectsCommandMap } from 'dva';
 import { routerRedux } from 'dva/router';
 import { login } from './service';
-import { getPageQuery } from './utils/utils';
+import { getPageQuery } from './utils';
 import { setToken, setAuthority } from '@/utils/authority';
 import { reloadAuthorized } from '@/utils/Authorized';
 

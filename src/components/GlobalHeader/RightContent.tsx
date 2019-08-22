@@ -1,12 +1,12 @@
 import React from 'react';
 import { connect } from 'dva';
 import { router } from 'umi';
-import { formatMessage } from 'umi-plugin-react/locale';
+import { Icon } from 'antd';
 import { ConnectProps, ConnectState } from '@/models/connect';
 
+import NoticeIcon from './NoticeIcon';
 import Avatar from './AvatarDropdown';
 import HeaderSearch from '../HeaderSearch';
-import SelectLang from '../SelectLang';
 import styles from './index.less';
 
 export type SiderTheme = 'light' | 'dark';
@@ -29,11 +29,10 @@ const GlobalHeaderRight: React.FC<GlobalHeaderRightProps> = props => {
       <span style={{ width: 80, height: 1, display: 'inline-block' }} />
       <HeaderSearch
         className={`${styles.action} ${styles.search}`}
-        placeholder={formatMessage({
-          id: 'component.globalHeader.search',
-        })}
+        placeholder="站内搜索"
         dataSource={[]}
-        onSearch={() => {}}
+        onSearch={() => {
+        }}
         onPressEnter={value => {
           router.push({
             pathname: '/articles/list',
@@ -43,8 +42,16 @@ const GlobalHeaderRight: React.FC<GlobalHeaderRightProps> = props => {
           });
         }}
       />
-      <Avatar menu />
-      <SelectLang className={styles.action} />
+      <NoticeIcon />
+      <Avatar />
+      <a
+        className={styles.action}
+        href="https://github.com/yanthink/blog-v2"
+        rel="noopener noreferrer"
+        target="_blank"
+      >
+        <Icon type="github" className={styles.github} />
+      </a>
     </div>
   );
 };

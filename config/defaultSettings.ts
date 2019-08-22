@@ -53,7 +53,7 @@ export default {
   fixSiderbar: false,
   colorWeak: false,
   menu: {
-    locale: true,
+    locale: false,
   },
   title: '平凡的博客',
   pwa: false,

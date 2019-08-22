@@ -22,7 +22,7 @@ interface ArticleCommentEditorProps {
   currentUser?: UserType;
   submitting: boolean;
   onSubmit: (values: { content: string }, callback?: () => void) => void;
-  rows: number;
+  minRows: number;
   maxLength: number;
 }
 
@@ -171,7 +171,7 @@ class ArticleCommentEditor extends React.Component<ArticleCommentEditorProps, Ar
       placeholder = '',
       currentUser,
       submitting,
-      rows = 5,
+      minRows = 5,
       maxLength = 1024,
     } = this.props;
 
@@ -195,7 +195,7 @@ class ArticleCommentEditor extends React.Component<ArticleCommentEditorProps, Ar
                 placeholder={placeholder}
                 ref={this.setTextareaRef}
                 autosize={{
-                  minRows: rows,
+                  minRows,
                 }}
                 maxLength={maxLength}
                 onChange={this.handleChange}

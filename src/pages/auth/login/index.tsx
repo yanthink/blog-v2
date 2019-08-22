@@ -1,14 +1,13 @@
 import { Form, Tabs, Input, Button, Checkbox, Icon, message } from 'antd';
-import { FormattedMessage, formatMessage } from 'umi-plugin-react/locale';
 import React, { Component } from 'react';
 import { Dispatch } from 'redux';
 import { FormComponentProps } from 'antd/es/form';
 import { connect } from 'dva';
-import { router } from 'umi';
+import { router, Link } from 'umi';
 import { randomString } from '@/utils/utils';
 import { setAuthority, setToken } from '@/utils/authority';
 import { reloadAuthorized } from '@/utils/Authorized';
-import { getPageQuery } from './utils/utils';
+import { getPageQuery } from './utils';
 import styles from './style.less';
 
 const FormItem = Form.Item;
@@ -193,13 +192,13 @@ class Login extends Component<LoginProps, LoginState> {
                     rules: [
                       {
                         required: true,
-                        message: formatMessage({ id: 'auth-login.username.required' }),
+                        message: '请输入账户名称！',
                       },
                     ],
                   })(
                     <Input
                       size="large"
-                      placeholder={`${formatMessage({ id: 'auth-login.login.username' })}`}
+                      placeholder="账户名称"
                     />,
                   )}
                 </FormItem>
@@ -208,28 +207,28 @@ class Login extends Component<LoginProps, LoginState> {
                     rules: [
                       {
                         required: true,
-                        message: formatMessage({ id: 'auth-login.password.required' }),
+                        message: '请输入账户密码！',
                       },
                     ],
                   })(
                     <Input
                       size="large"
                       type="password"
-                      placeholder={`${formatMessage({ id: 'auth-login.login.password' })}`}
+                      placeholder="账户密码"
                     />,
                   )}
                 </FormItem>
                 <FormItem>
                   {getFieldDecorator('remember')(
                     <Checkbox>
-                      <FormattedMessage id="auth-login.login.remember-me" />
+                      自动登录
                     </Checkbox>,
                   )}
-                  <a style={{ float: 'right' }} href="">
-                    <FormattedMessage id="auth-login.login.forgot-password" />
-                  </a>
+                  <Link style={{ float: 'right' }} to="#">
+                    忘记密码
+                  </Link>
                   <Button size="large" type="primary" block loading={submitting} htmlType="submit">
-                    <FormattedMessage id="auth-login.login.login" />
+                    登录
                   </Button>
                 </FormItem>
               </div>

@@ -1,10 +1,4 @@
 export default {
-  'menu.articles.list': '文章列表',
-  'menu.articles.show': '文章詳情',
-  'menu.articles.create': '新建文章',
-  'menu.articles.edit': '編輯文章',
-  'menu.user.list': '用戶管理',
-
   'menu.welcome': '歡迎',
   'menu.more-blocks': '更多區塊',
 

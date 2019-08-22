@@ -1,12 +1,7 @@
 export default {
-  'menu.articles.list': '文章列表',
-  'menu.articles.show': '文章详情',
-  'menu.articles.create': '新建文章',
-  'menu.articles.edit': '编辑文章',
-  'menu.user.list': '用户管理',
-
   'menu.welcome': '欢迎',
   'menu.more-blocks': '更多区块',
+
   'menu.home': '首页',
   'menu.login': '登录',
   'menu.register': '注册',

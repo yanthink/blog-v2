@@ -35,7 +35,7 @@ export default [
     routes: [
       {
         path: 'login',
-        name: 'login',
+        name: '登录',
         component: './auth/login',
       },
       {
@@ -49,33 +49,33 @@ export default [
     Routes: ['src/pages/Authorized'],
     routes: [
       {
-        name: 'articles.list',
+        name: '文章列表',
         icon: 'edit',
         path: '/articles/list',
         component: './articles/list',
       },
       {
-        name: 'articles.show',
+        name: '文章详情',
         path: '/articles/:id/show',
         hideInMenu: true,
         component: './articles/show',
       },
       {
-        name: 'articles.create',
+        name: '新建文章',
         path: '/articles/create',
         authority: 'articles.store',
         hideInMenu: true,
         component: './articles/create',
       },
       {
-        name: 'articles.edit',
+        name: '编辑文章',
         path: '/articles/:id/edit',
         authority: 'articles.upload',
         hideInMenu: true,
         component: './articles/edit',
       },
       {
-        name: 'user.list',
+        name: '用户管理',
         icon: 'user',
         path: '/users/list',
         authority: 'users.index',

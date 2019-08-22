@@ -2,6 +2,7 @@
 
 .tocifyBox {
   background-color: white;
+
   :global {
     .ant-skeleton-content {
       padding: @padding-lg;
@@ -10,5 +11,15 @@
     .ant-anchor-wrapper {
       margin-left: 0;
     }
+  }
+}
+
+.commentCard {
+  margin-top: 24px;
+}
+
+@media (max-width: @screen-md) {
+  .commentCard {
+    margin-top: 12px;
   }
 }

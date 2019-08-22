@@ -29,47 +29,6 @@ ol {
   list-style: none;
 }
 
-@media (max-width: @screen-xs) {
-  .ant-table {
-    width: 100%;
-    overflow-x: auto;
-
-    &-thead > tr,
-    &-tbody > tr {
-      > th,
-      > td {
-        white-space: pre;
-
-        > span {
-          display: block;
-        }
-      }
-    }
-  }
-}
-
-// 定宽模式样式覆盖
-@media (min-width: @screen-xl) {
-  .ant-pro-grid-content.wide > .ant-page-header {
-    padding: 16px 0;
-  }
-
-  .ant-pro-grid-content.wide > .ant-pro-page-header-wrap-children-content {
-    margin: 24px 0 0 0;
-  }
-
-  .ant-pro-grid-content.wide .ant-page-header-heading-extra {
-    top: 38px;
-    right: 0;
-  }
-}
-
-@media (max-width: @screen-xl) {
-  .ant-pro-top-nav-header-main.wide .ant-pro-top-nav-header-logo {
-    padding-left: 24px;
-  }
-}
-
 // nprogress
 body #nprogress .bar {
   background-color: #13c2c2;
@@ -103,4 +62,87 @@ img.joypixels {
 
 .markdown-body table {
   margin-bottom: 16px;
+}
+
+@media (max-width: @screen-xs) {
+  .ant-table {
+    width: 100%;
+    overflow-x: auto;
+
+    &-thead > tr,
+    &-tbody > tr {
+      > th,
+      > td {
+        white-space: pre;
+
+        > span {
+          display: block;
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: @screen-md) {
+  body {
+    .ant-pro-global-header-logo {
+      padding-left: 12px;
+    }
+
+    .ant-pro-sider-menu-logo {
+      padding-left: 12px;
+    }
+
+    .ant-pro-sider-menu-sider {
+      .ant-menu-item {
+        padding-left: 12px !important;
+      }
+    }
+
+    .antd-pro-components-global-header-index-right {
+      right: 0;
+    }
+
+    .ant-page-header {
+      padding: 12px;
+    }
+
+    .ant-page-header-heading-extra {
+      right: 12px;
+    }
+
+    .ant-pro-page-header-wrap-children-content {
+      margin: 12px 0;
+    }
+
+    .ant-card-body {
+      padding: 12px;
+    }
+
+    .ant-pro-global-footer {
+      padding: 0 12px;
+    }
+  }
+}
+
+// 定宽模式样式覆盖
+@media (min-width: @screen-xl) {
+  .ant-pro-grid-content.wide > .ant-page-header {
+    padding: 16px 0;
+  }
+
+  .ant-pro-grid-content.wide > .ant-pro-page-header-wrap-children-content {
+    margin: 24px 0 0 0;
+  }
+
+  .ant-pro-grid-content.wide .ant-page-header-heading-extra {
+    top: 38px;
+    right: 0;
+  }
+}
+
+@media (max-width: @screen-xl) {
+  .ant-pro-top-nav-header-main.wide .ant-pro-top-nav-header-logo {
+    padding-left: 24px;
+  }
 }

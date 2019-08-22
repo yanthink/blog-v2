@@ -7,18 +7,17 @@
 import ProLayout, {
   MenuDataItem,
   BasicLayoutProps as ProLayoutProps,
+  DefaultFooter,
   Settings,
 } from '@ant-design/pro-layout';
 import React, { useEffect, useState } from 'react';
-import { BackTop } from 'antd';
+import { BackTop, Icon } from 'antd';
 import Link from 'umi/link';
 import NProgress from 'nprogress';
 import { connect } from 'dva';
-import { formatMessage } from 'umi-plugin-react/locale';
 import Authorized from '@/utils/Authorized';
 import RightContent from '@/components/GlobalHeader/RightContent';
 import { ConnectState, Dispatch, Loading } from '@/models/connect';
-import { isAntDesignPro } from '@/utils/utils';
 import logo from '../assets/logo.svg';
 import 'nprogress/nprogress.css';
 
@@ -49,28 +48,32 @@ const menuDataRender = (menuList: MenuDataItem[]): MenuDataItem[] =>
     return Authorized.check(item.authority, localItem, null) as MenuDataItem;
   });
 
-const footerRender: BasicLayoutProps['footerRender'] = (_, defaultDom) => {
-  if (!isAntDesignPro()) {
-    return defaultDom;
-  }
+const footerRender: BasicLayoutProps['footerRender'] = () => {
+  const links = [
+    {
+      key: 'Ant Design Pro',
+      title: 'Ant Design Pro',
+      href: 'https://pro.ant.design',
+      blankTarget: true,
+    },
+    {
+      key: 'github',
+      title: <Icon type="github" />,
+      href: 'https://github.com/yanthink/blog-v2',
+      blankTarget: true,
+    },
+    {
+      key: 'Ant Design',
+      title: 'Ant Design',
+      href: 'https://ant.design',
+      blankTarget: true,
+    },
+  ];
+
+  const copyright = '2019 平凡的博客 粤ICP备18080782号-1';
+
   return (
-    <>
-      {defaultDom}
-      <div
-        style={{
-          padding: '0px 24px 24px',
-          textAlign: 'center',
-        }}
-      >
-        <a href="https://www.netlify.com" target="_blank" rel="noopener noreferrer">
-          <img
-            src="https://www.netlify.com/img/global/badges/netlify-color-bg.svg"
-            width="82px"
-            alt="netlify logo"
-          />
-        </a>
-      </div>
-    </>
+    <DefaultFooter links={links} copyright={copyright} />
   );
 };
 
@@ -138,16 +141,12 @@ const BasicLayout: React.FC<BasicLayoutProps> = props => {
       breadcrumbRender={(routers = []) => [
         {
           path: '/',
-          breadcrumbName: formatMessage({
-            id: 'menu.home',
-            defaultMessage: 'Home',
-          }),
+          breadcrumbName: '首页',
         },
         ...routers,
       ]}
       footerRender={footerRender}
       menuDataRender={menuDataRender}
-      formatMessage={formatMessage}
       rightContentRender={rightProps => <RightContent {...rightProps} />}
       {...props}
       {...settings}

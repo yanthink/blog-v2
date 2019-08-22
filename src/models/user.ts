@@ -18,7 +18,7 @@ export interface UserType {
   };
   created_at?: string;
   updated_at?: string;
-  unreadCount?: number;
+  unread_count?: number;
 }
 
 export interface UserModelState {
@@ -34,7 +34,6 @@ export interface UserModelType {
   };
   reducers: {
     saveCurrentUser: Reducer<UserModelState>;
-    changeNotifyCount: Reducer<UserModelState>;
   };
 }
 
@@ -46,14 +45,14 @@ const UserModel: UserModelType = {
   },
 
   effects: {
-    *fetch(_, { call, put }) {
+    * fetch(_, { call, put }) {
       const response = yield call(queryUsers);
       yield put({
         type: 'save',
         payload: response,
       });
     },
-    *fetchCurrent(_, { call, put }) {
+    * fetchCurrent(_, { call, put }) {
       const { data: user } = yield call(queryCurrent);
       if (user && user.name) {
         yield put({
@@ -72,21 +71,6 @@ const UserModel: UserModelType = {
       return {
         ...state,
         currentUser: action.payload || {},
-      };
-    },
-    changeNotifyCount(
-      state = {
-        currentUser: {},
-      },
-      action,
-    ) {
-      return {
-        ...state,
-        currentUser: {
-          ...state.currentUser,
-          notifyCount: action.payload.totalCount,
-          unreadCount: action.payload.unreadCount,
-        },
       };
     },
   },
