@@ -7,13 +7,13 @@ import emojiToolkit from 'emoji-toolkit';
 import marked from 'marked';
 import Prism from 'prismjs';
 import { dynamicLoad, showTime } from '@/utils/utils';
-import { ArticleType } from '@/pages/articles/list/data';
+import { IArticle } from '@/models/data';
 import Tocify from './tocify';
 import 'emoji-assets/sprites/joypixels-sprite-32.min.css';
 import styles from './style.less';
 
 interface ArticleContentProps {
-  article?: ArticleType;
+  article?: IArticle;
   getTocify?: (tocify: Tocify) => void;
 }
 

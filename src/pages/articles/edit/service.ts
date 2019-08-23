@@ -1,7 +1,6 @@
 import request from '@/utils/request';
-import { ArticleType } from '../list/data';
 
-export async function update(id: number | string, data: ArticleType) {
+export async function update(id: number | string, data: object) {
   return request(`/articles/${id}`, {
     method: 'PUT',
     data,

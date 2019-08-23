@@ -2,20 +2,45 @@ import { AnyAction } from 'redux';
 import { EffectsCommandMap } from 'dva';
 import { MenuDataItem } from '@ant-design/pro-layout';
 import { RouterTypes } from 'umi';
+import { StateType as AuthLoginModelState } from '@/pages/auth/login/model';
+import { StateType as ArticleListModelState } from '@/pages/articles/list/model';
+import { StateType as ArticleCreateModelState } from '@/pages/articles/create/model';
+import { StateType as ArticleEditModelState } from '@/pages/articles/edit/model';
+import { StateType as ArticleShowModelState } from '@/pages/articles/show/model';
+import { StateType as UserListModelState } from '@/pages/users/list/model';
+import { StateType as AccountCenterModelState } from '@/pages/account/center/model';
 import { GlobalModelState } from './global';
-import { DefaultSettings as SettingModelState } from '../../config/defaultSettings';
 import { UserModelState } from './user';
+import { DefaultSettings as SettingModelState } from '../../config/defaultSettings';
 
-export { GlobalModelState, SettingModelState, UserModelState };
+export {
+  GlobalModelState,
+  SettingModelState,
+  UserModelState,
+  AuthLoginModelState,
+  ArticleListModelState,
+  ArticleCreateModelState,
+  ArticleEditModelState,
+  ArticleShowModelState,
+  UserListModelState,
+  AccountCenterModelState,
+};
 
 export interface Loading {
   global: boolean;
-  effects: { [key: string]: boolean | undefined };
+  effects: { [key: string]: boolean };
   models: {
     global?: boolean;
     menu?: boolean;
     setting?: boolean;
     user?: boolean;
+    authLogin?: boolean;
+    articleList?: boolean;
+    articleCreate?: boolean;
+    articleEdit?: boolean;
+    articleShow?: boolean;
+    userList?: boolean;
+    accountCenter?: boolean;
   };
 }
 
@@ -24,6 +49,13 @@ export interface ConnectState {
   loading: Loading;
   settings: SettingModelState;
   user: UserModelState;
+  authLogin: AuthLoginModelState;
+  articleList: ArticleListModelState;
+  articleCreate: ArticleCreateModelState;
+  articleEdit: ArticleEditModelState;
+  articleShow: ArticleShowModelState;
+  userList: UserListModelState;
+  accountCenter: AccountCenterModelState;
 }
 
 export type Effect = (
@@ -49,6 +81,9 @@ export interface Route extends MenuDataItem {
 /**
  * @type T: Params matched in dynamic routing
  */
-export interface ConnectProps<T = {}> extends Partial<RouterTypes<Route, T>> {
-  dispatch?: Dispatch;
+export interface ConnectProps<T = {}> extends RouterTypes<Route, T> {
+  dispatch: Dispatch;
+  location: RouterTypes<Route, T>['location'] & {
+    query: { [key: string]: string };
+  };
 }

@@ -4,9 +4,8 @@ import React from 'react';
 import { connect } from 'dva';
 import { router } from 'umi';
 import { parse, stringify } from 'qs';
-
 import { ConnectProps, ConnectState } from '@/models/connect';
-import { UserType } from '@/models/user';
+import { IUser } from '@/models/data';
 import HeaderDropdown from '../HeaderDropdown';
 import styles from './index.less';
 
@@ -17,7 +16,7 @@ export function getPageQuery(): {
 }
 
 export interface GlobalHeaderRightProps extends ConnectProps {
-  currentUser?: UserType;
+  currentUser?: IUser;
 }
 
 class AvatarDropdown extends React.Component<GlobalHeaderRightProps> {

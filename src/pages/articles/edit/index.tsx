@@ -7,14 +7,14 @@ import Prism from 'prismjs';
 import cookie from 'cookie';
 import React, { Component } from 'react';
 import { get } from 'lodash';
-import { Dispatch } from 'redux';
 import { connect } from 'dva';
 import { router } from 'umi';
 import { FormComponentProps } from 'antd/es/form';
 import { UploadChangeParam } from 'antd/lib/upload';
 import { PageHeaderWrapper } from '@ant-design/pro-layout';
 import { getToken } from '@/utils/authority';
-import { ArticleType, TagType } from '../list/data';
+import { ConnectState, ConnectProps } from '@/models/connect';
+import { IArticle, ITag } from '@/models/data';
 import { queryArticle } from '../show/service';
 import { queryAllTags } from '../list/service';
 import 'yt-simplemde-editor/dist/style.css';
@@ -42,21 +42,23 @@ function beforeUpload(file: File): boolean {
   return isLt2M;
 }
 
-interface ArticleEditProps extends FormComponentProps {
+interface ArticleEditProps extends ConnectProps, FormComponentProps {
   submitting: boolean;
-  dispatch: Dispatch<any>;
-  match: {
+  match: ConnectProps['match'] & {
     params: { [K in 'id']: string };
   };
 }
 
 interface ArticleEditState {
-  article?: ArticleType | any;
-  allTags: TagType[];
+  article?: IArticle | any;
+  allTags: ITag[];
   uploading: boolean;
   previewBase64: string;
 }
 
+@connect(({ loading }: ConnectState) => ({
+  submitting: loading.effects['articleEdit/submitForm'],
+}))
 class ArticleEdit extends Component<ArticleEditProps, ArticleEditState> {
   state: ArticleEditState = {
     article: {},
@@ -80,10 +82,10 @@ class ArticleEdit extends Component<ArticleEditProps, ArticleEditState> {
       form,
       match: { params },
     } = this.props;
-    form.validateFieldsAndScroll((err, values: ArticleType) => {
+    form.validateFieldsAndScroll((err, values: IArticle) => {
       if (!err) {
         dispatch({
-          type: 'articlesEdit/submitForm',
+          type: 'articleEdit/submitForm',
           id: params.id,
           payload: values,
           callback() {
@@ -102,17 +104,17 @@ class ArticleEdit extends Component<ArticleEditProps, ArticleEditState> {
       const { setFieldsValue } = this.props.form;
 
       file.originFileObj &&
-        getBase64(file.originFileObj, previewBase64 =>
-          this.setState(
-            {
-              previewBase64,
-              uploading: false,
-            },
-            () => {
-              setFieldsValue({ preview: file.response.data.fileUrl });
-            },
-          ),
-        );
+      getBase64(file.originFileObj, previewBase64 =>
+        this.setState(
+          {
+            previewBase64,
+            uploading: false,
+          },
+          () => {
+            setFieldsValue({ preview: file.response.data.fileUrl });
+          },
+        ),
+      );
     }
   };
 
@@ -129,9 +131,10 @@ class ArticleEdit extends Component<ArticleEditProps, ArticleEditState> {
   };
 
   render() {
-    const { submitting } = this.props;
     const {
+      submitting,
       form: { getFieldDecorator },
+      match: { params },
     } = this.props;
     const { article, allTags, uploading, previewBase64 } = this.state;
 
@@ -222,7 +225,7 @@ class ArticleEdit extends Component<ArticleEditProps, ArticleEditState> {
               {getFieldDecorator('title', {
                 initialValue: get(article, 'title'),
                 rules: [{ required: true, message: '请输入标题' }],
-              })(<Input placeholder="给文章起个名字" />)}
+              })(<Input placeholder="给文章起个名字" disabled={String(article.id) !== params.id} />)}
             </FormItem>
             <FormItem {...formItemLayout} label="状态">
               {getFieldDecorator('status', {
@@ -236,7 +239,7 @@ class ArticleEdit extends Component<ArticleEditProps, ArticleEditState> {
             </FormItem>
             <FormItem {...formItemLayout} label="标签">
               {getFieldDecorator('tags', {
-                initialValue: (get(article, 'tags', []) as TagType[]).map(tag => tag.id),
+                initialValue: (get(article, 'tags', []) as ITag[]).map(tag => tag.id),
                 rules: [{ required: true, message: '请选择标签' }],
               })(
                 <Select
@@ -244,6 +247,7 @@ class ArticleEdit extends Component<ArticleEditProps, ArticleEditState> {
                   style={{ width: '100%' }}
                   tokenSeparators={[',']}
                   placeholder="给文章选择标签"
+                  disabled={String(article.id) !== params.id}
                 >
                   {allTags.map(tag => (
                     <Option key={tag.id} value={tag.id}>
@@ -266,6 +270,7 @@ class ArticleEdit extends Component<ArticleEditProps, ArticleEditState> {
                   headers={{ Authorization: getToken() }}
                   beforeUpload={beforeUpload}
                   onChange={this.handlePreviewChange}
+                  disabled={String(article.id) !== params.id}
                 >
                   {previewBase64 ? (
                     <img style={{ maxWidth: '100%' }} src={previewBase64} alt="preview" />
@@ -285,7 +290,12 @@ class ArticleEdit extends Component<ArticleEditProps, ArticleEditState> {
               })(<SimpleMDEEditor {...editorProps} />)}
             </FormItem>
             <FormItem {...submitFormLayout} style={{ marginTop: 32 }}>
-              <Button type="primary" htmlType="submit" loading={submitting} disabled={!article}>
+              <Button
+                type="primary"
+                htmlType="submit"
+                loading={submitting}
+                disabled={String(article.id) !== params.id}
+              >
                 提交
               </Button>
             </FormItem>
@@ -296,8 +306,4 @@ class ArticleEdit extends Component<ArticleEditProps, ArticleEditState> {
   }
 }
 
-export default Form.create<ArticleEditProps>()(
-  connect(({ loading }: { loading: { effects: { [key: string]: boolean } } }) => ({
-    submitting: loading.effects['articlesEdit/submitForm'],
-  }))(ArticleEdit),
-);
+export default Form.create<ArticleEditProps>()(ArticleEdit);

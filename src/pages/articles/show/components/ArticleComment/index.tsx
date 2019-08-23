@@ -7,10 +7,8 @@ import marked from 'marked';
 import Prism from 'prismjs';
 // @ts-ignore
 import emojiToolkit from 'emoji-toolkit';
-import { UserType } from '@/models/user';
-import { ArticleType, PaginationType } from '@/pages/articles/list/data';
+import { IUser, IArticle, IComment, IReply, IPagination } from '@/models/data';
 import Editor from './Editor';
-import { CommentType, ReplyType } from '../../data';
 import 'emoji-assets/sprites/joypixels-sprite-32.min.css';
 import styles from './style.less';
 
@@ -22,10 +20,10 @@ interface ArticleCommentState {
 }
 
 interface ArticleCommentProps {
-  currentUser: UserType;
-  article: ArticleType;
-  data: CommentType[];
-  pagination: Partial<PaginationType>;
+  currentUser: IUser;
+  article: IArticle;
+  data: IComment[];
+  pagination: IPagination;
   onCommentSubmit: (values: { content: string }, callback?: () => void) => void;
   onReplySubmit: (
     values: { content: string, commentId: number, replyId?: number },
@@ -79,7 +77,7 @@ class ArticleComment extends React.Component<ArticleCommentProps, ArticleComment
     }
   };
 
-  handleCommentBtnClick = (comment: CommentType) => {
+  handleCommentBtnClick = (comment: IComment) => {
     const { replyEditor } = this.state;
 
     if (replyEditor.commentId === comment.id && !replyEditor.replyId) {
@@ -92,7 +90,7 @@ class ArticleComment extends React.Component<ArticleCommentProps, ArticleComment
     })
   };
 
-  handleReplyBtnClick = (comment: CommentType, reply: ReplyType) => {
+  handleReplyBtnClick = (comment: IComment, reply: IReply) => {
     const { replyEditor } = this.state;
 
     if (replyEditor.commentId === comment.id && replyEditor.replyId === reply.id) {
@@ -137,7 +135,7 @@ class ArticleComment extends React.Component<ArticleCommentProps, ArticleComment
     return null;
   };
 
-  renderLoadMoreReplysBtn = (comment: CommentType) => {
+  renderLoadMoreReplysBtn = (comment: IComment) => {
     const { onFetchMoreReplys } = this.props;
     const { replysPagination, reply_count: replyCount = 0, replys = [] } = comment;
 
@@ -175,7 +173,7 @@ class ArticleComment extends React.Component<ArticleCommentProps, ArticleComment
     return null;
   };
 
-  renderReplys = (comment: CommentType) => {
+  renderReplys = (comment: IComment) => {
     const { article, onReplyLike, currentUser, replySubmitting } = this.props;
     const { replyEditor } = this.state;
     const { replys = [] } = comment;
@@ -290,7 +288,7 @@ class ArticleComment extends React.Component<ArticleCommentProps, ArticleComment
           itemLayout="horizontal"
           dataSource={data}
           loadMore={this.renderLoadMoreCommentsBtn()}
-          renderItem={(item: CommentType) => (
+          renderItem={(item: IComment) => (
             <li>
               <Comment
                 author={get(item, 'user.name')}

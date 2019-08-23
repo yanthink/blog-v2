@@ -2,12 +2,12 @@ import { Icon } from 'antd';
 import React from 'react';
 import { get } from 'lodash';
 import Ellipsis from '@/components/Ellipsis';
-import { ArticleType } from '@/pages/articles/list/data';
+import { IArticle } from '@/models/data';
 import { showTime } from '@/utils/utils';
 import styles from './index.less';
 
 interface ArticleListContentProps {
-  data: ArticleType;
+  data: IArticle;
 }
 
 const IconText: React.FC<{

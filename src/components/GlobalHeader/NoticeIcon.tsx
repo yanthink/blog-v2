@@ -2,12 +2,12 @@ import React from 'react';
 import { connect } from 'dva';
 import { Link } from 'umi';
 import { Badge, Icon } from 'antd';
-import { UserType } from '@/models/user';
+import { IUser } from '@/models/data';
 import { ConnectState } from '@/models/connect';
 import styles from './index.less';
 
 export interface NoticeIconProps {
-  currentUser?: UserType;
+  currentUser?: IUser;
 }
 
 const NoticeIcon: React.FC<NoticeIconProps> = props => {

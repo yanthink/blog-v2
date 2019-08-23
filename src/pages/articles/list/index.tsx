@@ -1,20 +1,19 @@
 import { PageHeaderWrapper } from '@ant-design/pro-layout';
 import { Card, Button, Form, List, Tag, Icon } from 'antd';
 import React, { Component } from 'react';
-import { Dispatch } from 'redux';
-import { Link, withRouter, router } from 'umi';
+import { Link, router } from 'umi';
 import { FormComponentProps } from 'antd/es/form';
 import { connect } from 'dva';
 import { get } from 'lodash';
 import { parse, stringify } from 'qs';
+import { ConnectState, ConnectProps, ArticleListModelState } from '@/models/connect';
+import { IArticle, ITag } from '@/models/data';
+import Authorized from '@/utils/Authorized';
 import ArticleListContent from './components/ArticleListContent';
-import { StateType } from './model';
-import { ArticleType, TagType } from './data.d';
 import StandardFormRow from './components/StandardFormRow';
 import TagSelect from './components/TagSelect';
 import scrollToTop from './utils/scrollToTop';
 import { queryAllTags } from './service';
-import Authorized from '@/utils/Authorized';
 import styles from './style.less';
 
 const FormItem = Form.Item;
@@ -23,23 +22,21 @@ const defaultQueryParams = {
   include: 'author,tags',
 };
 
-interface ArticleListProps extends FormComponentProps {
-  dispatch: Dispatch<any>;
-  articlesList: StateType;
+interface ArticleListProps extends ConnectProps, FormComponentProps {
+  articleList: ArticleListModelState;
   loading: boolean;
-  location: {
-    pathname: string;
-    query: { [key: string]: string };
-    search: string;
-  };
 }
 
 interface ArticleListState {
-  allTags: TagType[];
+  allTags: ITag[];
 }
 
 let scrollToTopFlag = 0;
 
+@connect(({ articleList, loading }: ConnectState) => ({
+  articleList,
+  loading: loading.models.articleList,
+}))
 class ArticleList extends Component<ArticleListProps, ArticleListState> {
   state: ArticleListState = {
     allTags: [],
@@ -60,7 +57,7 @@ class ArticleList extends Component<ArticleListProps, ArticleListState> {
 
   componentDidUpdate(prevProps: Readonly<ArticleListProps>) {
     if (scrollToTopFlag === 2 && !this.props.loading) {
-      scrollToTop(window, 174);
+      scrollToTop(window, 150);
       scrollToTopFlag = 0;
     }
 
@@ -85,7 +82,7 @@ class ArticleList extends Component<ArticleListProps, ArticleListState> {
     };
 
     this.props.dispatch({
-      type: 'articlesList/fetch',
+      type: 'articleList/fetch',
       payload: queryParams,
     });
   };
@@ -93,7 +90,7 @@ class ArticleList extends Component<ArticleListProps, ArticleListState> {
   render() {
     const {
       form,
-      articlesList: { list, pagination },
+      articleList: { list, pagination },
       loading,
       location: { pathname, search },
     } = this.props;
@@ -142,7 +139,7 @@ class ArticleList extends Component<ArticleListProps, ArticleListState> {
         >
           <List
             size="large"
-            loading={list.length === 0 ? loading : false}
+            loading={loading}
             rowKey="id"
             itemLayout="vertical"
             dataSource={list}
@@ -183,7 +180,7 @@ class ArticleList extends Component<ArticleListProps, ArticleListState> {
                 );
               },
             }}
-            renderItem={(article: ArticleType) => (
+            renderItem={(article: IArticle) => (
               <List.Item
                 key={article.id}
                 extra={
@@ -223,7 +220,7 @@ class ArticleList extends Component<ArticleListProps, ArticleListState> {
                         : article.title}
                     </Link>
                   }
-                  description={(get(article, 'tags', []) as TagType[]).map((tag: TagType) => (
+                  description={(get(article, 'tags', []) as ITag[]).map((tag: ITag) => (
                     <Tag key={tag.id}>{tag.name}</Tag>
                   ))}
                 />
@@ -237,7 +234,7 @@ class ArticleList extends Component<ArticleListProps, ArticleListState> {
   }
 }
 
-const WarpForm = Form.create<ArticleListProps>({
+export default Form.create<ArticleListProps>({
   onValuesChange({ location: { pathname } }: ArticleListProps, changedValues, allValues) {
     router.push({
       pathname,
@@ -247,18 +244,3 @@ const WarpForm = Form.create<ArticleListProps>({
     });
   },
 })(ArticleList);
-
-export default withRouter(
-  connect(
-    ({
-       articlesList,
-       loading,
-     }: {
-      articlesList: StateType;
-      loading: { models: { [key: string]: boolean } };
-    }) => ({
-      articlesList,
-      loading: loading.models.articlesList,
-    }),
-  )(WarpForm),
-);

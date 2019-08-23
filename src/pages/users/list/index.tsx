@@ -1,49 +1,29 @@
 import { Card, Col, Form, Button, Input, Row, Table, Icon } from 'antd';
 import React, { Component } from 'react';
-import { Dispatch } from 'redux';
 import { Link, router } from 'umi';
 import { parse, stringify } from 'qs';
 import { FormComponentProps } from 'antd/es/form';
 import { PageHeaderWrapper } from '@ant-design/pro-layout';
 import { connect } from 'dva';
-import { StateType } from './model';
+import { ConnectState, ConnectProps, UserListModelState } from '@/models/connect'
 import styles from './style.less';
 
 const FormItem = Form.Item;
 
 const defaultQueryParams = {};
 
-interface UserListProps extends FormComponentProps {
-  dispatch: Dispatch<any>;
+interface UserListProps extends ConnectProps, FormComponentProps {
   loading: boolean;
-  userList: StateType;
-  location: {
-    pathname: string;
-    query: { [key: string]: string };
-    search: string;
-  };
+  userList: UserListModelState;
 }
 
 interface UserListState {
 }
 
-/* eslint react/no-multi-comp:0 */
-@connect(
-  ({
-     userList,
-     loading,
-   }: {
-    userList: StateType;
-    loading: {
-      models: {
-        [key: string]: boolean;
-      };
-    };
-  }) => ({
-    userList,
-    loading: loading.models.userList,
-  }),
-)
+@connect(({ userList, loading }: ConnectState) => ({
+  userList,
+  loading: loading.models.userList,
+}))
 class UserList extends Component<UserListProps, UserListState> {
   state: UserListState = {};
 

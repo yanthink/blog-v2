@@ -1,20 +1,16 @@
 import { Form, Tabs, Input, Button, Checkbox, Icon, message } from 'antd';
 import React, { Component } from 'react';
-import { Dispatch } from 'redux';
 import { FormComponentProps } from 'antd/es/form';
 import { connect } from 'dva';
-import { router, Link } from 'umi';
+import { Link } from 'umi';
+import { ConnectState, ConnectProps } from '@/models/connect';
 import { randomString } from '@/utils/utils';
-import { setAuthority, setToken } from '@/utils/authority';
-import { reloadAuthorized } from '@/utils/Authorized';
-import { getPageQuery } from './utils';
 import styles from './style.less';
 
 const FormItem = Form.Item;
 const { TabPane } = Tabs;
 
-interface LoginProps extends FormComponentProps {
-  dispatch: Dispatch<any>;
+interface LoginProps extends ConnectProps, FormComponentProps {
   submitting: boolean;
 }
 
@@ -23,13 +19,7 @@ interface LoginState {
   codeExpired: boolean;
 }
 
-export interface FromDataType {
-  username: string;
-  password: string;
-  remember: boolean;
-}
-
-@connect(({ loading }: { loading: { effects: { [key: string]: string } } }) => ({
+@connect(({ loading }: ConnectState) => ({
   submitting: loading.effects['authLogin/login'],
 }))
 class Login extends Component<LoginProps, LoginState> {
@@ -67,11 +57,6 @@ class Login extends Component<LoginProps, LoginState> {
     const socketUrl = `wss://${window.location.host}/wss?uuid=${uuid}`;
     this.ws = new WebSocket(socketUrl);
 
-    this.ws.addEventListener('open', () => {
-      /* eslint no-console:0 */
-      console.info(`websocket open: ${uuid}`)
-    });
-
     this.ws.addEventListener('message', (e: any) => {
       const { data: msg } = e;
 
@@ -79,36 +64,19 @@ class Login extends Component<LoginProps, LoginState> {
       /* eslint no-case-declarations:0 */
       switch (event) {
         case 'App\\Events\\WechatScanLogin':
-          const { permissions, token } = data;
-          setToken(token);
-          setAuthority(permissions);
-          reloadAuthorized();
+          const { token, permissions } = data;
 
-          message.success('登录成功！');
-
-          clearTimeout(this.timer);
-          if (this.ws && this.ws.readyState === 1) {
-            this.ws.close();
-          }
-
-          const urlParams = new URL(window.location.href);
-
-          const params = getPageQuery();
-          let { redirect } = params as { redirect: string };
-          if (redirect) {
-            const redirectUrlParams = new URL(redirect);
-            if (redirectUrlParams.origin === urlParams.origin) {
-              redirect = redirect.substr(urlParams.origin.length);
-              if (redirect.match(/^\/#/)) {
-                redirect = redirect.substr(redirect.indexOf('#') + 1);
+          this.props.dispatch({
+            type: 'authLogin/loginSuccess',
+            payload: { token, permissions },
+            callback: () => {
+              message.success('登录成功！');
+              clearTimeout(this.timer);
+              if (this.ws && this.ws.readyState === 1) {
+                this.ws.close();
               }
-            } else {
-              window.location.href = redirect;
-              return;
-            }
-          }
-
-          router.replace(redirect || '/');
+            },
+          });
           break;
         default:
           break;
@@ -132,7 +100,7 @@ class Login extends Component<LoginProps, LoginState> {
     e.preventDefault();
     const { form } = this.props;
 
-    form.validateFields({ force: true }, (err: any, values: FromDataType) => {
+    form.validateFields({ force: true }, (err: any, values: object) => {
       if (!err) {
         const { dispatch } = this.props;
         dispatch({

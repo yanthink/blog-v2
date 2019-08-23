@@ -1,8 +1,7 @@
 import { stringify } from 'qs';
 import request from '@/utils/request';
-import { QueryParamsType } from './data';
 
-export async function queryList(params: QueryParamsType) {
+export async function queryList(params: object) {
   return request(`/articles?${stringify(params)}`);
 }
 

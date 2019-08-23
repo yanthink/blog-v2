@@ -1,28 +1,10 @@
 import { Effect } from 'dva';
 import { Reducer } from 'redux';
-
 import { queryCurrent, query as queryUsers } from '@/services/user';
-
-export interface UserType {
-  id?: number;
-  name?: string;
-  email?: string;
-  user_info?: {
-    city?: string;
-    gender?: number;
-    country?: string;
-    language?: string;
-    nickName?: string;
-    province?: string;
-    avatarUrl?: string;
-  };
-  created_at?: string;
-  updated_at?: string;
-  unread_count?: number;
-}
+import { IUser } from '@/models/data';
 
 export interface UserModelState {
-  currentUser?: UserType;
+  currentUser?: IUser;
 }
 
 export interface UserModelType {
@@ -59,9 +41,6 @@ const UserModel: UserModelType = {
           type: 'saveCurrentUser',
           payload: user,
         });
-      } else {
-        // @ts-ignore https://umijs.org/zh/guide/with-dva.html#faq
-        // window.g_app._store.dispatch({ type: 'login/logout' });
       }
     },
   },

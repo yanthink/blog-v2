@@ -1,15 +1,19 @@
 import React from 'react';
 import { Card, Row, Col, Button, Skeleton, Modal, message } from 'antd';
 import { FormComponentProps } from 'antd/es/form';
-import { Dispatch } from 'redux';
 import { connect } from 'dva';
 import { Link, router } from 'umi';
 import { stringify } from 'qs';
 import { PageHeaderWrapper } from '@ant-design/pro-layout';
 import { getPageQuery } from '@/components/GlobalHeader/AvatarDropdown';
 import Authorized from '@/utils/Authorized';
-import { UserModelState } from '@/models/user';
-import { StateType } from './model';
+import {
+  ConnectState,
+  ConnectProps,
+  Loading,
+  UserModelState,
+  ArticleShowModelState,
+} from '@/models/connect';
 import ArticleContent from './components/ArticleContent';
 import ArticleComment from './components/ArticleComment';
 import Tocify from './components/ArticleContent/tocify';
@@ -34,35 +38,21 @@ interface ArticleShowState {
   tocify?: Tocify;
 }
 
-interface ArticleShowProps extends FormComponentProps {
-  dispatch: Dispatch<any>;
-  loading: {
-    effects: { [key: string]: boolean };
-    models: { [key: string]: boolean }
-  };
-  articlesShow: StateType;
+interface ArticleShowProps extends ConnectProps, FormComponentProps {
+  loading: Loading;
   user: UserModelState;
-  match: {
+  articleShow: ArticleShowModelState;
+  match: ConnectProps['match'] & {
     params: { [K in 'id']: string };
   };
 }
 
-@connect(
-  ({
-     loading,
-     user,
-     articlesShow,
-   }: {
-    loading: { effects: { [key: string]: boolean }; models: { [key: string]: boolean } };
-    user: UserModelState;
-    articlesShow: StateType;
-  }) => ({
-    loading,
-    user,
-    articlesShow,
-  }),
-)
-export default class ArticleShow extends React.Component<ArticleShowProps, ArticleShowState> {
+@connect(({ loading, user, articleShow }: ConnectState) => ({
+  loading,
+  user,
+  articleShow,
+}))
+class ArticleShow extends React.Component<ArticleShowProps, ArticleShowState> {
   state: ArticleShowState = {
     fetchingArticle: true,
     fetchingComments: true,
@@ -83,13 +73,13 @@ export default class ArticleShow extends React.Component<ArticleShowProps, Artic
     const { dispatch, match: { params } } = this.props;
 
     dispatch({
-      type: 'articlesShow/fetchArticle',
+      type: 'articleShow/fetchArticle',
       id: params.id,
       payload: { ...defaultQueryParams },
     });
 
     dispatch({
-      type: 'articlesShow/fetchComments',
+      type: 'articleShow/fetchComments',
       id: params.id,
       payload: { ...defaultFetchCommentsQueryParams },
     });
@@ -98,15 +88,15 @@ export default class ArticleShow extends React.Component<ArticleShowProps, Artic
   componentDidUpdate(prevProps: ArticleShowProps) {
     /* eslint react/no-did-update-set-state:0 */
     if (
-      prevProps.loading.effects['articlesShow/fetchArticle'] &&
-      this.props.loading.effects['articlesShow/fetchArticle'] === false
+      prevProps.loading.effects['articleShow/fetchArticle'] &&
+      this.props.loading.effects['articleShow/fetchArticle'] === false
     ) {
       this.setState({ fetchingArticle: false });
     }
 
     if (
-      prevProps.loading.effects['articlesShow/fetchComments'] &&
-      this.props.loading.effects['articlesShow/fetchComments'] === false
+      prevProps.loading.effects['articleShow/fetchComments'] &&
+      this.props.loading.effects['articleShow/fetchComments'] === false
     ) {
       this.setState({ fetchingComments: false });
     }
@@ -149,7 +139,7 @@ export default class ArticleShow extends React.Component<ArticleShowProps, Artic
     }
 
     dispatch({
-      type: 'articlesShow/commentLike',
+      type: 'articleShow/commentLike',
       commentId,
     });
   };
@@ -163,7 +153,7 @@ export default class ArticleShow extends React.Component<ArticleShowProps, Artic
     }
 
     dispatch({
-      type: 'articlesShow/replyLike',
+      type: 'articleShow/replyLike',
       commentId,
       replyId,
     });
@@ -178,7 +168,7 @@ export default class ArticleShow extends React.Component<ArticleShowProps, Artic
     }
 
     dispatch({
-      type: 'articlesShow/sendComment',
+      type: 'articleShow/sendComment',
       articleId: params.id,
       payload: {
         ...defaultFetchCommentsQueryParams,
@@ -206,7 +196,7 @@ export default class ArticleShow extends React.Component<ArticleShowProps, Artic
     }
 
     dispatch({
-      type: 'articlesShow/sendReply',
+      type: 'articleShow/sendReply',
       commentId,
       payload: {
         content,
@@ -226,7 +216,7 @@ export default class ArticleShow extends React.Component<ArticleShowProps, Artic
     const { dispatch, match: { params } } = this.props;
 
     dispatch({
-      type: 'articlesShow/appendFetchComments',
+      type: 'articleShow/appendFetchComments',
       articleId: params.id,
       payload: { ...defaultFetchCommentsQueryParams },
     });
@@ -236,7 +226,7 @@ export default class ArticleShow extends React.Component<ArticleShowProps, Artic
     const { dispatch } = this.props;
 
     dispatch({
-      type: 'articlesShow/appendFetchReplys',
+      type: 'articleShow/appendFetchReplys',
       commentId,
       payload: { include: 'user,parent.user' },
     });
@@ -246,7 +236,7 @@ export default class ArticleShow extends React.Component<ArticleShowProps, Artic
     const {
       user,
       loading,
-      articlesShow: { article, comments, commentsPagination },
+      articleShow: { article, comments, commentsPagination },
       match: { params },
     } = this.props;
 
@@ -287,15 +277,15 @@ export default class ArticleShow extends React.Component<ArticleShowProps, Artic
                     article={article || {}}
                     data={comments || []}
                     pagination={commentsPagination}
-                    commentsLoading={loading.effects['articlesShow/appendFetchComments']}
+                    commentsLoading={loading.effects['articleShow/appendFetchComments']}
                     onFetchMoreComments={this.handleFetchMoreComments}
                     onFetchMoreReplys={this.handleFetchMoreReplys}
                     onCommentLike={this.handleCommentLike}
                     onReplyLike={this.handleReplyLike}
                     onCommentSubmit={this.handleCommentSubmit}
                     onReplySubmit={this.handleReplySubmit}
-                    commentSubmitting={loading.effects['articlesShow/sendComment']}
-                    replySubmitting={loading.effects['articlesShow/sendReply']}
+                    commentSubmitting={loading.effects['articleShow/sendComment']}
+                    replySubmitting={loading.effects['articleShow/sendReply']}
                   />
                 </Skeleton>
               </div>
@@ -324,3 +314,5 @@ export default class ArticleShow extends React.Component<ArticleShowProps, Artic
     );
   }
 }
+
+export default ArticleShow;

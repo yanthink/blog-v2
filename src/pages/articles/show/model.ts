@@ -1,26 +1,23 @@
-import { AnyAction, Reducer } from 'redux';
-import { EffectsCommandMap } from 'dva';
+import { Reducer } from 'redux';
 import { message } from 'antd';
 import { differenceWith, find, findIndex } from 'lodash';
-import { queryArticle, queryComments, queryReplys, commentLike, replyLike, postComment, postReply } from './service';
-import { ArticleType, PaginationType } from '../list/data';
-import { CommentType, ReplyType } from './data';
+import { Effect } from '@/models/connect';
+import { IArticle, IComment, IReply, IPagination } from '@/models/data';
+import {
+  queryArticle,
+  queryComments,
+  queryReplys,
+  commentLike,
+  replyLike,
+  postComment,
+  postReply,
+} from './service';
 
 export interface StateType {
-  article?: ArticleType;
-  comments?: CommentType[];
-  commentsPagination: Partial<PaginationType>;
+  article: IArticle;
+  comments: IComment[];
+  commentsPagination: IPagination;
 }
-
-export type Effect = (
-  action: AnyAction,
-  effects: EffectsCommandMap & {
-    select: <T>(func: (state: { articlesShow: StateType }) => T) => T,
-  },
-  reducers: {
-    save: Reducer<StateType>;
-  },
-) => void;
 
 export interface ModelType {
   namespace: string;
@@ -41,7 +38,7 @@ export interface ModelType {
 }
 
 const Model: ModelType = {
-  namespace: 'articlesShow',
+  namespace: 'articleShow',
 
   state: {
     article: {},
@@ -72,7 +69,7 @@ const Model: ModelType = {
       });
     },
     * appendFetchComments({ articleId, payload }, { select, call, put }) {
-      const { comments, commentsPagination } = yield select(({ articlesShow }) => articlesShow);
+      const { comments, commentsPagination } = yield select(({ articleShow }) => articleShow);
 
       const { data, pagination } = yield call(queryComments, articleId, {
         ...payload,
@@ -92,9 +89,9 @@ const Model: ModelType = {
     * appendFetchReplys({ commentId, payload }, { select, call, put }) {
       const hide = message.loading('正在请求...');
 
-      const { comments } = yield select(({ articlesShow }) => articlesShow);
+      const { comments } = yield select(({ articleShow }) => articleShow);
 
-      const comment: CommentType = find(comments, comment => comment.id === commentId);
+      const comment: IComment = find(comments, comment => comment.id === commentId);
 
       const { replysPagination, replys = [] } = comment;
 
@@ -120,9 +117,9 @@ const Model: ModelType = {
     * commentLike({ commentId }, { call, select, put }) {
       const { data } = yield call(commentLike, commentId);
 
-      const { comments } = yield select(({ articlesShow }) => articlesShow);
+      const { comments } = yield select(({ articleShow }) => articleShow);
 
-      const currentComment: CommentType = find(comments, comment => comment.id === commentId);
+      const currentComment: IComment = find(comments, comment => comment.id === commentId);
 
       currentComment.like_count = data.like_count;
       currentComment.likes = data.likes;
@@ -135,9 +132,9 @@ const Model: ModelType = {
     * replyLike({ commentId, replyId }, { call, select, put }) {
       const { data } = yield call(replyLike, replyId);
 
-      const { comments } = yield select(({ articlesShow }) => articlesShow);
-      const currentComment: CommentType = find(comments, comment => comment.id === commentId);
-      const currentReply = find(currentComment.replys, reply => reply.id === replyId) as ReplyType;
+      const { comments } = yield select(({ articleShow }) => articleShow);
+      const currentComment: IComment = find(comments, comment => comment.id === commentId);
+      const currentReply = find(currentComment.replys, reply => reply.id === replyId) as IReply;
 
       currentReply.like_count = data.like_count;
       currentReply.likes = data.likes;
@@ -149,7 +146,7 @@ const Model: ModelType = {
     },
     * sendComment({ articleId, payload, callback }, { call, select, put }) {
       const { data } = yield call(postComment, articleId, payload);
-      const { comments, article } = yield select(({ articlesShow }) => articlesShow);
+      const { comments, article } = yield select(({ articleShow }) => articleShow);
 
       comments.unshift(data);
       article.comment_count++;
@@ -166,14 +163,14 @@ const Model: ModelType = {
     * sendReply({ commentId, payload, callback }, { call, select, put }) {
       const { data } = yield call(postReply, commentId, payload);
 
-      const { comments } = yield select(({ articlesShow }) => articlesShow);
+      const { comments } = yield select(({ articleShow }) => articleShow);
       const currentComment = find(comments, comment => comment.id === commentId);
       currentComment.read_count++;
 
       if (payload.parent_id) {
         const currentReplyIndex = findIndex(
           currentComment.replys,
-          (reply: ReplyType) => reply.id === payload.parent_id,
+          (reply: IReply) => reply.id === payload.parent_id,
         );
         currentComment.replys.splice(currentReplyIndex + 1, 0, data);
       } else {

@@ -7,7 +7,7 @@ import Prism from 'prismjs';
 import EmojiPicker from 'yt-emoji-picker';
 // @ts-ignore
 import emojiToolkit from 'emoji-toolkit';
-import { UserType } from '@/models/user';
+import { IUser } from '@/models/data';
 import { getPositions, insertText, isParentElement } from './utils';
 import styles from './Editor.less';
 
@@ -21,7 +21,7 @@ interface ArticleCommentEditorState {
 interface ArticleCommentEditorProps {
   className?: string;
   placeholder?: string;
-  currentUser?: UserType;
+  currentUser?: IUser;
   submitting: boolean;
   onSubmit: (values: { content: string }, callback?: () => void) => void;
   minRows: number;
@@ -75,6 +75,9 @@ class ArticleCommentEditor extends React.Component<ArticleCommentEditorProps, Ar
 
       ReactDOM.render(<EmojiPicker {...emojiPickerProps} />, ArticleCommentEditor.emojiPickerPopup);
     }
+
+
+    this.textarea.textAreaRef.addEventListener('keydown', this.handleKeydownEvent);
   }
 
   componentDidUpdate() {
@@ -98,10 +101,21 @@ class ArticleCommentEditor extends React.Component<ArticleCommentEditorProps, Ar
       delete ArticleCommentEditor.emojiPickerPopup;
       delete ArticleCommentEditor.instance;
     }
+
+    this.textarea.textAreaRef.removeEventListener('keydown', this.handleKeydownEvent);
   }
 
   setPreviewRef = (ref: any) => {
     this.previewRef = ref;
+  };
+
+  handleKeydownEvent = (e: KeyboardEvent) => {
+    if (e.key === 'Tab') {
+      e.preventDefault();
+      const indent = '\t';
+      const value = insertText(this.textarea.textAreaRef, indent);
+      this.setState({ value });
+    }
   };
 
   handleSubmit = (e?: React.FormEvent) => {

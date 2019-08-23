@@ -1,5 +1,4 @@
 import { AnyAction } from 'redux';
-
 import { EffectsCommandMap } from 'dva';
 import { routerRedux } from 'dva/router';
 import { setAuthority, setToken } from '@/utils/authority';
@@ -10,7 +9,7 @@ export type Effect = (
   effects: EffectsCommandMap & { select: <T>(func: (state: {}) => T) => T },
 ) => void;
 
-export interface ModelType {
+export interface LoginModelType {
   namespace: string;
   state: {};
   effects: {
@@ -18,7 +17,7 @@ export interface ModelType {
   };
 }
 
-const Model: ModelType = {
+const LoginModel: LoginModelType = {
   namespace: 'login',
 
   state: {
@@ -45,4 +44,4 @@ const Model: ModelType = {
   },
 };
 
-export default Model;
+export default LoginModel;

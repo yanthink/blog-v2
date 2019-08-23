@@ -1,33 +1,30 @@
-import { AnyAction } from 'redux';
-import { EffectsCommandMap } from 'dva';
 import { message } from 'antd';
+import { Effect } from '@/models/connect';
 import { store } from './service';
 
-export type Effect = (
-  action: AnyAction,
-  effects: EffectsCommandMap & { select: <T>(func: (state: {}) => T) => T },
-) => void;
+export interface StateType {
+}
 
 export interface ModelType {
   namespace: string;
-  state: {};
+  state: StateType;
   effects: {
     submitForm: Effect;
   };
 }
 
-function noop() {}
-
 const Model: ModelType = {
-  namespace: 'articlesCreate',
+  namespace: 'articleCreate',
 
   state: {},
 
   effects: {
-    *submitForm({ payload, callback = noop }, { call }) {
+    * submitForm({ payload, callback }, { call }) {
       yield call(store, payload);
       message.success('提交成功');
-      callback();
+      if (callback) {
+        callback();
+      }
     },
   },
 };

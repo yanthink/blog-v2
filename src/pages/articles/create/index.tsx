@@ -6,14 +6,14 @@ import marked from 'marked';
 import Prism from 'prismjs';
 import cookie from 'cookie';
 import React, { Component } from 'react';
-import { Dispatch } from 'redux';
 import { connect } from 'dva';
 import { router } from 'umi';
 import { FormComponentProps } from 'antd/es/form';
 import { UploadChangeParam } from 'antd/lib/upload';
 import { PageHeaderWrapper } from '@ant-design/pro-layout';
 import { getToken } from '@/utils/authority';
-import { ArticleType, TagType } from '../list/data';
+import { ConnectState, ConnectProps } from '@/models/connect';
+import { IArticle, ITag } from '@/models/data';
 import { queryAllTags } from '../list/service';
 import 'yt-simplemde-editor/dist/style.css';
 import 'emoji-assets/sprites/joypixels-sprite-32.min.css';
@@ -40,17 +40,19 @@ function beforeUpload(file: File): boolean {
   return isLt2M;
 }
 
-interface ArticleCreateProps extends FormComponentProps {
+interface ArticleCreateProps extends ConnectProps, FormComponentProps {
   submitting: boolean;
-  dispatch: Dispatch<any>;
 }
 
 interface ArticleCreateState {
-  allTags: TagType[];
+  allTags: ITag[];
   uploading: boolean;
   previewBase64: string;
 }
 
+@connect(({ loading }: ConnectState) => ({
+  submitting: loading.effects['articleCreate/submitForm'],
+}))
 class ArticleCreate extends Component<ArticleCreateProps, ArticleCreateState> {
   state: ArticleCreateState = {
     allTags: [],
@@ -66,10 +68,10 @@ class ArticleCreate extends Component<ArticleCreateProps, ArticleCreateState> {
   handleSubmit = (e?: React.FormEvent) => {
     e && e.preventDefault();
     const { dispatch, form } = this.props;
-    form.validateFieldsAndScroll((err, values: ArticleType) => {
+    form.validateFieldsAndScroll((err, values: IArticle) => {
       if (!err) {
         dispatch({
-          type: 'articlesCreate/submitForm',
+          type: 'articleCreate/submitForm',
           payload: values,
           callback: () => {
             router.push('/articles/list');
@@ -87,17 +89,17 @@ class ArticleCreate extends Component<ArticleCreateProps, ArticleCreateState> {
       const { setFieldsValue } = this.props.form;
 
       file.originFileObj &&
-        getBase64(file.originFileObj, previewBase64 =>
-          this.setState(
-            {
-              previewBase64,
-              uploading: false,
-            },
-            () => {
-              setFieldsValue({ preview: file.response.data.fileUrl });
-            },
-          ),
-        );
+      getBase64(file.originFileObj, previewBase64 =>
+        this.setState(
+          {
+            previewBase64,
+            uploading: false,
+          },
+          () => {
+            setFieldsValue({ preview: file.response.data.fileUrl });
+          },
+        ),
+      );
     }
   };
 
@@ -282,8 +284,4 @@ class ArticleCreate extends Component<ArticleCreateProps, ArticleCreateState> {
   }
 }
 
-export default Form.create<ArticleCreateProps>()(
-  connect(({ loading }: { loading: { effects: { [key: string]: boolean } } }) => ({
-    submitting: loading.effects['articlesCreate/submitForm'],
-  }))(ArticleCreate),
-);
+export default Form.create<ArticleCreateProps>()(ArticleCreate);

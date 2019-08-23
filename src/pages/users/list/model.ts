@@ -1,19 +1,12 @@
-import { AnyAction, Reducer } from 'redux';
-import { EffectsCommandMap } from 'dva';
-
-import { UserType } from '@/models/user';
-import { PaginationType } from './data';
+import { Reducer } from 'redux';
+import { Effect } from '@/models/connect';
+import { IUser, IPagination } from '@/models/data';
 import { queryList } from './service';
 
 export interface StateType {
-  list: UserType[];
-  pagination: Partial<PaginationType>;
+  list: IUser[];
+  pagination: IPagination;
 }
-
-export type Effect = (
-  action: AnyAction,
-  effects: EffectsCommandMap & { select: <T>(func: (state: StateType) => T) => T },
-) => void;
 
 export interface ModelType {
   namespace: string;
@@ -35,7 +28,7 @@ const Model: ModelType = {
   },
 
   effects: {
-    *fetch({ payload }, { call, put }) {
+    * fetch({ payload }, { call, put }) {
       const { data: list, pagination } = yield call(queryList, payload);
       yield put({
         type: 'queryList',

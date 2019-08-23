@@ -1,23 +1,19 @@
-import { AnyAction } from 'redux';
-import { EffectsCommandMap } from 'dva';
 import { routerRedux } from 'dva/router';
-import { login } from './service';
-import { getPageQuery } from './utils';
+import { Effect } from '@/models/connect';
 import { setToken, setAuthority } from '@/utils/authority';
 import { reloadAuthorized } from '@/utils/Authorized';
+import { login } from './service';
+import { getPageQuery } from './utils';
 
-export interface StateType {}
-
-export type Effect = (
-  action: AnyAction,
-  effects: EffectsCommandMap & { select: <T>(func: (state: StateType) => T) => T },
-) => void;
+export interface StateType {
+}
 
 export interface ModelType {
   namespace: string;
   state: StateType;
   effects: {
     login: Effect;
+    loginSuccess: Effect;
   };
 }
 
@@ -27,13 +23,22 @@ const Model: ModelType = {
   state: {},
 
   effects: {
-    *login({ payload }, { call, put }) {
+    * login({ payload }, { call, put }) {
       const { data } = yield call(login, payload);
-      const { permissions, token } = data;
-
+      const { token, permissions } = data;
+      yield put({
+        type: 'loginSuccess',
+        payload: { token, permissions },
+      })
+    },
+    * loginSuccess({ payload: { token, permissions }, callback }, { put }) {
       setToken(token);
       setAuthority(permissions);
       reloadAuthorized();
+
+      if (callback) {
+        callback();
+      }
 
       const urlParams = new URL(window.location.href);
 
