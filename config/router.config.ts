@@ -82,6 +82,18 @@ export default [
         component: './users/list',
       },
       {
+        name: 'center',
+        path: '/account/center',
+        hideInMenu: true,
+        component: './account/center',
+      },
+      {
+        name: 'notice',
+        path: '/account/notice',
+        hideInMenu: true,
+        component: './account/notice',
+      },
+      {
         component: './404',
       },
     ],

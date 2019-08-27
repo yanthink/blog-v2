@@ -14,6 +14,7 @@ strictEslint.rules = {
   'consistent-return': [0],
   '@typescript-eslint/no-explicit-any': [0],
   'eslint-comments/no-unlimited-disable': [0],
+  '@typescript-eslint/no-object-literal-type-assertion': [0],
 };
 
 module.exports = {

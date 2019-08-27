@@ -57,11 +57,11 @@ const Model: ModelType = {
         payload: { article },
       });
     },
-    * fetchComments({ id, payload }, { call, put }) {
+    * fetchComments({ articleId, payload }, { call, put }) {
       const {
         data: comments,
         pagination: commentsPagination,
-      } = yield call(queryComments, id, payload);
+      } = yield call(queryComments, articleId, payload);
 
       yield put({
         type: 'save',

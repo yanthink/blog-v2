@@ -1,0 +1,40 @@
+@import '~antd/es/style/themes/default.less';
+
+.list {
+  :global {
+    .ant-list-item-meta-title {
+      color: black;
+      font-weight: bold;
+    }
+  }
+}
+
+.content {
+  .extra {
+    margin-top: 16px;
+    color: @text-color-secondary;
+    line-height: 22px;
+
+    & > em {
+      margin-left: 16px;
+      color: @disabled-color;
+      font-style: normal;
+    }
+  }
+}
+
+.description > span > p {
+  display: inline;
+}
+
+@media screen and (max-width: @screen-xs) {
+  .content {
+    .extra {
+      & > em {
+        display: block;
+        margin-top: 8px;
+        margin-left: 0;
+      }
+    }
+  }
+}

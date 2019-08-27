@@ -56,6 +56,7 @@ export interface IComment {
   like_count?: number;
   created_at?: string;
   user?: IUser;
+  target?: IArticle;
   replys?: IReply[];
   likes?: ILike[],
   replysPagination?: IPagination;
@@ -71,6 +72,7 @@ export interface IReply {
   like_count?: number;
   created_at?: string;
   user?: IUser;
+  target?: IComment;
   parent?: IReply | null;
   likes?: ILike[],
 }
@@ -82,9 +84,10 @@ export interface ILike {
   target_id?: number;
   created_at?: string;
   updated_at?: string;
+  target?: IArticle | IComment | IReply;
 }
 
-export interface IFavorites {
+export interface IFavorite {
   id?: number;
   user_id?: number;
   target_type?: string;
@@ -92,6 +95,27 @@ export interface IFavorites {
   created_at?: string;
   updated_at?: string;
   deleted_at?: string;
+  target?: IArticle;
+}
+
+export interface INotification {
+  id?: number;
+  type?: string;
+  notifiable_type?: string;
+  notifiable_id?: number;
+  data?: {
+    content?: string;
+    form_id?: number;
+    target_id?: number;
+    comment_id?: number;
+    target_name?: number;
+    form_user_id?: number;
+    form_user_name?: string;
+    form_user_avatar?: string;
+  };
+  read_at?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface IPagination {

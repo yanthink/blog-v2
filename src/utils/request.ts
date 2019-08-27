@@ -99,6 +99,23 @@ request.interceptors.response.use(response => {
       //
     }
   }
+
+  const unreadCount = response.headers.get('unread_count');
+  if (unreadCount !== null) {
+    // @ts-ignore
+    const { currentUser } = window.g_app._store.getState().user;
+    if (currentUser && currentUser.name) {
+      // @ts-ignore
+      window.g_app._store.dispatch({
+        type: 'user/saveCurrentUser',
+        payload: {
+          ...currentUser,
+          unread_count: unreadCount,
+        },
+      });
+    }
+  }
+
   return response;
 });
 

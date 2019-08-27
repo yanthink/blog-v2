@@ -4,7 +4,7 @@ import { FormComponentProps } from 'antd/es/form';
 import { connect } from 'dva';
 import { Link } from 'umi';
 import { ConnectState, ConnectProps } from '@/models/connect';
-import { randomString } from '@/utils/utils';
+import { getLoginCode } from './service';
 import styles from './style.less';
 
 const FormItem = Form.Item;
@@ -15,8 +15,9 @@ interface LoginProps extends ConnectProps, FormComponentProps {
 }
 
 interface LoginState {
-  uuid: string;
+  base64Img: string;
   codeExpired: boolean;
+  codeLoading: boolean;
 }
 
 @connect(({ loading }: ConnectState) => ({
@@ -26,8 +27,9 @@ class Login extends Component<LoginProps, LoginState> {
   static socketTimeout = 120000;
 
   state: LoginState = {
-    uuid: '',
-    codeExpired: true,
+    base64Img: '',
+    codeExpired: false,
+    codeLoading: false,
   };
 
   ws: any;
@@ -45,16 +47,17 @@ class Login extends Component<LoginProps, LoginState> {
     }
   }
 
-  createWebSocket = () => {
+  createWebSocket = async () => {
     clearTimeout(this.timer);
 
     if (this.ws && this.ws.readyState === 1) {
       this.ws.close();
     }
 
-    const uuid = randomString(16);
+    this.setState({ codeLoading: true });
+    const { data: { base64_img: base64Img, token } } = await getLoginCode();
 
-    const socketUrl = `wss://${window.location.host}/wss?uuid=${uuid}`;
+    const socketUrl = `wss://${window.location.host}/wss?token=${token}`;
     this.ws = new WebSocket(socketUrl);
 
     this.ws.addEventListener('message', (e: any) => {
@@ -83,7 +86,7 @@ class Login extends Component<LoginProps, LoginState> {
       }
     });
 
-    this.setState({ uuid, codeExpired: false });
+    this.setState({ base64Img, codeExpired: false, codeLoading: false });
 
     this.timer = setTimeout(this.handleWebSocketTimeout, Login.socketTimeout);
   };
@@ -111,8 +114,39 @@ class Login extends Component<LoginProps, LoginState> {
     });
   };
 
+  renderCode = () => {
+    const { base64Img, codeExpired, codeLoading } = this.state;
+    if (codeExpired) {
+      return (
+        <>
+          <Icon type="close-circle" /><span className={styles.noticeTitle}>小程序码已失效</span>
+          <Button
+            className={styles.noticeBtn}
+            type="primary"
+            size="large"
+            block
+            onClick={this.createWebSocket}
+          >
+            刷新小程序码
+          </Button>
+        </>
+      );
+    }
+
+    return (
+      <>
+        <p>微信扫码后点击“登录”，</p>
+        <p>即可完成账号绑定及登录。</p>
+        {
+          codeLoading
+            ? <Icon type="loading" />
+            : <img src={`data:image/png;base64,${base64Img}`} alt="小程序码" width="260" height="260" />
+        }
+      </>
+    );
+  };
+
   render() {
-    const { uuid, codeExpired } = this.state;
     const { form, submitting } = this.props;
     const { getFieldDecorator } = form;
 
@@ -122,35 +156,7 @@ class Login extends Component<LoginProps, LoginState> {
           <Tabs size="large">
             <TabPane tab="微信扫码登录" key="1">
               <div className={styles.qrcodeBox}>
-                {
-                  codeExpired
-                    ?
-                    (
-                      <>
-                        <Icon type="close-circle" /><span className={styles.noticeTitle}>小程序码已失效</span>
-                        <Button
-                          className={styles.noticeBtn}
-                          type="primary"
-                          size="large"
-                          block
-                          onClick={this.createWebSocket}
-                        >
-                          刷新小程序码
-                        </Button>
-                      </>
-                    )
-                    :
-                    (
-                      <>
-                        <p>微信扫码后点击“登录”，</p>
-                        <p>即可完成账号绑定及登录。</p>
-                        {
-                          uuid &&
-                          <img src={`/api/wechat/login_code?uuid=${uuid}`} alt="小程序码" width="260" height="260" />
-                        }
-                      </>
-                    )
-                }
+                {this.renderCode()}
               </div>
             </TabPane>
             <TabPane tab="账户密码登录" key="2">

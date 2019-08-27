@@ -6,3 +6,7 @@ export async function login(params: object) {
     data: params,
   });
 }
+
+export async function getLoginCode() {
+  return request('/wechat/login_code');
+}

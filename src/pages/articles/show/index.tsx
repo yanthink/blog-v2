@@ -70,17 +70,20 @@ class ArticleShow extends React.Component<ArticleShowProps, ArticleShowState> {
   }
 
   async componentWillMount() {
-    const { dispatch, match: { params } } = this.props;
+    const { dispatch, match: { params }, location } = this.props;
 
     dispatch({
       type: 'articleShow/fetchArticle',
       id: params.id,
-      payload: { ...defaultQueryParams },
+      payload: {
+        ...defaultQueryParams,
+        ...location.query,
+      },
     });
 
     dispatch({
       type: 'articleShow/fetchComments',
-      id: params.id,
+      articleId: params.id,
       payload: { ...defaultFetchCommentsQueryParams },
     });
   }
