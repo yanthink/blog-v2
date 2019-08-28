@@ -1,7 +1,7 @@
 import React from 'react';
 import { connect } from 'dva';
 import { GridContent } from '@ant-design/pro-layout';
-import { Menu } from 'antd';
+import { Menu, Icon } from 'antd';
 import { ConnectState, ConnectProps, Loading, AccountNoticeModelState } from '@/models/connect';
 import Notifications from './components/Notifications';
 import Messages from './components/Messages';
@@ -33,9 +33,9 @@ class Notice extends React.Component<NoticeProps, NoticeState> {
   state: NoticeState = {
     mode: 'inline',
     menuMap: {
-      notifications: <span>通知</span>,
-      messages: <span>私信</span>,
-      systems: <span>系统</span>,
+      notifications: <span><Icon type="bell" />通知</span>,
+      messages: <span><Icon type="mail" />私信</span>,
+      systems: <span><Icon type="notification" />系统</span>,
     },
     selectKey: 'notifications',
   };

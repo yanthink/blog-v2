@@ -1,4 +1,4 @@
-import { Form, Tabs, Input, Button, Checkbox, Icon, message } from 'antd';
+import { Form, Tabs, Input, Button, Checkbox, Spin, Icon, message } from 'antd';
 import React, { Component } from 'react';
 import { FormComponentProps } from 'antd/es/form';
 import { connect } from 'dva';
@@ -54,7 +54,8 @@ class Login extends Component<LoginProps, LoginState> {
       this.ws.close();
     }
 
-    this.setState({ codeLoading: true });
+    this.setState({ codeExpired: false, codeLoading: true });
+
     const { data: { base64_img: base64Img, token } } = await getLoginCode();
 
     const socketUrl = `wss://${window.location.host}/wss?token=${token}`;
@@ -139,7 +140,7 @@ class Login extends Component<LoginProps, LoginState> {
         <p>即可完成账号绑定及登录。</p>
         {
           codeLoading
-            ? <Icon type="loading" />
+            ? <Spin indicator={<Icon type="loading" spin />} tip="正在加载..." />
             : <img src={`data:image/png;base64,${base64Img}`} alt="小程序码" width="260" height="260" />
         }
       </>
