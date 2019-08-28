@@ -3,6 +3,7 @@ import { EffectsCommandMap } from 'dva';
 import { routerRedux } from 'dva/router';
 import { setAuthority, setToken } from '@/utils/authority';
 import { reloadAuthorized } from '@/utils/Authorized';
+import websocket from '@/utils/websocket';
 
 export type Effect = (
   action: AnyAction,
@@ -25,7 +26,7 @@ const LoginModel: LoginModelType = {
   },
 
   effects: {
-    *logout(_, { put }) {
+    * logout(_, { put }) {
       // @ts-ignore https://umijs.org/zh/guide/with-dva.html#faq
       window.g_app._store.dispatch({
         type: 'user/saveCurrentUser',
@@ -35,6 +36,8 @@ const LoginModel: LoginModelType = {
       setToken('');
       setAuthority([]);
       reloadAuthorized();
+
+      websocket.close();
 
       // redirect
       if (window.location.pathname !== '/articles/list') {
