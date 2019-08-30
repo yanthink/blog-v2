@@ -12,6 +12,8 @@ import { StateType as AccountCenterModelState } from '@/pages/account/center/mod
 import { StateType as AccountNoticeModelState } from '@/pages/account/notice/model';
 import { StateType as RoleListModelState } from '@/pages/roles/list/model';
 import { StateType as PermissionListModelState } from '@/pages/permissions/list/model';
+import { StateType as NotificationListModelState } from '@/pages/notifications/list/model';
+import { StateType as TagListModelState } from '@/pages/tags/list/model';
 import { GlobalModelState } from './global';
 import { UserModelState } from './user';
 import { DefaultSettings as SettingModelState } from '../../config/defaultSettings';
@@ -30,6 +32,8 @@ export {
   AccountNoticeModelState,
   RoleListModelState,
   PermissionListModelState,
+  NotificationListModelState,
+  TagListModelState,
 };
 
 export interface Loading {
@@ -50,6 +54,8 @@ export interface Loading {
     accountNotice?: boolean;
     roleList?: boolean;
     permissionList?: boolean;
+    notificationList?: boolean;
+    tagList?: boolean;
   };
 }
 
@@ -68,6 +74,8 @@ export interface ConnectState {
   accountNotice: AccountNoticeModelState;
   roleList: RoleListModelState;
   permissionList: PermissionListModelState;
+  notificationList: NotificationListModelState;
+  tagList?: TagListModelState;
 }
 
 export type Effect = (

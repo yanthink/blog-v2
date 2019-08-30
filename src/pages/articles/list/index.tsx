@@ -115,7 +115,7 @@ class ArticleList extends Component<ArticleListProps, ArticleListState> {
       <PageHeaderWrapper extra={Authorized.check('articles.store', HeaderAction, null)}>
         <Card bordered={false} hidden={query && !!query.keyword}>
           <Form layout="inline">
-            <StandardFormRow title="所属类目" block style={{ paddingBottom: 11 }}>
+            <StandardFormRow title="所属标签" block style={{ paddingBottom: 11 }}>
               <FormItem>
                 {getFieldDecorator('tagIds', {
                   initialValue: query.tagIds,

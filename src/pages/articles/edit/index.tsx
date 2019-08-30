@@ -8,7 +8,7 @@ import cookie from 'cookie';
 import React, { Component } from 'react';
 import { get } from 'lodash';
 import { connect } from 'dva';
-import { router } from 'umi';
+import { Link, router } from 'umi';
 import { FormComponentProps } from 'antd/es/form';
 import { UploadChangeParam } from 'antd/lib/upload';
 import { PageHeaderWrapper } from '@ant-design/pro-layout';
@@ -256,7 +256,7 @@ class ArticleEdit extends Component<ArticleEditProps, ArticleEditState> {
                   ))}
                 </Select>,
               )}
-              <a>添加标签</a>
+              <Link to="/tags/list">添加标签</Link>
             </FormItem>
             <FormItem {...formItemLayout} label="预览图">
               {getFieldDecorator('preview')(

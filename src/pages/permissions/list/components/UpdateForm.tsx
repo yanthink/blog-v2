@@ -1,6 +1,6 @@
+import React from 'react';
 import { Form, Input, Modal } from 'antd';
 import { FormComponentProps } from 'antd/es/form';
-import React from 'react';
 import { IPermission } from '@/models/data';
 
 const FormItem = Form.Item;

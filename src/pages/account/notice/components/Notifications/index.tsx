@@ -9,7 +9,7 @@ import emojiToolkit from 'emoji-toolkit';
 import Prism from 'prismjs';
 import moment from 'moment';
 import { ConnectProps, Loading, AccountNoticeModelState } from '@/models/connect';
-import { INotification } from '@/models/data';
+import { INotification, IUser } from '@/models/data';
 import styles from './index.less';
 
 const defaultQueryParams = {};
@@ -17,6 +17,7 @@ const defaultQueryParams = {};
 interface NotificationsProps extends ConnectProps {
   loading: Loading;
   accountNotice: AccountNoticeModelState;
+  currentUser: IUser;
 
   [key: string]: any;
 }
@@ -86,6 +87,54 @@ class Notifications extends React.Component<NotificationsProps> {
     );
   };
 
+  renderItemContent = (notification: INotification) => {
+    const { currentUser } = this.props;
+
+    switch (notification.type) {
+      case 'App\\Notifications\\CommentArticle':
+        return (
+          <span
+            dangerouslySetInnerHTML={{
+              __html: emojiToolkit.toImage(marked(get(notification, 'data.content'))),
+            }}
+          />
+        );
+      case 'App\\Notifications\\ReplyComment':
+        return (
+          <div>
+            <span
+              dangerouslySetInnerHTML={{
+                __html: emojiToolkit.toImage(marked(get(notification, 'data.content'))),
+              }}
+            />
+            <span> // </span>
+            <Link to="#">@ {currentUser.name}</Link>
+            <span>：</span>
+            <span
+              dangerouslySetInnerHTML={{
+                __html: emojiToolkit.toImage(
+                  marked(get(notification, 'data.target_name')),
+                ),
+              }}
+            />
+          </div>
+        );
+      case 'App\\Notifications\\LikeArticle':
+        return null;
+      case 'App\\Notifications\\LikeComment':
+      case 'App\\Notifications\\LikeReply':
+        return (
+          <span
+            dangerouslySetInnerHTML={{
+              __html: emojiToolkit.toImage(marked(get(notification, 'data.target_name'))),
+            }}
+          />
+        );
+      default:
+        return null;
+    }
+  };
+
   render() {
     const {
       loading,
@@ -93,48 +142,46 @@ class Notifications extends React.Component<NotificationsProps> {
     } = this.props;
 
     return (
-      <List
-        size="large"
-        rowKey="id"
-        itemLayout="vertical"
-        loading={loading.effects['accountNotice/fetchNotifications']}
-        dataSource={list}
-        pagination={{
-          ...pagination,
-          onChange: this.handlePageChange,
-        }}
-        renderItem={(item: INotification) => (
-          <List.Item
-            key={item.id}
-          >
-            <div className={item.read_at ? styles.read : ''}>
-              <div className={styles.top}>
-                <div className={styles.avatar}>
-                  <Avatar src={get(item, 'data.form_user_avatar')} />
+      <div ref={this.setMarkdownRef} className="markdown-body">
+        <List
+          size="large"
+          rowKey="id"
+          itemLayout="vertical"
+          loading={loading.effects['accountNotice/fetchNotifications']}
+          dataSource={list}
+          pagination={{
+            ...pagination,
+            onChange: this.handlePageChange,
+          }}
+          renderItem={(item: INotification) => (
+            <List.Item
+              key={item.id}
+            >
+              <div className={item.read_at ? styles.read : ''}>
+                <div className={styles.top}>
+                  <div className={styles.avatar}>
+                    <Avatar src={get(item, 'data.form_user_avatar')} />
+                  </div>
+                  <div className={styles.topContent}>
+                    {this.renderItemTitle(item)}
+                  </div>
+                  <div className={styles.topTime}>
+                    <Tooltip title={item.created_at}>
+                    <span>
+                      <Icon type="clock-circle-o" style={{ marginRight: 4 }} />
+                      {moment(item.created_at).fromNow()}
+                    </span>
+                    </Tooltip>
+                  </div>
                 </div>
-                <div className={styles.topContent}>
-                  {this.renderItemTitle(item)}
-                </div>
-                <div className={styles.topTime}>
-                  <Tooltip title={item.created_at}>
-                  <span>
-                    <Icon type="clock-circle-o" style={{ marginRight: 4 }} />
-                    {moment(item.created_at).fromNow()}
-                  </span>
-                  </Tooltip>
+                <div className={styles.content}>
+                  {this.renderItemContent(item)}
                 </div>
               </div>
-              <div ref={this.setMarkdownRef} className={`${styles.content} markdown-body`}>
-                <span
-                  dangerouslySetInnerHTML={{
-                    __html: emojiToolkit.toImage(marked(get(item, 'data.content'))),
-                  }}
-                />
-              </div>
-            </div>
-          </List.Item>
-        )}
-      />
+            </List.Item>
+          )}
+        />
+      </div>
     );
   }
 }

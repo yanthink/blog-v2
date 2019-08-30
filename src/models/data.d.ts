@@ -42,6 +42,7 @@ export interface IArticle {
 export interface ITag {
   id?: number;
   name?: string;
+  order?: number;
   created_at?: string;
   updated_at?: string;
 }
@@ -116,6 +117,7 @@ export interface INotification {
   read_at?: string;
   created_at?: string;
   updated_at?: string;
+  notifiable?: IUser;
 }
 
 export interface IRole {

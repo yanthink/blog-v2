@@ -1,7 +1,7 @@
 import React from 'react';
-import { Form, Input, Modal } from 'antd';
+import { Form, Input, InputNumber, Modal } from 'antd';
 import { FormComponentProps } from 'antd/es/form';
-import { IRole } from '@/models/data';
+import { ITag } from '@/models/data';
 
 const FormItem = Form.Item;
 
@@ -16,10 +16,14 @@ const formItemLayout = {
 
 interface UpdateFormProps extends FormComponentProps {
   modalVisible: boolean;
-  handleUpdate: (id: number, values: Partial<IRole>, callback?: () => void) => void;
+  handleUpdate: (
+    id: number,
+    values: Partial<ITag>,
+    callback?: () => void,
+  ) => void;
   handleModalVisible: () => void;
   loading: boolean;
-  role: IRole;
+  tag: ITag;
 }
 
 const UpdateForm: React.FC<UpdateFormProps> = props => {
@@ -29,14 +33,14 @@ const UpdateForm: React.FC<UpdateFormProps> = props => {
     handleUpdate,
     handleModalVisible,
     loading,
-    role,
+    tag,
   } = props;
   const { getFieldDecorator } = form;
 
   const okHandle = () => {
     form.validateFields((err, values) => {
       if (err) return;
-      handleUpdate(role.id as number, values, () => {
+      handleUpdate(tag.id as number, values, () => {
         form.resetFields();
       });
     });
@@ -45,23 +49,22 @@ const UpdateForm: React.FC<UpdateFormProps> = props => {
   return (
     <Modal
       destroyOnClose
-      title="编辑角色"
+      title="编辑标签"
       visible={modalVisible}
       onOk={okHandle}
       onCancel={() => handleModalVisible()}
       confirmLoading={loading}
     >
-      <FormItem {...formItemLayout} label="角色标识" hasFeedback>
+      <FormItem {...formItemLayout} label="标签名称" hasFeedback>
         {getFieldDecorator('name', {
-          initialValue: role.name,
-          rules: [{ required: true, message: '请填写角色标识' }],
-        })(<Input placeholder="请输入角色标识" disabled={loading} />)}
+          initialValue: tag.name,
+          rules: [{ required: true, message: '请填写标签名称' }],
+        })(<Input placeholder="请输入标签名称" disabled={loading} />)}
       </FormItem>
-      <FormItem {...formItemLayout} label="角色名称" hasFeedback>
-        {getFieldDecorator('display_name', {
-          initialValue: role.display_name,
-          rules: [{ required: true, message: '请填写角色名称' }],
-        })(<Input placeholder="请输入角色名称" disabled={loading} />)}
+      <FormItem {...formItemLayout} label="排序" hasFeedback>
+        {getFieldDecorator('order', {
+          initialValue: tag.order,
+        })(<InputNumber placeholder="排序" disabled={loading} style={{ width: '100%' }} />)}
       </FormItem>
     </Modal>
   );

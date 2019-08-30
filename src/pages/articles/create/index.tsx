@@ -7,7 +7,7 @@ import Prism from 'prismjs';
 import cookie from 'cookie';
 import React, { Component } from 'react';
 import { connect } from 'dva';
-import { router } from 'umi';
+import { Link, router } from 'umi';
 import { FormComponentProps } from 'antd/es/form';
 import { UploadChangeParam } from 'antd/lib/upload';
 import { PageHeaderWrapper } from '@ant-design/pro-layout';
@@ -241,7 +241,7 @@ class ArticleCreate extends Component<ArticleCreateProps, ArticleCreateState> {
                   ))}
                 </Select>,
               )}
-              <a>添加标签</a>
+              <Link to="/tags/list">添加标签</Link>
             </FormItem>
             <FormItem {...formItemLayout} label="预览图">
               {getFieldDecorator('preview')(

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Form, Input, Modal } from 'antd';
+import { Form, Input, InputNumber, Modal } from 'antd';
 import { FormComponentProps } from 'antd/es/form';
 
 const FormItem = Form.Item;
@@ -36,21 +36,21 @@ const CreateForm: React.FC<CreateFormProps> = props => {
   return (
     <Modal
       destroyOnClose
-      title="新建权限"
+      title="新建标签"
       visible={modalVisible}
       onOk={okHandle}
       onCancel={() => handleModalVisible()}
       confirmLoading={loading}
     >
-      <FormItem {...formItemLayout} label="权限标识" hasFeedback>
+      <FormItem {...formItemLayout} label="标签名称" hasFeedback>
         {getFieldDecorator('name', {
-          rules: [{ required: true, message: '请填写权限标识' }],
-        })(<Input placeholder="请输入权限标识" disabled={loading} />)}
+          rules: [{ required: true, message: '请填写标签名称' }],
+        })(<Input placeholder="请输入标签名称" disabled={loading} />)}
       </FormItem>
-      <FormItem {...formItemLayout} label="权限名称" hasFeedback>
-        {getFieldDecorator('display_name', {
-          rules: [{ required: true, message: '请填写权限名称' }],
-        })(<Input placeholder="请输入权限名称" disabled={loading} />)}
+      <FormItem {...formItemLayout} label="排序" hasFeedback>
+        {getFieldDecorator('order')(
+          <InputNumber placeholder="排序" disabled={loading} style={{ width: '100%' }} />,
+        )}
       </FormItem>
     </Modal>
   );
