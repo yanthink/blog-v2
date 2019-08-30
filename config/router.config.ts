@@ -82,6 +82,20 @@ export default [
         component: './users/list',
       },
       {
+        name: '角色管理',
+        icon: 'idcard',
+        path: '/roles/list',
+        authority: 'roles.index',
+        component: './roles/list',
+      },
+      {
+        name: '权限管理',
+        icon: 'safety',
+        path: '/permissions/list',
+        authority: 'permissions.index',
+        component: './permissions/list',
+      },
+      {
         name: 'center',
         path: '/account/center',
         hideInMenu: true,
@@ -92,6 +106,12 @@ export default [
         path: '/account/notice',
         hideInMenu: true,
         component: './account/notice',
+      },
+      {
+        name: '403',
+        path: '/exception/403',
+        hideInMenu: true,
+        component: './exception/403',
       },
       {
         component: './404',

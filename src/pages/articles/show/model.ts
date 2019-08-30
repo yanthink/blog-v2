@@ -87,7 +87,7 @@ const Model: ModelType = {
       });
     },
     * appendFetchReplys({ commentId, payload }, { select, call, put }) {
-      const hide = message.loading('正在请求...');
+      const hide = message.loading('正在请求...', 0);
 
       const { comments } = yield select(({ articleShow }) => articleShow);
 

@@ -118,6 +118,24 @@ export interface INotification {
   updated_at?: string;
 }
 
+export interface IRole {
+  id?: number;
+  name?: string;
+  display_name?: string;
+  description?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface IPermission {
+  id?: number;
+  name?: string;
+  guard_name?: string;
+  display_name?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
 export interface IPagination {
   total?: number;
   pageSize?: number;

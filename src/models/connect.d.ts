@@ -10,6 +10,8 @@ import { StateType as ArticleShowModelState } from '@/pages/articles/show/model'
 import { StateType as UserListModelState } from '@/pages/users/list/model';
 import { StateType as AccountCenterModelState } from '@/pages/account/center/model';
 import { StateType as AccountNoticeModelState } from '@/pages/account/notice/model';
+import { StateType as RoleListModelState } from '@/pages/roles/list/model';
+import { StateType as PermissionListModelState } from '@/pages/permissions/list/model';
 import { GlobalModelState } from './global';
 import { UserModelState } from './user';
 import { DefaultSettings as SettingModelState } from '../../config/defaultSettings';
@@ -26,6 +28,8 @@ export {
   UserListModelState,
   AccountCenterModelState,
   AccountNoticeModelState,
+  RoleListModelState,
+  PermissionListModelState,
 };
 
 export interface Loading {
@@ -44,6 +48,8 @@ export interface Loading {
     userList?: boolean;
     accountCenter?: boolean;
     accountNotice?: boolean;
+    roleList?: boolean;
+    permissionList?: boolean;
   };
 }
 
@@ -60,6 +66,8 @@ export interface ConnectState {
   userList: UserListModelState;
   accountCenter: AccountCenterModelState;
   accountNotice: AccountNoticeModelState;
+  roleList: RoleListModelState;
+  permissionList: PermissionListModelState;
 }
 
 export type Effect = (

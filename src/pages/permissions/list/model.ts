@@ -1,11 +1,11 @@
 import { Reducer } from 'redux';
 import { message } from 'antd';
 import { Effect } from '@/models/connect';
-import { IUser, IPagination } from '@/models/data';
-import { queryList, assignPermissions, assignRoles } from './service';
+import { IPermission, IPagination } from '@/models/data';
+import { queryList, store, update } from './service';
 
 export interface StateType {
-  list: IUser[];
+  list: IPermission[];
   pagination: IPagination;
 }
 
@@ -14,8 +14,8 @@ export interface ModelType {
   state: StateType;
   effects: {
     fetch: Effect;
-    assignPermissions: Effect;
-    assignRoles: Effect;
+    create: Effect;
+    update: Effect;
   };
   reducers: {
     queryList: Reducer<StateType>;
@@ -23,7 +23,7 @@ export interface ModelType {
 }
 
 const Model: ModelType = {
-  namespace: 'userList',
+  namespace: 'permissionList',
 
   state: {
     list: [],
@@ -38,16 +38,16 @@ const Model: ModelType = {
         payload: { list, pagination },
       });
     },
-    * assignPermissions({ userId, payload, callback }, { call }) {
-      yield call(assignPermissions, userId, payload);
-      message.success('分配成功！');
+    * create({ payload, callback }, { call }) {
+      yield call(store, payload);
+      message.success('添加成功！');
       if (callback) {
         callback();
       }
     },
-    * assignRoles({ userId, payload, callback }, { call }) {
-      yield call(assignRoles, userId, payload);
-      message.success('分配成功！');
+    * update({ id, payload, callback }, { call }) {
+      yield call(update, id, payload);
+      message.success('修改成功！');
       if (callback) {
         callback();
       }

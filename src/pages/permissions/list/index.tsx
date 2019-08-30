@@ -1,82 +1,68 @@
 import React, { Component, Fragment } from 'react';
-import { Card, Col, Form, Button, Input, Row, Table, Icon, Avatar, Divider, message } from 'antd';
+import { Card, Col, Form, Button, Input, Row, Table, Icon } from 'antd';
 import { Link, router } from 'umi';
 import { parse, stringify } from 'qs';
 import { FormComponentProps } from 'antd/es/form';
 import { PageHeaderWrapper } from '@ant-design/pro-layout';
 import { connect } from 'dva';
-import { ConnectState, ConnectProps, UserListModelState, Loading } from '@/models/connect'
-import { IPermission, IRole, IUser } from '@/models/data';
-import RoleForm from './components/RoleForm';
-import PermissionForm from './components/PermissionForm';
-import { getAllRoles, getUserRoles, getAllPermissions, getUserPermissions } from './service';
+import { ConnectState, ConnectProps, PermissionListModelState, Loading } from '@/models/connect';
+import { IPermission } from '@/models/data'
+import CreateForm from './components/CreateForm';
+import UpdateForm from './components/UpdateForm';
 import styles from './style.less';
 
 const FormItem = Form.Item;
 
 const defaultQueryParams = {};
 
-interface UserListProps extends ConnectProps, FormComponentProps {
+interface PermissionListProps extends ConnectProps, FormComponentProps {
   loading: Loading;
-  userList: UserListModelState;
+  permissionList: PermissionListModelState;
 }
 
-interface UserListState {
-  permissionModalVisible: boolean;
-  roleModalVisible: boolean;
-  currentUser: IUser;
-  allRoles: IRole[];
-  currentRoles: IRole[];
-  allPermissions: IPermission[];
-  currentPermissions: IPermission[];
+interface PermissionListState {
+  createModalVisible: boolean;
+  updateModalVisible: boolean;
+  currentPermission: IPermission;
 }
 
-@connect(({ userList, loading }: ConnectState) => ({
-  userList,
+@connect(({ permissionList, loading }: ConnectState) => ({
+  permissionList,
   loading,
 }))
-class UserList extends Component<UserListProps, UserListState> {
-  state: UserListState = {
-    permissionModalVisible: false,
-    roleModalVisible: false,
-    currentUser: {},
-    allRoles: [],
-    currentRoles: [],
-    allPermissions: [],
-    currentPermissions: [],
+class PermissionList extends Component<PermissionListProps, PermissionListState> {
+  state: PermissionListState = {
+    createModalVisible: false,
+    updateModalVisible: false,
+    currentPermission: {},
   };
 
   columns = [
     {
-      title: '头像',
-      dataIndex: 'user_info.avatarUrl',
-      render(avatarUrl: string) {
-        return <Avatar src={avatarUrl} icon="user" />
-      },
-    },
-    {
-      title: '用户编号',
-      dataIndex: 'id',
-    },
-    {
-      title: '用户名称',
+      title: '权限标识',
       dataIndex: 'name',
+      key: 'name',
     },
     {
-      title: '邮箱号码',
-      dataIndex: 'email',
+      title: '权限名称',
+      dataIndex: 'display_name',
+      key: 'display_name',
     },
     {
-      title: '注册时间',
+      title: '创建时间',
       dataIndex: 'created_at',
+      key: 'created_at',
+    },
+    {
+      title: '更新时间',
+      dataIndex: 'updated_at',
+      key: 'updated_at',
     },
     {
       title: '操作',
-      render: (_: any, user: IUser) => (
+      render: (_: any, permission: IPermission) => (
         <Fragment>
-          <a onClick={() => this.handleRoleModalVisible(true, user)}>分配角色</a>
-          <Divider type="vertical" />
-          <a onClick={() => this.handlePermissionModalVisible(true, user)}>分配权限</a>
+          <a onClick={() => this.handleUpdateModalVisible(true, permission)}>编辑</a>
         </Fragment>
       ),
     },
@@ -86,7 +72,7 @@ class UserList extends Component<UserListProps, UserListState> {
     this.queryList(this.props.location.search);
   }
 
-  componentWillReceiveProps(nextProps: Readonly<UserListProps>): void {
+  componentWillReceiveProps(nextProps: Readonly<PermissionListProps>): void {
     if (nextProps.location.search !== this.props.location.search) {
       this.queryList(nextProps.location.search);
     }
@@ -101,7 +87,7 @@ class UserList extends Component<UserListProps, UserListState> {
     };
 
     this.props.dispatch({
-      type: 'userList/fetch',
+      type: 'permissionList/fetch',
       payload: queryParams,
     });
   };
@@ -125,60 +111,23 @@ class UserList extends Component<UserListProps, UserListState> {
     this.queryList({});
   };
 
-  handlePermissionModalVisible = async (flag?: boolean, user?: IUser) => {
-    if (!!flag && user) {
-      const hide = message.loading('正在加载权限数据...', 0);
-
-      const { allPermissions } = this.state;
-      if (allPermissions.length === 0) {
-        const { data: allPermissions } = await getAllPermissions();
-        this.setState({ allPermissions });
-      }
-
-      const { data: currentPermissions } = await getUserPermissions(user.id as number);
-      this.setState({ currentPermissions });
-
-      hide();
-    }
-
+  handleCreateModalVisible = (flag?: boolean) => {
     this.setState({
-      permissionModalVisible: !!flag,
-      currentUser: user || {},
+      createModalVisible: !!flag,
     });
   };
 
-  handleRoleModalVisible = async (flag?: boolean, user?: IUser) => {
-    if (!!flag && user) {
-      const hide = message.loading('正在加载角色数据...', 0);
-
-      const { allRoles } = this.state;
-      if (allRoles.length === 0) {
-        const { data: allRoles } = await getAllRoles();
-        this.setState({ allRoles });
-      }
-
-      const { data: currentRoles } = await getUserRoles(user.id as number);
-      this.setState({ currentRoles });
-
-      hide();
-    }
-
+  handleUpdateModalVisible = (flag?: boolean, role?: IPermission) => {
     this.setState({
-      roleModalVisible: !!flag,
-      currentUser: user || {},
+      updateModalVisible: !!flag,
+      currentPermission: role || {},
     });
   };
 
-
-  handleAssignPermissions = (
-    userId: number,
-    values: { permissions: number },
-    callback?: () => void,
-  ) => {
+  handleAdd = (values: object, callback?: () => void) => {
     const { dispatch } = this.props;
     dispatch({
-      type: 'userList/assignPermissions',
-      userId,
+      type: 'permissionList/create',
       payload: {
         ...values,
       },
@@ -186,20 +135,17 @@ class UserList extends Component<UserListProps, UserListState> {
         if (callback) {
           callback();
         }
-        this.handlePermissionModalVisible();
+        this.handleCreateModalVisible();
+        this.queryList(this.props.location.search);
       },
     });
   };
 
-  handleAssignRoles = (
-    userId: number,
-    values: { roles: number },
-    callback?: () => void,
-  ) => {
+  handleUpdate = (id: number, values: object, callback?: () => void) => {
     const { dispatch } = this.props;
     dispatch({
-      type: 'userList/assignRoles',
-      userId,
+      type: 'permissionList/update',
+      id,
       payload: {
         ...values,
       },
@@ -207,7 +153,8 @@ class UserList extends Component<UserListProps, UserListState> {
         if (callback) {
           callback();
         }
-        this.handleRoleModalVisible();
+        this.handleUpdateModalVisible();
+        this.queryList(this.props.location.search);
       },
     });
   };
@@ -219,7 +166,7 @@ class UserList extends Component<UserListProps, UserListState> {
       <Form onSubmit={this.handleSearch} layout="inline">
         <Row gutter={{ md: 8, lg: 24, xl: 48 }}>
           <Col md={8} sm={24}>
-            <FormItem label="用户名称">
+            <FormItem label="权限标识">
               {getFieldDecorator('name')(<Input placeholder="请输入" />)}
             </FormItem>
           </Col>
@@ -234,7 +181,11 @@ class UserList extends Component<UserListProps, UserListState> {
                 </Button>
               </div>
               <div className={styles.operator}>
-                <Button icon="user-add" type="primary">
+                <Button
+                  icon="Permission-add"
+                  type="primary"
+                  onClick={() => this.handleCreateModalVisible(true)}
+                >
                   新建
                 </Button>
               </div>
@@ -247,19 +198,14 @@ class UserList extends Component<UserListProps, UserListState> {
 
   render() {
     const {
-      userList: { list, pagination },
+      permissionList: { list, pagination },
       loading,
       location: { pathname, search },
     } = this.props;
-
     const {
-      roleModalVisible,
-      permissionModalVisible,
-      currentUser,
-      allRoles,
-      currentRoles,
-      allPermissions,
-      currentPermissions,
+      createModalVisible,
+      updateModalVisible,
+      currentPermission,
     } = this.state;
 
     const query = parse(search.replace(/^\?/, ''));
@@ -308,32 +254,28 @@ class UserList extends Component<UserListProps, UserListState> {
                 },
               }}
               columns={this.columns}
-              loading={loading.effects['userList/fetch']}
+              loading={loading.effects['permissionList/fetch']}
               rowKey="id"
             />
           </div>
-          <RoleForm
-            handleAssignRoles={this.handleAssignRoles}
-            handleModalVisible={this.handleRoleModalVisible}
-            modalVisible={roleModalVisible}
-            loading={loading.effects['userList/assignRoles']}
-            currentUser={currentUser}
-            allRoles={allRoles}
-            currentRoles={currentRoles}
-          />
-          <PermissionForm
-            handleAssignPermissions={this.handleAssignPermissions}
-            handleModalVisible={this.handlePermissionModalVisible}
-            modalVisible={permissionModalVisible}
-            loading={loading.effects['userList/assignPermissions']}
-            currentUser={currentUser}
-            allPermissions={allPermissions}
-            currentPermissions={currentPermissions}
-          />
         </Card>
+        <CreateForm
+          handleAdd={this.handleAdd}
+          handleModalVisible={this.handleCreateModalVisible}
+          modalVisible={createModalVisible}
+          loading={loading.effects['permissionList/create']}
+        />
+
+        <UpdateForm
+          handleUpdate={this.handleUpdate}
+          handleModalVisible={this.handleUpdateModalVisible}
+          modalVisible={updateModalVisible}
+          loading={loading.effects['permissionList/update']}
+          permission={currentPermission}
+        />
       </PageHeaderWrapper>
     );
   }
 }
 
-export default Form.create<UserListProps>()(UserList);
+export default Form.create<PermissionListProps>()(PermissionList);

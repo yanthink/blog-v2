@@ -1,6 +1,7 @@
 import React, { PureComponent } from 'react';
 import { connect } from 'dva';
 import { Card, Col, Row, Button, Icon, Divider, Affix } from 'antd';
+import { Link } from 'umi';
 import { GridContent } from '@ant-design/pro-layout';
 import { get } from 'lodash';
 import { ConnectState, ConnectProps, Loading, AccountCenterModelState } from '@/models/connect';
@@ -29,7 +30,6 @@ const operationTabList = [
     tab: '点赞',
   },
 ];
-
 
 interface CenterProps extends ConnectProps {
   loading: Loading;
@@ -105,7 +105,9 @@ class Center extends PureComponent<CenterProps, CenterState> {
                   <Divider />
                   <div>
                     <Button size="large" icon="edit" block>
-                      编辑个人资料
+                      <Link to="/account/settings">
+                        编辑个人资料
+                      </Link>
                     </Button>
                   </div>
                 </div>
