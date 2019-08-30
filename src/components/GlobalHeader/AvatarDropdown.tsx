@@ -40,7 +40,7 @@ class AvatarDropdown extends React.Component<GlobalHeaderRightProps> {
     const { redirect } = getPageQuery();
     // redirect
     if (window.location.pathname !== '/auth/login' && !redirect) {
-      router.replace({
+      router.push({
         pathname: '/auth/login',
         search: stringify({
           redirect: window.location.href,

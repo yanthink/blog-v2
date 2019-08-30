@@ -1,12 +1,8 @@
 import { Button, Result } from 'antd';
 import React from 'react';
-import { router, Redirect } from 'umi';
+import { router } from 'umi';
 
-const NoFoundPage: React.FC<{ location: { pathname: string } }> = ({ location }) => {
-  if (location.pathname === '/') {
-    return <Redirect to="/articles/list" />;
-  }
-
+const NoFoundPage: React.FC<{}> = () => {
   return (
     <Result
       status="404"
