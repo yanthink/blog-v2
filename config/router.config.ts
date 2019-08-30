@@ -82,6 +82,24 @@ export default [
         component: './users/list',
       },
       {
+        name: 'center',
+        path: '/account/center',
+        hideInMenu: true,
+        component: './account/center',
+      },
+      {
+        name: 'notice',
+        path: '/account/notice',
+        hideInMenu: true,
+        component: './account/notice',
+      },
+      {
+        name: '403',
+        path: '/exception/403',
+        hideInMenu: true,
+        component: './exception/403',
+      },
+      {
         name: '系统管理',
         icon: 'setting',
         path: '/',
@@ -120,25 +138,10 @@ export default [
             authority: 'permissions.index',
             component: './permissions/list',
           },
+          {
+            component: './404',
+          },
         ],
-      },
-      {
-        name: 'center',
-        path: '/account/center',
-        hideInMenu: true,
-        component: './account/center',
-      },
-      {
-        name: 'notice',
-        path: '/account/notice',
-        hideInMenu: true,
-        component: './account/notice',
-      },
-      {
-        name: '403',
-        path: '/exception/403',
-        hideInMenu: true,
-        component: './exception/403',
       },
       {
         component: './404',
