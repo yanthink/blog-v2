@@ -1,7 +1,7 @@
 import React, { PureComponent } from 'react';
 import { connect } from 'dva';
 import { Card, Col, Row, Button, Icon, Divider, Affix } from 'antd';
-import { Link } from 'umi';
+import { router } from 'umi';
 import { GridContent } from '@ant-design/pro-layout';
 import { get } from 'lodash';
 import { ConnectState, ConnectProps, Loading, AccountCenterModelState } from '@/models/connect';
@@ -89,7 +89,7 @@ class Center extends PureComponent<CenterProps, CenterState> {
                   <div className={styles.avatarHolder}>
                     <img alt="" src={get(currentUser, 'user_info.avatarUrl')} />
                     <div className={styles.name}>{currentUser.name}</div>
-                    <div>{get(currentUser, 'user_info.signature', '暂无个人描述~')}</div>
+                    <div>{get(currentUser, 'user_info.signature') || '暂无个人描述~'}</div>
                   </div>
                   <div className={styles.detail}>
                     <p>
@@ -104,10 +104,13 @@ class Center extends PureComponent<CenterProps, CenterState> {
                   </div>
                   <Divider />
                   <div>
-                    <Button size="large" icon="edit" block>
-                      <Link to="/account/settings">
-                        编辑个人资料
-                      </Link>
+                    <Button
+                      block
+                      size="large"
+                      icon="edit"
+                      onClick={() => router.push('/account/settings')}
+                    >
+                      编辑个人资料
                     </Button>
                   </div>
                 </div>

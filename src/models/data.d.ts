@@ -15,6 +15,7 @@ export interface IUser {
   created_at?: string;
   updated_at?: string;
   unread_count?: number;
+  has_password?: boolean;
 }
 
 export interface IArticle {

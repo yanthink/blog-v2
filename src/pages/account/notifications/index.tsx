@@ -2,7 +2,7 @@ import React from 'react';
 import { connect } from 'dva';
 import { GridContent } from '@ant-design/pro-layout';
 import { Menu, Icon } from 'antd';
-import { ConnectState, ConnectProps, Loading, AccountNoticeModelState } from '@/models/connect';
+import { ConnectState, ConnectProps, Loading, AccountNotificationsModelState } from '@/models/connect';
 import { IUser } from '@/models/data';
 import Notifications from './components/Notifications';
 import Messages from './components/Messages';
@@ -23,13 +23,13 @@ interface NoticeState {
 
 interface NoticeProps extends ConnectProps {
   loading: Loading,
-  accountNotice: AccountNoticeModelState,
+  accountNotifications: AccountNotificationsModelState,
   currentUser: IUser,
 }
 
-@connect(({ loading, accountNotice, user }: ConnectState) => ({
+@connect(({ loading, accountNotifications, user }: ConnectState) => ({
   loading,
-  accountNotice,
+  accountNotifications,
   currentUser: user.currentUser,
 }))
 class Notice extends React.Component<NoticeProps, NoticeState> {

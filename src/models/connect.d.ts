@@ -9,7 +9,8 @@ import { StateType as ArticleEditModelState } from '@/pages/articles/edit/model'
 import { StateType as ArticleShowModelState } from '@/pages/articles/show/model';
 import { StateType as UserListModelState } from '@/pages/users/list/model';
 import { StateType as AccountCenterModelState } from '@/pages/account/center/model';
-import { StateType as AccountNoticeModelState } from '@/pages/account/notice/model';
+import { StateType as AccountNotificationsModelState } from '@/pages/account/notifications/model';
+import { StateType as AccountSettingsModelState } from '@/pages/account/settings/model';
 import { StateType as RoleListModelState } from '@/pages/roles/list/model';
 import { StateType as PermissionListModelState } from '@/pages/permissions/list/model';
 import { StateType as NotificationListModelState } from '@/pages/notifications/list/model';
@@ -29,7 +30,8 @@ export {
   ArticleShowModelState,
   UserListModelState,
   AccountCenterModelState,
-  AccountNoticeModelState,
+  AccountNotificationsModelState,
+  AccountSettingsModelState,
   RoleListModelState,
   PermissionListModelState,
   NotificationListModelState,
@@ -51,7 +53,8 @@ export interface Loading {
     articleShow?: boolean;
     userList?: boolean;
     accountCenter?: boolean;
-    accountNotice?: boolean;
+    accountNotifications?: boolean;
+    accountSettings?: boolean;
     roleList?: boolean;
     permissionList?: boolean;
     notificationList?: boolean;
@@ -71,7 +74,8 @@ export interface ConnectState {
   articleShow: ArticleShowModelState;
   userList: UserListModelState;
   accountCenter: AccountCenterModelState;
-  accountNotice: AccountNoticeModelState;
+  accountNotifications: AccountNotificationsModelState;
+  accountSettings: AccountSettingsModelState;
   roleList: RoleListModelState;
   permissionList: PermissionListModelState;
   notificationList: NotificationListModelState;

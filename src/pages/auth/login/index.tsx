@@ -186,9 +186,8 @@ class Login extends Component<LoginProps, LoginState> {
                       },
                     ],
                   })(
-                    <Input
+                    <Input.Password
                       size="large"
-                      type="password"
                       placeholder="账户密码"
                     />,
                   )}

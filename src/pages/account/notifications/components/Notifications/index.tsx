@@ -8,7 +8,7 @@ import marked from 'marked';
 import emojiToolkit from 'emoji-toolkit';
 import Prism from 'prismjs';
 import moment from 'moment';
-import { ConnectProps, Loading, AccountNoticeModelState } from '@/models/connect';
+import { ConnectProps, Loading, AccountNotificationsModelState } from '@/models/connect';
 import { INotification, IUser } from '@/models/data';
 import styles from './index.less';
 
@@ -16,7 +16,7 @@ const defaultQueryParams = {};
 
 interface NotificationsProps extends ConnectProps {
   loading: Loading;
-  accountNotice: AccountNoticeModelState;
+  accountNotifications: AccountNotificationsModelState;
   currentUser: IUser;
 
   [key: string]: any;
@@ -50,7 +50,7 @@ class Notifications extends React.Component<NotificationsProps> {
     };
 
     this.props.dispatch({
-      type: 'accountNotice/fetchNotifications',
+      type: 'accountNotifications/fetchNotifications',
       payload: queryParams,
     });
   };
@@ -138,7 +138,7 @@ class Notifications extends React.Component<NotificationsProps> {
   render() {
     const {
       loading,
-      accountNotice: { notifications: { list, pagination } },
+      accountNotifications: { notifications: { list, pagination } },
     } = this.props;
 
     return (
@@ -147,7 +147,7 @@ class Notifications extends React.Component<NotificationsProps> {
           size="large"
           rowKey="id"
           itemLayout="vertical"
-          loading={loading.effects['accountNotice/fetchNotifications']}
+          loading={loading.effects['accountNotifications/fetchNotifications']}
           dataSource={list}
           pagination={{
             ...pagination,

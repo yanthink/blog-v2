@@ -2,6 +2,7 @@ import React, { Component, Fragment } from 'react';
 import { Card, Col, Form, Button, Input, Row, Table, Icon, Avatar, Divider, message } from 'antd';
 import { Link, router } from 'umi';
 import { parse, stringify } from 'qs';
+import { get } from 'lodash';
 import { FormComponentProps } from 'antd/es/form';
 import { PageHeaderWrapper } from '@ant-design/pro-layout';
 import { connect } from 'dva';
@@ -65,6 +66,18 @@ class UserList extends Component<UserListProps, UserListState> {
     {
       title: '邮箱号码',
       dataIndex: 'email',
+    },
+    {
+      title: '所在地区',
+      dataIndex: 'user_info',
+      render(userInfo: any) {
+        return (
+          <span>
+            {`${get(userInfo, 'province')} `}
+            {get(userInfo, 'city')}
+          </span>
+        );
+      },
     },
     {
       title: '注册时间',

@@ -1,23 +1,23 @@
 import React from 'react';
 import { List } from 'antd';
 import { parse } from 'qs';
-import { AccountNoticeModelState, ConnectProps, Loading } from '@/models/connect';
+import { AccountNotificationsModelState, ConnectProps, Loading } from '@/models/connect';
 
 const defaultQueryParams = {};
 
-interface MessagesProps extends ConnectProps {
+interface SystemsProps extends ConnectProps {
   loading: Loading;
-  accountNotice: AccountNoticeModelState;
+  accountNotifications: AccountNotificationsModelState;
 
   [key: string]: any;
 }
 
-class Messages extends React.Component<MessagesProps> {
+class Systems extends React.Component<SystemsProps> {
   componentWillMount() {
-    this.queryMessages(this.props.location.search);
+    this.querySystems(this.props.location.search);
   }
 
-  queryMessages = (params: object | string) => {
+  querySystems = (params: object | string) => {
     const query = params instanceof Object ? params : parse(params.replace(/^\?/, ''));
 
     const queryParams = {
@@ -26,7 +26,7 @@ class Messages extends React.Component<MessagesProps> {
     };
 
     this.props.dispatch({
-      type: 'accountNotice/fetchMessages',
+      type: 'accountNotifications/fetchSystems',
       payload: queryParams,
     });
   };
@@ -34,13 +34,13 @@ class Messages extends React.Component<MessagesProps> {
   handlePageChange = (page: number, pageSize?: number) => {
     const { location: { search } } = this.props;
     const query = parse(search.replace(/^\?/, ''));
-    this.queryMessages({ ...query, page, pageSize });
+    this.querySystems({ ...query, page, pageSize });
   };
 
   render() {
     const {
       loading,
-      accountNotice: { messages: { list, pagination } },
+      accountNotifications: { systems: { list, pagination } },
     } = this.props;
 
     // todo
@@ -50,7 +50,7 @@ class Messages extends React.Component<MessagesProps> {
         size="large"
         rowKey="id"
         itemLayout="vertical"
-        loading={loading.effects['accountNotice/fetchMessages']}
+        loading={loading.effects['accountNotifications/fetchSystems']}
         dataSource={list}
         pagination={{
           ...pagination,
@@ -60,7 +60,7 @@ class Messages extends React.Component<MessagesProps> {
           <List.Item
             key={item.id}
           >
-            messages
+            systems
           </List.Item>
         )}
       />
@@ -68,4 +68,4 @@ class Messages extends React.Component<MessagesProps> {
   }
 }
 
-export default Messages;
+export default Systems;

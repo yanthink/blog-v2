@@ -34,7 +34,7 @@ export interface ModelType {
 }
 
 const Model: ModelType = {
-  namespace: 'accountNotice',
+  namespace: 'accountNotifications',
   state: {
     notifications: {
       list: [],

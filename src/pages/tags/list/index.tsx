@@ -270,7 +270,6 @@ class TagList extends Component<TagListProps, TagListState> {
           modalVisible={createModalVisible}
           loading={loading.effects['tagList/create']}
         />
-
         <UpdateForm
           handleUpdate={this.handleUpdate}
           handleModalVisible={this.handleUpdateModalVisible}

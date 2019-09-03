@@ -48,7 +48,10 @@ export default [
     component: '../layouts/BasicLayout',
     Routes: ['src/pages/Authorized'],
     routes: [
-      { path: '/', redirect: '/articles/list' },
+      {
+        path: '/',
+        redirect: '/articles/list',
+      },
       {
         name: '文章列表',
         icon: 'edit',
@@ -86,12 +89,7 @@ export default [
         name: '系统管理',
         icon: 'setting',
         path: 'system',
-        authority: [
-          'notifications.index',
-          'tags.index',
-          'roles.index',
-          'permissions.index',
-        ],
+        authority: ['notifications.index', 'tags.index', 'roles.index', 'permissions.index'],
         routes: [
           {
             name: '通知管理',
@@ -127,16 +125,26 @@ export default [
         ],
       },
       {
-        name: 'center',
-        path: 'account/center',
+        name: '账户中心',
+        path: 'account',
         hideInMenu: true,
-        component: './account/center',
-      },
-      {
-        name: 'notice',
-        path: 'account/notice',
-        hideInMenu: true,
-        component: './account/notice',
+        routes: [
+          {
+            name: 'center',
+            path: 'center',
+            component: './account/center',
+          },
+          {
+            name: 'notifications',
+            path: 'notifications',
+            component: './account/notifications',
+          },
+          {
+            name: 'settings',
+            path: 'settings',
+            component: './account/settings',
+          },
+        ],
       },
       {
         name: '403',
