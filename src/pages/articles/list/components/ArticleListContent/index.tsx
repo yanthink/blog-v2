@@ -33,7 +33,7 @@ const ArticleListContent: React.FC<ArticleListContentProps> = ({ data: article }
               }}
             />
           ))
-          : article.content}
+          : String(article.content).substr(0, 500)}
       </Ellipsis>
     </div>
     <div className={styles.extra}>
