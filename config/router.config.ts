@@ -130,17 +130,17 @@ export default [
         hideInMenu: true,
         routes: [
           {
-            name: 'center',
+            name: '账户中心',
             path: 'center',
             component: './account/center',
           },
           {
-            name: 'notifications',
+            name: '我的通知',
             path: 'notifications',
             component: './account/notifications',
           },
           {
-            name: 'settings',
+            name: '个人设置',
             path: 'settings',
             component: './account/settings',
           },

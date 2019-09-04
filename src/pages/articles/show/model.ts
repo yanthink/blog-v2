@@ -7,6 +7,8 @@ import {
   queryArticle,
   queryComments,
   queryReplys,
+  articleLike,
+  articleFavorite,
   commentLike,
   replyLike,
   postComment,
@@ -27,6 +29,8 @@ export interface ModelType {
     fetchComments: Effect;
     appendFetchComments: Effect;
     appendFetchReplys: Effect;
+    articleLike: Effect;
+    articleFavorite: Effect;
     commentLike: Effect;
     replyLike: Effect;
     sendComment: Effect;
@@ -113,6 +117,26 @@ const Model: ModelType = {
       });
 
       hide();
+    },
+    * articleLike({ id }, { call, select, put }) {
+      const { data } = yield call(articleLike, id);
+      const { article } = yield select(({ articleShow }) => articleShow);
+      yield put({
+        type: 'save',
+        payload: {
+          article: { ...article, ...data },
+        },
+      });
+    },
+    * articleFavorite({ id }, { call, select, put }) {
+      const { data } = yield call(articleFavorite, id);
+      const { article } = yield select(({ articleShow }) => articleShow);
+      yield put({
+        type: 'save',
+        payload: {
+          article: { ...article, ...data },
+        },
+      });
     },
     * commentLike({ commentId }, { call, select, put }) {
       const { data } = yield call(commentLike, commentId);

@@ -38,6 +38,8 @@ export interface IArticle {
   };
   author?: IUser;
   tags?: ITag[];
+  likes?: ILike[];
+  favorites?: IFavorite[];
 }
 
 export interface ITag {

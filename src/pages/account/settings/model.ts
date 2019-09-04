@@ -1,5 +1,5 @@
-import { AnyAction, Reducer } from 'redux';
-import { EffectsCommandMap } from 'dva';
+import { Reducer } from 'redux';
+import { Effect } from '@/models/connect';
 import { GeographicItemType } from './data.d';
 import { queryCity, queryProvince, updateBaseInfo, updatePassword } from './service';
 
@@ -8,11 +8,6 @@ export interface ModalState {
   city?: GeographicItemType[];
   isLoading?: boolean;
 }
-
-export type Effect = (
-  action: AnyAction,
-  effects: EffectsCommandMap & { select: <T>(func: (state: ModalState) => T) => T },
-) => void;
 
 export interface ModelType {
   namespace: string;

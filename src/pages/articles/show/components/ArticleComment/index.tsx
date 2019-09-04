@@ -236,6 +236,7 @@ class ArticleComment extends React.Component<ArticleCommentProps, ArticleComment
                       <Icon
                         type="like"
                         theme={reply.likes && reply.likes.length > 0 ? 'twoTone' : 'outlined'}
+                        twoToneColor="#13C2C2"
                         onClick={() => onReplyLike(comment.id as number, reply.id as number)}
                       />
                     </Tooltip>
@@ -314,6 +315,7 @@ class ArticleComment extends React.Component<ArticleCommentProps, ArticleComment
                       <Icon
                         type="like"
                         theme={item.likes && item.likes.length > 0 ? 'twoTone' : 'outlined'}
+                        twoToneColor="#13C2C2"
                         onClick={() => onCommentLike(item.id as number)}
                       />
                     </Tooltip>

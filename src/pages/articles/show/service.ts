@@ -18,6 +18,18 @@ export async function queryReplys(commentId: number | string, params: any) {
   });
 }
 
+export async function articleLike(id: number | string) {
+  return request(`/articles/${id}/likes`, {
+    method: 'post',
+  });
+}
+
+export async function articleFavorite(id: number | string) {
+  return request(`/articles/${id}/favorites`, {
+    method: 'post',
+  });
+}
+
 export async function commentLike(commentId: number | string) {
   return request(`/comments/${commentId}/like`, {
     method: 'post',

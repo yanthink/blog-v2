@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, Row, Col, Button, Skeleton, Modal, message } from 'antd';
+import { Card, Row, Col, Button, Skeleton, Modal, Icon, Tooltip, message, Tag } from 'antd';
 import { FormComponentProps } from 'antd/es/form';
 import { connect } from 'dva';
 import { Link, router } from 'umi';
@@ -130,6 +130,34 @@ class ArticleShow extends React.Component<ArticleShowProps, ArticleShowState> {
       },
       onCancel() {
       },
+    });
+  };
+
+  handleLike = () => {
+    const { dispatch, user: { currentUser }, match: { params } } = this.props;
+
+    if (!currentUser || !currentUser.name) {
+      this.loginConfirm();
+      return;
+    }
+
+    dispatch({
+      type: 'articleShow/articleLike',
+      id: params.id,
+    });
+  };
+
+  handleFavorite = () => {
+    const { dispatch, user: { currentUser }, match: { params } } = this.props;
+
+    if (!currentUser || !currentUser.name) {
+      this.loginConfirm();
+      return;
+    }
+
+    dispatch({
+      type: 'articleShow/articleFavorite',
+      id: params.id,
     });
   };
 
@@ -265,6 +293,40 @@ class ArticleShow extends React.Component<ArticleShowProps, ArticleShowState> {
                 loading={fetchingArticle}
               >
                 <ArticleContent article={article} getTocify={this.setTocify} />
+                <div className={styles.tags}>
+                  <Icon type="tags" theme="filled" style={{ marginRight: 12, fontSize: 16 }} />
+                  {
+                    article &&
+                    article.tags &&
+                    article.tags.map(tag => (
+                      <Link key={tag.id} to={`/articles/list?tagIds[0]=${tag.id}`}>
+                        <Tag color="orange">{tag.name}</Tag>
+                      </Link>
+                    ))
+                  }
+                </div>
+                <div className={styles.action}>
+                  <Tooltip title="点赞">
+                    <span className={styles.like}>
+                      <Icon
+                        type="like"
+                        theme={article.likes && article.likes.length > 0 ? 'twoTone' : 'outlined'}
+                        twoToneColor="#13C2C2"
+                        onClick={this.handleLike}
+                      />
+                      {article.like_count}
+                    </span>
+                  </Tooltip>
+                  <Tooltip title="收藏">
+                    <Icon
+                      className={styles.favorite}
+                      type="heart"
+                      theme={article.favorites && article.favorites.length > 0 ? 'twoTone' : 'outlined'}
+                      twoToneColor="#eb2f96"
+                      onClick={this.handleFavorite}
+                    />
+                  </Tooltip>
+                </div>
               </Skeleton>
             </Card>
             <Card bordered={false} className={styles.commentCard}>

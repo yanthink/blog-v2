@@ -1,6 +1,5 @@
 import React from 'react';
-import { Link } from 'umi';
-import { Icon, Tag } from 'antd';
+import { Icon } from 'antd';
 import { get } from 'lodash';
 // @ts-ignore
 import emojiToolkit from 'emoji-toolkit';
@@ -140,19 +139,6 @@ export default class ArticleContent extends React.Component<ArticleContentProps>
             <span>
               <Icon type="eye-o" style={{ marginRight: 4 }} />
               {get(article, 'current_read_count')} 阅读
-            </span>
-            <span style={{ margin: '0 6px' }}>⋅</span>
-            <span>
-              <Icon type="tags-o" style={{ marginRight: 4 }} />
-              {
-                article &&
-                article.tags &&
-                article.tags.map(tag => (
-                  <Link key={tag.id} to={`/articles/list?tagIds[0]=${tag.id}`}>
-                    <Tag>{tag.name}</Tag>
-                  </Link>
-                ))
-              }
             </span>
           </div>
         </div>
