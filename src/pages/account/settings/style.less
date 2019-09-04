@@ -86,9 +86,14 @@
     .leftMenu {
       width: 100%;
       border: none;
+      :global {
+        .ant-menu-item {
+          padding-left: 12px !important;
+        }
+      }
     }
     .right {
-      padding: 40px;
+      padding: 24px 12px;
     }
   }
 }

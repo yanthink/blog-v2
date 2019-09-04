@@ -133,8 +133,11 @@ img.joypixels {
     }
 
     .ant-pro-sider-menu-sider {
-      .ant-menu-item {
+      .ant-menu-item, .ant-menu-submenu {
         padding-left: 12px !important;
+      }
+      .ant-menu-submenu .ant-menu-submenu-title {
+        padding-left: 0 !important;
       }
     }
 
@@ -150,8 +153,16 @@ img.joypixels {
       right: 12px;
     }
 
-    .ant-pro-basicLayout-content, .ant-pro-page-header-wrap-children-content {
+    .ant-pro-basicLayout-content {
       margin: 12px 0;
+    }
+
+    .ant-pro-page-header-wrap-page-header-warp {
+      margin: 12px 24px;
+    }
+
+    .ant-pro-page-header-wrap-children-content {
+      margin: 12px 24px 0;
     }
 
     .ant-card-body {
