@@ -256,7 +256,7 @@ class ArticleEdit extends Component<ArticleEditProps, ArticleEditState> {
                   ))}
                 </Select>,
               )}
-              <Link to="/tags/list">添加标签</Link>
+              <Link to="/system/tags/list">添加标签</Link>
             </FormItem>
             <FormItem {...formItemLayout} label="预览图">
               {getFieldDecorator('preview')(

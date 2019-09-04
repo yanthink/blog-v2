@@ -164,39 +164,17 @@ class Login extends Component<LoginProps, LoginState> {
               <div>
                 <FormItem hasFeedback>
                   {getFieldDecorator('account', {
-                    rules: [
-                      {
-                        required: true,
-                        message: '请输入账户名称！',
-                      },
-                    ],
-                  })(
-                    <Input
-                      size="large"
-                      placeholder="账户名称"
-                    />,
-                  )}
+                    rules: [{ required: true, message: '请输入账户名称！' }],
+                  })(<Input size="large" placeholder="账户名称" />)}
                 </FormItem>
                 <FormItem hasFeedback>
                   {getFieldDecorator('password', {
-                    rules: [
-                      {
-                        required: true,
-                        message: '请输入账户密码！',
-                      },
-                    ],
-                  })(
-                    <Input.Password
-                      size="large"
-                      placeholder="账户密码"
-                    />,
-                  )}
+                    rules: [{ required: true, message: '请输入账户密码！'}],
+                  })(<Input.Password size="large" placeholder="账户密码" />)}
                 </FormItem>
                 <FormItem>
                   {getFieldDecorator('remember')(
-                    <Checkbox>
-                      自动登录
-                    </Checkbox>,
+                    <Checkbox>自动登录</Checkbox>,
                   )}
                   <Link style={{ float: 'right' }} to="#">
                     忘记密码

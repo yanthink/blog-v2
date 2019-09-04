@@ -72,6 +72,33 @@ img.joypixels {
   margin: 0;
 }
 
+// highlight
+.markdown-body,
+.editor-preview,
+.editor-preview-active,
+.editor-preview-side,
+.editor-preview-active-side {
+  -webkit-font-smoothing: none !important;
+  -moz-osx-font-smoothing: unset !important;
+
+  .token.property, .token.tag, .token.constant, .token.symbol, .token.deleted {
+    color: lighten(#f92672, 10%);
+  }
+
+  .token.comment, .token.prolog, .token.doctype, .token.cdata {
+    color: #8a9496;
+  }
+
+  .token.atrule, .token.attr-value, .token.function, .token.class-name {
+    //color: lighten(#e6db74, 10%);
+    color: gold;
+  }
+
+  .token.selector, .token.attr-name, .token.string, .token.char, .token.builtin, .token.inserted {
+    color: #abe338;
+  }
+}
+
 @media (max-width: @screen-xs) {
   .ant-table {
     width: 100%;
