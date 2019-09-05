@@ -38,3 +38,14 @@
     }
   }
 }
+
+@media (max-width: @screen-md) {
+  .affix {
+    > div:first-child[aria-hidden="true"] {
+      display: none;
+    }
+    :global(.ant-affix) {
+      position: static !important;
+    }
+  }
+}

@@ -29,10 +29,7 @@ interface SettingsState {
   accountSettings,
   currentUser: user.currentUser,
 }))
-class Settings extends Component<SettingsProps,
-  SettingsState> {
-  main: HTMLDivElement | undefined = undefined;
-
+class Settings extends Component<SettingsProps, SettingsState> {
   constructor(props: SettingsProps) {
     super(props);
     const menuMap = {
@@ -55,10 +52,6 @@ class Settings extends Component<SettingsProps,
     window.removeEventListener('resize', this.resize);
   }
 
-  setMainRef = (ref: HTMLDivElement) => {
-    this.main = ref;
-  };
-
   getMenu = () => {
     const { menuMap } = this.state;
     return Object.keys(menuMap).map(item => <Item key={item}>{menuMap[item]}</Item>);
@@ -76,19 +69,9 @@ class Settings extends Component<SettingsProps,
   };
 
   resize = () => {
-    if (!this.main) {
-      return;
-    }
     requestAnimationFrame(() => {
-      if (!this.main) {
-        return;
-      }
       let mode: 'inline' | 'horizontal' = 'inline';
-      const { offsetWidth } = this.main;
-      if (this.main.offsetWidth < 641 && offsetWidth > 400) {
-        mode = 'horizontal';
-      }
-      if (window.innerWidth < 768 && offsetWidth > 400) {
+      if (window.innerWidth < 768) {
         mode = 'horizontal';
       }
       this.setState({
@@ -119,10 +102,7 @@ class Settings extends Component<SettingsProps,
     const { mode, selectKey } = this.state;
     return (
       <GridContent>
-        <div
-          className={styles.main}
-          ref={this.setMainRef}
-        >
+        <div className={styles.main}>
           <div className={styles.leftMenu}>
             <Menu
               mode={mode}

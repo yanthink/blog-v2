@@ -32,7 +32,6 @@
 }
 
 .topTime {
-  width: 120px;
   color: #bbb;
   text-align: right;
 }
@@ -41,5 +40,11 @@
   margin-left: 52px;
   > div > span > p {
     display: inline-block;
+  }
+}
+
+@media (max-width: @screen-md) {
+  .topContent {
+    margin: 0 12px;
   }
 }

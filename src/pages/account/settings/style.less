@@ -41,48 +41,11 @@
     }
   }
 }
-:global {
-  .ant-list-item-meta {
-    // 账号绑定图标
-    .taobao {
-      display: block;
-      color: #ff4000;
-      font-size: 48px;
-      line-height: 48px;
-      border-radius: @border-radius-base;
-    }
-    .dingding {
-      margin: 2px;
-      padding: 6px;
-      color: #fff;
-      font-size: 32px;
-      line-height: 32px;
-      background-color: #2eabff;
-      border-radius: @border-radius-base;
-    }
-    .alipay {
-      color: #2eabff;
-      font-size: 48px;
-      line-height: 48px;
-      border-radius: @border-radius-base;
-    }
-  }
-
-  // 密码强度
-  font.strong {
-    color: @success-color;
-  }
-  font.medium {
-    color: @warning-color;
-  }
-  font.weak {
-    color: @error-color;
-  }
-}
 
 @media screen and (max-width: @screen-md) {
   .main {
     flex-direction: column;
+    padding-top: 8px;
     .leftMenu {
       width: 100%;
       border: none;
@@ -93,7 +56,7 @@
       }
     }
     .right {
-      padding: 24px 12px;
+      padding: 24px 12px 0 12px;
     }
   }
 }

@@ -139,6 +139,7 @@ class Likes extends React.Component<LikesProps> {
           dataSource={list}
           pagination={{
             ...pagination,
+            simple: window.innerWidth < 768,
             onChange: this.handlePageChange,
           }}
           renderItem={(item: ILike) => (

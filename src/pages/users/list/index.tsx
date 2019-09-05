@@ -230,7 +230,7 @@ class UserList extends Component<UserListProps, UserListState> {
     const { getFieldDecorator } = form;
     return (
       <Form onSubmit={this.handleSearch} layout="inline">
-        <Row gutter={{ md: 8, lg: 24, xl: 48 }}>
+        <Row gutter={{ md: 12, lg: 24 }}>
           <Col md={8} sm={24}>
             <FormItem label="用户名称">
               {getFieldDecorator('name')(<Input placeholder="请输入" />)}
@@ -286,6 +286,7 @@ class UserList extends Component<UserListProps, UserListState> {
               dataSource={list}
               pagination={{
                 ...pagination,
+                simple: window.innerWidth < 768,
                 itemRender(page, type, originalElement) {
                   let children: any = page;
 

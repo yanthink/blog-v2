@@ -104,6 +104,7 @@ class Replys extends React.Component<ReplysProps> {
           dataSource={list}
           pagination={{
             ...pagination,
+            simple: window.innerWidth < 768,
             onChange: this.handlePageChange,
           }}
           renderItem={(item: IReply) => (

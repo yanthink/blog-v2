@@ -219,6 +219,7 @@ class PermissionList extends Component<PermissionListProps, PermissionListState>
               dataSource={list}
               pagination={{
                 ...pagination,
+                simple: window.innerWidth < 768,
                 itemRender(page, type, originalElement) {
                   let children: any = page;
 

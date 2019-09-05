@@ -167,6 +167,7 @@ class NotificationList extends React.Component<NotificationListProps> {
               dataSource={list}
               pagination={{
                 ...pagination,
+                simple: window.innerWidth < 768,
                 itemRender(page, type, originalElement) {
                   let children: any = page;
 

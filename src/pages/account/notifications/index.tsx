@@ -43,8 +43,6 @@ class Notice extends React.Component<NoticeProps, NoticeState> {
     selectKey: 'notifications',
   };
 
-  main: HTMLDivElement | undefined = undefined;
-
   componentDidMount() {
     window.addEventListener('resize', this.resize);
     this.resize();
@@ -53,10 +51,6 @@ class Notice extends React.Component<NoticeProps, NoticeState> {
   componentWillUnmount() {
     window.removeEventListener('resize', this.resize);
   }
-
-  setMainRef = (ref: HTMLDivElement) => {
-    this.main = ref;
-  };
 
   getMenu = () => {
     const { menuMap } = this.state;
@@ -75,19 +69,9 @@ class Notice extends React.Component<NoticeProps, NoticeState> {
   };
 
   resize = () => {
-    if (!this.main) {
-      return;
-    }
     requestAnimationFrame(() => {
-      if (!this.main) {
-        return;
-      }
       let mode: 'inline' | 'horizontal' = 'inline';
-      const { offsetWidth } = this.main;
-      if (this.main.offsetWidth < 641 && offsetWidth > 400) {
-        mode = 'horizontal';
-      }
-      if (window.innerWidth < 768 && offsetWidth > 400) {
+      if (window.innerWidth < 768) {
         mode = 'horizontal';
       }
       this.setState({
@@ -114,10 +98,7 @@ class Notice extends React.Component<NoticeProps, NoticeState> {
     const { mode, selectKey } = this.state;
     return (
       <GridContent>
-        <div
-          className={styles.main}
-          ref={this.setMainRef}
-        >
+        <div className={styles.main}>
           <div className={styles.leftMenu}>
             <Menu
               mode={mode}

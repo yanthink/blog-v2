@@ -29,20 +29,33 @@ ol {
   list-style: none;
 }
 
+// topNav
+.ant-pro-top-nav-header-main {
+  position: relative;
+}
+
+// footer
+.ant-pro-global-footer {
+  margin-top: 24px !important;
+}
+
 // nprogress
-body #nprogress .bar {
-  background-color: #13c2c2;
+body #nprogress {
+  .bar {
+    background-color: @primary-color;
+  }
+
+  .spinner {
+    top: 23px !important;
+  }
+
+  .spinner-icon {
+    border-top-color: @primary-color;
+    border-left-color: @primary-color;
+  }
 }
 
-body #nprogress .spinner {
-  top: 23px;
-}
-
-body #nprogress .spinner-icon {
-  border-top-color: #13c2c2;
-  border-left-color: #13c2c2;
-}
-
+// simplemde-editor
 .editor-toolbar {
   line-height: normal;
 }
@@ -90,7 +103,6 @@ img.joypixels {
   }
 
   .token.atrule, .token.attr-value, .token.function, .token.class-name {
-    //color: lighten(#e6db74, 10%);
     color: gold;
   }
 
@@ -99,83 +111,7 @@ img.joypixels {
   }
 }
 
-@media (max-width: @screen-xs) {
-  .ant-table {
-    width: 100%;
-    overflow-x: auto;
-
-    &-thead > tr,
-    &-tbody > tr {
-      > th,
-      > td {
-        white-space: pre;
-
-        > span {
-          display: block;
-        }
-      }
-    }
-  }
-}
-
-@media (max-width: @screen-md) {
-  body {
-    .ant-pro-global-header-logo {
-      padding-left: 12px;
-    }
-
-    .ant-pro-sider-menu-logo {
-      padding-left: 12px;
-    }
-
-    .ant-pro-global-header-trigger {
-      padding-left: 12px;
-    }
-
-    .ant-pro-sider-menu-sider {
-      .ant-menu-item, .ant-menu-submenu {
-        padding-left: 12px !important;
-      }
-      .ant-menu-submenu .ant-menu-submenu-title {
-        padding-left: 0 !important;
-      }
-    }
-
-    .antd-pro-components-global-header-index-right {
-      right: 0;
-    }
-
-    .ant-page-header {
-      padding: 12px;
-    }
-
-    .ant-page-header-heading-extra {
-      right: 12px;
-    }
-
-    .ant-pro-basicLayout-content {
-      margin: 12px 0;
-    }
-
-    .ant-pro-page-header-wrap-page-header-warp {
-      margin: 12px 24px;
-    }
-
-    .ant-pro-page-header-wrap-children-content {
-      margin: 12px 24px 0;
-    }
-
-    .ant-card-body {
-      padding: 12px;
-    }
-
-    .ant-pro-global-footer {
-      padding: 0 12px;
-    }
-  }
-}
-
-// 定宽模式样式覆盖
+// 大于1200px
 @media (min-width: @screen-xl) {
   .ant-pro-grid-content.wide > .ant-page-header {
     padding: 16px 0;
@@ -191,8 +127,90 @@ img.joypixels {
   }
 }
 
-@media (max-width: @screen-xl) {
+@media (min-width: @screen-md + 1) and (max-width: @screen-xl) {
   .ant-pro-top-nav-header-main.wide .ant-pro-top-nav-header-logo {
     padding-left: 24px;
+  }
+
+  .antd-pro-components-global-header-index-right {
+    padding-right: 12px;
+  }
+}
+
+// 小于768px
+@media (max-width: @screen-md) {
+  body {
+    // table
+    .ant-table {
+      width: 100%;
+      overflow-x: auto;
+
+      &-thead > tr,
+      &-tbody > tr {
+        > th,
+        > td {
+          white-space: pre;
+
+          > span {
+            display: block;
+          }
+        }
+      }
+    }
+
+    // topNav, siderMenu
+    .ant-pro-global-header-logo,
+    .ant-pro-top-nav-header-logo,
+    .ant-pro-sider-menu-logo,
+    .ant-pro-global-header-trigger {
+      padding-left: 12px;
+    }
+    .ant-pro-sider-menu-sider {
+      .ant-menu-item, .ant-menu-submenu {
+        padding-left: 12px !important;
+      }
+
+      .ant-menu-submenu .ant-menu-submenu-title {
+        padding-left: 0 !important;
+      }
+    }
+
+    // basicLayout
+    .ant-pro-basicLayout-content {
+      margin: 12px 0;
+    }
+
+    // pageHeader
+    .ant-pro-page-header-wrap-page-header-warp {
+      margin: 12px 24px;
+      .ant-page-header {
+        padding: 12px;
+        .ant-page-header-heading-extra {
+          right: 12px;
+        }
+      }
+    }
+
+    .ant-pro-page-header-wrap-children-content {
+      margin: 12px 24px 0;
+    }
+
+    .ant-card-head {
+      padding: 0 12px;
+      .ant-tabs-nav .ant-tabs-tab {
+        margin-right: 16px;
+      }
+    }
+    .ant-card-body {
+      padding: 12px;
+    }
+
+    .ant-form-item-label {
+      padding-bottom: 8px;
+    }
+
+    .ant-pro-global-footer {
+      padding: 0 12px;
+    }
   }
 }

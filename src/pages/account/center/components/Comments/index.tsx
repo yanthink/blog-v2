@@ -104,6 +104,7 @@ class Comments extends React.Component<CommentsProps> {
           dataSource={list}
           pagination={{
             ...pagination,
+            simple: window.innerWidth < 768,
             onChange: this.handlePageChange,
           }}
           renderItem={(item: IComment) => (

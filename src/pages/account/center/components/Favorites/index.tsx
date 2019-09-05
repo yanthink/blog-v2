@@ -80,6 +80,7 @@ class Favorites extends React.Component<FavoritesProps> {
         dataSource={list}
         pagination={{
           ...pagination,
+          simple: window.innerWidth < 768,
           onChange: this.handlePageChange,
         }}
         renderItem={(item: IFavorite) => (

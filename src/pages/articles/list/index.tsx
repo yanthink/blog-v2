@@ -146,6 +146,7 @@ class ArticleList extends Component<ArticleListProps, ArticleListState> {
             className={styles.list}
             pagination={{
               ...pagination,
+              simple: window.innerWidth < 768,
               itemRender(page, type, originalElement) {
                 let children: any = page;
 

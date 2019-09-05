@@ -83,7 +83,7 @@ class Center extends PureComponent<CenterProps, CenterState> {
       <GridContent>
         <Row gutter={24}>
           <Col lg={7} md={24}>
-            <Affix offsetTop={0}>
+            <Affix className={styles.affix} offsetTop={0}>
               <Card bordered={false} loading={dataLoading}>
                 <div>
                   <div className={styles.avatarHolder}>

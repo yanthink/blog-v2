@@ -169,8 +169,8 @@ class Login extends Component<LoginProps, LoginState> {
                 </FormItem>
                 <FormItem hasFeedback>
                   {getFieldDecorator('password', {
-                    rules: [{ required: true, message: '请输入账户密码！'}],
-                  })(<Input.Password size="large" placeholder="账户密码" />)}
+                    rules: [{ required: true, message: '请输入账户密码！' }],
+                  })(<Input size="large" placeholder="账户密码" />)}
                 </FormItem>
                 <FormItem>
                   {getFieldDecorator('remember')(

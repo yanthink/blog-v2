@@ -26,7 +26,6 @@ const GlobalHeaderRight: React.FC<GlobalHeaderRightProps> = props => {
 
   return (
     <div className={className}>
-      <span style={{ width: 80, height: 1, display: 'inline-block' }} />
       <HeaderSearch
         className={`${styles.action} ${styles.search}`}
         placeholder="站内搜索"
