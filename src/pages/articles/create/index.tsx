@@ -104,7 +104,7 @@ class ArticleCreate extends Component<ArticleCreateProps, ArticleCreateState> {
   };
 
   renderMarkdown = (text: string) => {
-    let html = marked(text, { headerIds: false, gfm: true, breaks: true });
+    let html = marked(text);
     if (/language-/.test(html)) {
       const container = document.createElement('div');
       container.innerHTML = html;

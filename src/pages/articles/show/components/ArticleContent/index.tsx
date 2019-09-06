@@ -5,7 +5,7 @@ import { get } from 'lodash';
 import emojiToolkit from 'emoji-toolkit';
 import marked from 'marked';
 import Prism from 'prismjs';
-import { dynamicLoad, showTime } from '@/utils/utils';
+import { dynamicLoad, showTime, getDefaultMarkedOptions, resetMarkedOptions } from '@/utils/utils';
 import { IArticle } from '@/models/data';
 import Tocify from './tocify';
 import 'emoji-assets/sprites/joypixels-sprite-32.min.css';
@@ -25,41 +25,6 @@ export default class ArticleContent extends React.Component<ArticleContentProps>
     super(props);
 
     this.tocify = new Tocify();
-
-    const renderer = new marked.Renderer();
-
-    renderer.heading = (text, level) => {
-      const anchor = this.tocify.add(text, level);
-      return `<a id="${anchor}" href="#${anchor}" class="anchor-fix"><h${level}>${text}</h${level}></a>\n`;
-    };
-    renderer.link = (href: string, title: string, text: string) => {
-      let url = href;
-      let target: boolean | string = false;
-
-      if (url.slice(0, 1) !== '#') {
-        const urlParams = new URL(href, window.location.origin);
-
-        url = urlParams.href;
-
-        target = urlParams.host !== window.location.host ? '_blank' : false;
-      }
-
-      if (!url) {
-        return text;
-      }
-
-      let out = `<a href="${url}"`;
-      if (title) {
-        out += ` title="${title}"`;
-      }
-      if (target !== false) {
-        out += ` target="${target}"`;
-      }
-      out += `>${text}</a>`;
-
-      return out;
-    };
-    marked.setOptions({ renderer, headerIds: true, gfm: true, breaks: true });
   }
 
   async componentDidMount() {
@@ -94,8 +59,7 @@ export default class ArticleContent extends React.Component<ArticleContentProps>
   }
 
   componentWillUnmount() {
-    const renderer = new marked.Renderer();
-    marked.setOptions({ renderer, breaks: true });
+    resetMarkedOptions();
   }
 
   setMarkdownRef = (ref: any) => {
@@ -107,7 +71,16 @@ export default class ArticleContent extends React.Component<ArticleContentProps>
     if (article && article.content) {
       this.tocify.reset();
 
+      const { renderer, ...otherOptions } = getDefaultMarkedOptions();
+      renderer.heading = (text, level) => {
+        const anchor = this.tocify.add(text, level);
+        return `<a id="${anchor}" href="#${anchor}" class="anchor-fix"><h${level}>${text}</h${level}></a>\n`;
+      };
+      marked.setOptions({ renderer, ...otherOptions });
+
       const markup = emojiToolkit.toImage(marked(article.content));
+
+      resetMarkedOptions();
 
       return { __html: markup };
     }

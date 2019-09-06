@@ -1,5 +1,6 @@
 /* eslint no-useless-escape:0 import/prefer-default-export:0 */
 import moment from 'moment';
+import marked from 'marked';
 
 const reg = /(((^https?:(?:\/\/)?)(?:[-;:&=\+\$,\w]+@)?[A-Za-z0-9.-]+(?::\d+)?|(?:www.|[-;:&=\+\$,\w]+@)[A-Za-z0-9.-]+)((?:\/[\+~%\/.\w-_]*)?\??(?:[-\+=&;%@.\w_]*)#?(?:[\w]*))?)$/;
 
@@ -93,4 +94,48 @@ export function randomString(len: number) {
   }
 
   return rdmString;
+}
+
+export function rendererLink(href: string, title: string, text: string) {
+  let url = href;
+  let target: boolean | string = false;
+
+  if (url.slice(0, 1) !== '#') {
+    const urlParams = new URL(href, window.location.origin);
+
+    url = urlParams.href;
+
+    target = urlParams.host !== window.location.host ? '_blank' : false;
+  }
+
+  if (!url) {
+    return text;
+  }
+
+  let out = `<a href="${url}"`;
+  if (title) {
+    out += ` title="${title}"`;
+  }
+  if (target !== false) {
+    out += ` target="${target}"`;
+  }
+  out += `>${text}</a>`;
+
+  return out;
+}
+
+export function getDefaultMarkedOptions() {
+  const renderer = new marked.Renderer();
+  renderer.link = rendererLink;
+
+  return {
+    renderer,
+    headerIds: false,
+    gfm: true,
+    breaks: true,
+  };
+}
+
+export function resetMarkedOptions() {
+  marked.setOptions(getDefaultMarkedOptions());
 }

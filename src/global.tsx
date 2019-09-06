@@ -2,11 +2,12 @@ import React from 'react';
 import { Button, message, notification } from 'antd';
 // @ts-ignore
 import emojiToolkit from 'emoji-toolkit';
-import { dynamicLoad } from '@/utils/utils';
+import { dynamicLoad, resetMarkedOptions } from '@/utils/utils';
 import defaultSettings from '../config/defaultSettings';
 
 emojiToolkit.sprites = true;
 emojiToolkit.spriteSize = 32;
+resetMarkedOptions();
 
 const { pwa } = defaultSettings;
 // if pwa is true
