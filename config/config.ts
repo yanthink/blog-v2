@@ -5,11 +5,8 @@ import slash from 'slash2';
 import webpackPlugin from './plugin.config';
 import routerData from './router.config';
 
-const { pwa, primaryColor } = defaultSettings; // preview.pro.ant.design only do not use in your production ;
-// preview.pro.ant.design 专用环境变量，请不要在你的项目中使用它。
+const { pwa, primaryColor } = defaultSettings;
 
-const { ANT_DESIGN_PRO_ONLY_DO_NOT_USE_IN_YOUR_PRODUCTION } = process.env;
-const isAntDesignProPreview = ANT_DESIGN_PRO_ONLY_DO_NOT_USE_IN_YOUR_PRODUCTION === 'site';
 const plugins: IPlugin[] = [
   [
     'umi-plugin-react',
@@ -55,22 +52,7 @@ const plugins: IPlugin[] = [
       autoAddMenu: true,
     },
   ],
-]; // 针对 preview.pro.ant.design 的 GA 统计代码
-
-if (isAntDesignProPreview) {
-  plugins.push([
-    'umi-plugin-ga',
-    {
-      code: 'UA-72788897-6',
-    },
-  ]);
-  plugins.push([
-    'umi-plugin-pro',
-    {
-      serverUrl: 'https://ant-design-pro.netlify.com',
-    },
-  ]);
-}
+];
 
 export default {
   plugins,
@@ -82,7 +64,7 @@ export default {
   targets: {
     ie: 11,
   },
-  devtool: isAntDesignProPreview ? 'source-map' : false,
+  devtool: process.env.NODE_ENV === 'development' ? 'source-map' : false,
   // umi routes: https://umijs.org/zh/guide/router.html
   routes: routerData,
   // Theme for antd: https://ant.design/docs/react/customize-theme-cn
@@ -90,9 +72,6 @@ export default {
     'primary-color': primaryColor,
   },
   define: {
-    ANT_DESIGN_PRO_ONLY_DO_NOT_USE_IN_YOUR_PRODUCTION:
-      ANT_DESIGN_PRO_ONLY_DO_NOT_USE_IN_YOUR_PRODUCTION || '',
-    // preview.pro.ant.design only do not use in your production ; preview.pro.ant.design 专用环境变量，请不要在你的项目中使用它。
     API_VERSION: 'v2',
   },
   ignoreMomentLocale: true,
@@ -139,17 +118,22 @@ export default {
   treeShaking: true,
   proxy: {
     '/api': {
-      target: 'http://api.blog.test/',
+      target: 'http://api.blog.test',
       changeOrigin: true,
     },
     '/_debugbar': {
-      target: 'http://api.blog.test/',
+      target: 'http://api.blog.test',
       changeOrigin: true,
     },
-    '/wss': {
-      target: 'wss://api.blog.test/',
-      changeOrigin: true,
-    },
+    /**
+     * ws代理会报 Invalid frame header ERROR，并且会重复请求，暂时还没有找到解决办法
+     */
+    // '/wss': {
+    //   target: 'wss://api.blog.test',
+    //   ws: true,
+    //   secure: false,
+    //   logLevel: 'debug',
+    // },
   },
   extraBabelPlugins: [
     [

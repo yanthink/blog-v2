@@ -4,6 +4,7 @@ import { FormComponentProps } from 'antd/es/form';
 import { connect } from 'dva';
 import { Link } from 'umi';
 import { ConnectState, ConnectProps } from '@/models/connect';
+import { getSocketUrl } from '@/utils/utils';
 import { getLoginCode } from './service';
 import styles from './style.less';
 
@@ -58,8 +59,7 @@ class Login extends Component<LoginProps, LoginState> {
 
     const { data: { base64_img: base64Img, token } } = await getLoginCode();
 
-    const socketUrl = `wss://${window.location.host}/wss?token=${token}`;
-    this.ws = new WebSocket(socketUrl);
+    this.ws = new WebSocket(getSocketUrl({ token }));
 
     this.ws.addEventListener('message', (e: any) => {
       const { data: msg } = e;
@@ -170,7 +170,7 @@ class Login extends Component<LoginProps, LoginState> {
                 <FormItem hasFeedback>
                   {getFieldDecorator('password', {
                     rules: [{ required: true, message: '请输入账户密码！' }],
-                  })(<Input size="large" placeholder="账户密码" />)}
+                  })(<Input.Password size="large" placeholder="账户密码" />)}
                 </FormItem>
                 <FormItem>
                   {getFieldDecorator('remember')(

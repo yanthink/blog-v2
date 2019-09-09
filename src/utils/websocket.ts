@@ -1,6 +1,7 @@
 import { notification } from 'antd';
 import { get } from 'lodash';
 import { getToken } from '@/utils/authority';
+import { getSocketUrl } from '@/utils/utils';
 
 /* eslint no-use-before-define:0, @typescript-eslint/no-use-before-define:0 */
 
@@ -43,8 +44,7 @@ const websocket: IWebSocket = {
     }
 
     const token = getToken().split(' ')[1];
-    const socketUrl = `wss://${window.location.host}/wss?token=${token}`;
-    this.ws = new WebSocket(socketUrl);
+    this.ws = new WebSocket(getSocketUrl({ token }));
 
     heartbeat.reset().start();
 
