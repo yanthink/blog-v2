@@ -8,7 +8,6 @@ import Prism from 'prismjs';
 import { dynamicLoad, showTime, getDefaultMarkedOptions, resetMarkedOptions } from '@/utils/utils';
 import { IArticle } from '@/models/data';
 import Tocify from './tocify';
-import 'emoji-assets/sprites/joypixels-sprite-32.min.css';
 import styles from './style.less';
 
 interface ArticleContentProps {

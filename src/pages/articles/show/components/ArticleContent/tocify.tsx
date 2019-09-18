@@ -34,7 +34,7 @@ export default class Tocify {
       let lastItem = last(items) as TocItem;
 
       if (item.level > lastItem.level) {
-        for (let i = 2; i <= 6; i++) {
+        for (let i = lastItem.level + 1; i <= 6; i++) {
           const { children } = lastItem;
           if (!children) {
             lastItem.children = [item];

@@ -3,7 +3,7 @@ import { Effect } from '@/models/connect';
 import { GeographicItemType } from './data.d';
 import { queryCity, queryProvince, updateBaseInfo, updatePassword } from './service';
 
-export interface ModalState {
+export interface StateType {
   province?: GeographicItemType[];
   city?: GeographicItemType[];
   isLoading?: boolean;
@@ -11,7 +11,7 @@ export interface ModalState {
 
 export interface ModelType {
   namespace: string;
-  state: ModalState;
+  state: StateType;
   effects: {
     fetchProvince: Effect;
     fetchCity: Effect;
@@ -19,9 +19,9 @@ export interface ModelType {
     updatePassword: Effect;
   };
   reducers: {
-    setProvince: Reducer<ModalState>;
-    setCity: Reducer<ModalState>;
-    changeLoading: Reducer<ModalState>;
+    setProvince: Reducer<StateType>;
+    setCity: Reducer<StateType>;
+    changeLoading: Reducer<StateType>;
   };
 }
 

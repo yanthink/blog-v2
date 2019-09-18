@@ -3,11 +3,13 @@ import { message, Form } from 'antd';
 import { FormComponentProps } from 'antd/es/form';
 import cookie from 'cookie';
 import SimpleMDEEditor, { SimpleMDEEditorProps } from 'yt-simplemde-editor';
+import emojiDependencies from 'yt-simplemde-editor/dist/emoji';
 // @ts-ignore
 import emojiToolkit from 'emoji-toolkit';
 import marked from 'marked';
 import Prism from 'prismjs';
 import { getToken } from '@/utils/authority';
+import 'yt-simplemde-editor/dist/style.css';
 import 'emoji-assets/sprites/joypixels-sprite-32.min.css';
 import styles from './index.less';
 
@@ -116,6 +118,7 @@ class Index extends React.Component<YtSimplemdeEditorProps> {
         autoComplete: true,
         insertConvertTo: 'unicode',
       },
+      ...emojiDependencies,
     };
 
     return (

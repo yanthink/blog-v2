@@ -31,11 +31,7 @@ export default (config: any) => {
     fs.writeFileSync('./.webpack.config.js', configStr);
   }
 
-  // preview.pro.ant.design only do not use in your production;
-  if (
-    process.env.ANT_DESIGN_PRO_ONLY_DO_NOT_USE_IN_YOUR_PRODUCTION === 'site' ||
-    process.env.NODE_ENV !== 'production'
-  ) {
+  if (process.env.NODE_ENV !== 'production') {
     config.plugin('webpack-theme-color-replacer').use(ThemeColorReplacer, [
       {
         fileName: 'css/theme-colors-[contenthash:8].css',
