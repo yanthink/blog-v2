@@ -4,7 +4,6 @@ import { Link } from 'umi';
 import { get } from 'lodash';
 import moment from 'moment';
 import marked from 'marked';
-import Prism from 'prismjs';
 // @ts-ignore
 import emojiToolkit from 'emoji-toolkit';
 import { IUser, IArticle, IComment, IReply, IPagination } from '@/models/data';
@@ -41,20 +40,6 @@ interface ArticleCommentProps {
 class ArticleComment extends React.Component<ArticleCommentProps, ArticleCommentState> {
   state: ArticleCommentState = {
     replyEditor: {},
-  };
-
-  markdown: any;
-
-  componentDidMount() {
-    Prism.highlightAllUnder(this.markdown);
-  }
-
-  componentDidUpdate() {
-    Prism.highlightAllUnder(this.markdown);
-  }
-
-  setMarkdownRef = (ref: any) => {
-    this.markdown = ref;
   };
 
   handleCommentSubmit = (values: { content: string }, callback?: () => void) => {
@@ -281,7 +266,7 @@ class ArticleComment extends React.Component<ArticleCommentProps, ArticleComment
 
     /* eslint react/no-children-prop: 0 */
     return (
-      <div className="markdown-body" ref={this.setMarkdownRef}>
+      <div className="markdown-body">
         <Editor {...commentEditorProps} />
         <List
           className={styles.commentList}
