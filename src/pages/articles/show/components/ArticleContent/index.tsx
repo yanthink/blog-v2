@@ -4,7 +4,7 @@ import { get } from 'lodash';
 // @ts-ignore
 import emojiToolkit from 'emoji-toolkit';
 import marked from 'marked';
-import { dynamicLoad, showTime, getDefaultMarkedOptions, resetMarkedOptions } from '@/utils/utils';
+import { showTime, getDefaultMarkedOptions, resetMarkedOptions } from '@/utils/utils';
 import { IArticle } from '@/models/data';
 import Tocify from './tocify';
 import styles from './style.less';
@@ -32,10 +32,22 @@ export default class ArticleContent extends React.Component<ArticleContentProps>
       getTocify(this.tocify);
     }
 
-    await dynamicLoad('/fluidbox/jquery.min.js');
-    await dynamicLoad('/fluidbox/jquery.ba-throttle-debounce.min.js');
-    await dynamicLoad('/fluidbox/jquery.fluidbox.min.js');
-    await dynamicLoad('/fluidbox/fluidbox.min.css');
+    // https://webpack.docschina.org/guides/code-splitting/#%E5%8A%A8%E6%80%81%E5%AF%BC%E5%85%A5-dynamic-imports-
+    const [{ default: jQuery }, { debounce, throttle }]: any = await Promise.all([
+      import(/* webpackChunkName: 'jquery' */ 'jquery'),
+      // @ts-ignore
+      import(/* webpackChunkName: 'throttle-debounce' */ 'throttle-debounce'),
+    ]);
+
+    jQuery.debounce = debounce;
+    jQuery.throttle = throttle;
+    window.jQuery = jQuery;
+
+    await Promise.all([
+      // @ts-ignore
+      import(/* webpackChunkName: 'fluidbox' */ 'fluidbox'),
+      import(/* webpackChunkName: 'fluidbox' */ 'fluidbox/dist/css/fluidbox.min.css'),
+    ]);
 
     /* eslint no-undef:0, func-names:0 */
     // @ts-ignore
@@ -47,7 +59,7 @@ export default class ArticleContent extends React.Component<ArticleContentProps>
       })
       .promise()
       // @ts-ignore
-      .done(() => jQuery('a.fluidbox').fluidbox());
+      .done(() => jQuery(this.markdown).find('a.fluidbox').fluidbox());
   }
 
   shouldComponentUpdate() {

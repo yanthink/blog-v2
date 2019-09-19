@@ -35,6 +35,7 @@ interface Window {
     hitType: 'event' | 'pageview',
     fieldsObject: GAFieldsObject | string,
   ) => void;
+  jQuery: any;
 }
 
 declare let ga: Function;
