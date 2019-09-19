@@ -4,7 +4,6 @@ import { get } from 'lodash';
 // @ts-ignore
 import emojiToolkit from 'emoji-toolkit';
 import marked from 'marked';
-import Prism from 'prismjs';
 import { dynamicLoad, showTime, getDefaultMarkedOptions, resetMarkedOptions } from '@/utils/utils';
 import { IArticle } from '@/models/data';
 import Tocify from './tocify';
@@ -37,8 +36,6 @@ export default class ArticleContent extends React.Component<ArticleContentProps>
     await dynamicLoad('/fluidbox/jquery.ba-throttle-debounce.min.js');
     await dynamicLoad('/fluidbox/jquery.fluidbox.min.js');
     await dynamicLoad('/fluidbox/fluidbox.min.css');
-
-    Prism.highlightAllUnder(this.markdown);
 
     /* eslint no-undef:0, func-names:0 */
     // @ts-ignore

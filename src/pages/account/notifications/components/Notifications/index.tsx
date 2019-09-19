@@ -6,7 +6,6 @@ import { parse } from 'qs';
 import marked from 'marked';
 // @ts-ignore
 import emojiToolkit from 'emoji-toolkit';
-import Prism from 'prismjs';
 import moment from 'moment';
 import { ConnectProps, Loading, AccountNotificationsModelState } from '@/models/connect';
 import { INotification, IUser } from '@/models/data';
@@ -23,22 +22,8 @@ interface NotificationsProps extends ConnectProps {
 }
 
 class Notifications extends React.Component<NotificationsProps> {
-  markdown: HTMLDivElement | undefined = undefined;
-
   componentWillMount() {
     this.queryNotifications(this.props.location.search);
-  }
-
-  componentDidMount() {
-    if (this.markdown) {
-      Prism.highlightAllUnder(this.markdown);
-    }
-  }
-
-  componentDidUpdate() {
-    if (this.markdown) {
-      Prism.highlightAllUnder(this.markdown);
-    }
   }
 
   queryNotifications = (params: object | string) => {
@@ -53,10 +38,6 @@ class Notifications extends React.Component<NotificationsProps> {
       type: 'accountNotifications/fetchNotifications',
       payload: queryParams,
     });
-  };
-
-  setMarkdownRef = (ref: any) => {
-    this.markdown = ref;
   };
 
   handlePageChange = (page: number, pageSize?: number) => {
@@ -142,7 +123,7 @@ class Notifications extends React.Component<NotificationsProps> {
     } = this.props;
 
     return (
-      <div ref={this.setMarkdownRef} className="markdown-body">
+      <div className="markdown-body">
         <List
           size="large"
           rowKey="id"

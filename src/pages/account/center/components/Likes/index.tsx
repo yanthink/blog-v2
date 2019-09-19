@@ -4,7 +4,6 @@ import { Link } from 'umi';
 import marked from 'marked';
 // @ts-ignore
 import emojiToolkit from 'emoji-toolkit';
-import Prism from 'prismjs';
 import { parse } from 'qs';
 import { get } from 'lodash';
 import { AccountCenterModelState, ConnectProps, Loading } from '@/models/connect';
@@ -35,22 +34,8 @@ interface LikesProps extends ConnectProps {
 }
 
 class Likes extends React.Component<LikesProps> {
-  markdown: any;
-
   componentWillMount() {
     this.queryLikes(this.props.location.search);
-  }
-
-  componentDidMount() {
-    if (this.markdown) {
-      Prism.highlightAllUnder(this.markdown);
-    }
-  }
-
-  componentDidUpdate() {
-    if (this.markdown) {
-      Prism.highlightAllUnder(this.markdown);
-    }
   }
 
   queryLikes = (params: object | string) => {
@@ -65,10 +50,6 @@ class Likes extends React.Component<LikesProps> {
       type: 'accountCenter/fetchLikes',
       payload: queryParams,
     });
-  };
-
-  setMarkdownRef = (ref: any) => {
-    this.markdown = ref;
   };
 
   handlePageChange = (page: number, pageSize?: number) => {
@@ -149,10 +130,7 @@ class Likes extends React.Component<LikesProps> {
               <List.Item.Meta
                 title={this.renderItemTitle(item)}
               />
-              <div
-                ref={this.setMarkdownRef}
-                className={`${styles.content}  markdown-body`}
-              >
+              <div className={`${styles.content}  markdown-body`}>
                 <div className={styles.description}>
                   {this.renderItemDescription(item)}
                 </div>

@@ -1,6 +1,7 @@
 /* eslint no-useless-escape:0 import/prefer-default-export:0 */
 import moment from 'moment';
 import marked from 'marked';
+import Prism from 'prismjs';
 import { stringify } from 'qs';
 
 const reg = /(((^https?:(?:\/\/)?)(?:[-;:&=\+\$,\w]+@)?[A-Za-z0-9.-]+(?::\d+)?|(?:www.|[-;:&=\+\$,\w]+@)[A-Za-z0-9.-]+)((?:\/[\+~%\/.\w-_]*)?\??(?:[-\+=&;%@.\w_]*)#?(?:[\w]*))?)$/;
@@ -118,6 +119,17 @@ export function getDefaultMarkedOptions() {
     headerIds: false,
     gfm: true,
     breaks: true,
+    highlight(code: string, lang: string) {
+      if (lang) {
+        const language = lang.toLowerCase();
+        const grammar = Prism.languages[language];
+        if (grammar) {
+          return Prism.highlight(code, grammar, language);
+        }
+      }
+
+      return code;
+    }
   };
 }
 

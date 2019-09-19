@@ -7,7 +7,6 @@ import emojiDependencies from 'yt-simplemde-editor/dist/emoji';
 // @ts-ignore
 import emojiToolkit from 'emoji-toolkit';
 import marked from 'marked';
-import Prism from 'prismjs';
 import { getToken } from '@/utils/authority';
 import 'yt-simplemde-editor/dist/style.css';
 import 'emoji-assets/sprites/joypixels-sprite-32.min.css';
@@ -40,12 +39,6 @@ class Index extends React.Component<YtSimplemdeEditorProps> {
 
   renderMarkdown = (text: string) => {
     let html = marked(text);
-    if (/language-/.test(html)) {
-      const container = document.createElement('div');
-      container.innerHTML = html;
-      Prism.highlightAllUnder(container);
-      html = container.innerHTML;
-    }
     return emojiToolkit.toImage(html);
   };
 

@@ -4,7 +4,6 @@ import { Link } from 'umi';
 import marked from 'marked';
 // @ts-ignore
 import emojiToolkit from 'emoji-toolkit';
-import Prism from 'prismjs';
 import { parse } from 'qs';
 import { get } from 'lodash';
 import { AccountCenterModelState, ConnectProps, Loading } from '@/models/connect';
@@ -34,22 +33,8 @@ interface ReplysProps extends ConnectProps {
 }
 
 class Replys extends React.Component<ReplysProps> {
-  markdown: any;
-
   componentWillMount() {
     this.queryReplys(this.props.location.search);
-  }
-
-  componentDidMount() {
-    if (this.markdown) {
-      Prism.highlightAllUnder(this.markdown);
-    }
-  }
-
-  componentDidUpdate() {
-    if (this.markdown) {
-      Prism.highlightAllUnder(this.markdown);
-    }
   }
 
   queryReplys = (params: object | string) => {
@@ -64,10 +49,6 @@ class Replys extends React.Component<ReplysProps> {
       type: 'accountCenter/fetchReplys',
       payload: queryParams,
     });
-  };
-
-  setMarkdownRef = (ref: any) => {
-    this.markdown = ref;
   };
 
   handlePageChange = (page: number, pageSize?: number) => {
@@ -114,10 +95,7 @@ class Replys extends React.Component<ReplysProps> {
               <List.Item.Meta
                 title={this.renderItemTitle(item)}
               />
-              <div
-                ref={this.setMarkdownRef}
-                className={`${styles.content}  markdown-body`}
-              >
+              <div className={`${styles.content}  markdown-body`}>
                 <div className={styles.description}>
                   <span
                     dangerouslySetInnerHTML={{

@@ -4,7 +4,6 @@ import emojiDependencies from 'yt-simplemde-editor/dist/emoji';
 // @ts-ignore
 import emojiToolkit from 'emoji-toolkit';
 import marked from 'marked';
-import Prism from 'prismjs';
 import cookie from 'cookie';
 import React, { Component } from 'react';
 import { get } from 'lodash';
@@ -121,13 +120,6 @@ class ArticleEdit extends Component<ArticleEditProps, ArticleEditState> {
 
   renderMarkdown = (text: string) => {
     let html = marked(text);
-    if (/language-/.test(html)) {
-      const container = document.createElement('div');
-      container.innerHTML = html;
-      Prism.highlightAllUnder(container);
-      html = container.innerHTML;
-    }
-
     return emojiToolkit.toImage(html);
   };
 
