@@ -57,39 +57,43 @@ class Login extends Component<LoginProps, LoginState> {
 
     this.setState({ codeExpired: false, codeLoading: true });
 
-    const { data: { base64_img: base64Img, token } } = await getLoginCode();
+    try {
+      const { data: { base64_img: base64Img, token } } = await getLoginCode();
 
-    this.ws = new WebSocket(getSocketUrl({ token }));
+      this.ws = new WebSocket(getSocketUrl({ token }));
 
-    this.ws.addEventListener('message', (e: any) => {
-      const { data: msg } = e;
+      this.ws.addEventListener('message', (e: any) => {
+        const { data: msg } = e;
 
-      const { event, data } = JSON.parse(msg);
-      /* eslint no-case-declarations:0 */
-      switch (event) {
-        case 'App\\Events\\WechatScanLogin':
-          const { token, permissions } = data;
+        const { event, data } = JSON.parse(msg);
+        /* eslint no-case-declarations:0 */
+        switch (event) {
+          case 'App\\Events\\WechatScanLogin':
+            const { token, permissions } = data;
 
-          this.props.dispatch({
-            type: 'authLogin/loginSuccess',
-            payload: { token, permissions },
-            callback: () => {
-              message.success('登录成功！');
-              clearTimeout(this.timer);
-              if (this.ws && this.ws.readyState === 1) {
-                this.ws.close();
-              }
-            },
-          });
-          break;
-        default:
-          break;
-      }
-    });
+            this.props.dispatch({
+              type: 'authLogin/loginSuccess',
+              payload: { token, permissions },
+              callback: () => {
+                message.success('登录成功！');
+                clearTimeout(this.timer);
+                if (this.ws && this.ws.readyState === 1) {
+                  this.ws.close();
+                }
+              },
+            });
+            break;
+          default:
+            break;
+        }
+      });
 
-    this.setState({ base64Img, codeExpired: false, codeLoading: false });
+      this.setState({ base64Img, codeExpired: false, codeLoading: false });
 
-    this.timer = setTimeout(this.handleWebSocketTimeout, Login.socketTimeout);
+      this.timer = setTimeout(this.handleWebSocketTimeout, Login.socketTimeout);
+    } catch (e) {
+      message.error('小程序码获取失败');
+    }
   };
 
   handleWebSocketTimeout = () => {
