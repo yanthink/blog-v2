@@ -25,3 +25,10 @@ export async function updatePassword(params: object) {
     data: params,
   });
 }
+
+export async function sendEmailCode(email: string) {
+  return request('/account/send_email_code', {
+    method: 'POST',
+    data: { email },
+  });
+}
