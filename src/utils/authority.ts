@@ -1,17 +1,12 @@
 import store from 'store';
 import { CurrentAuthorityType } from '@/components/Authorized/renderAuthorize';
 
-let GTOKEN = '';
 
 export function getToken(): string {
-  if (!GTOKEN) {
-    GTOKEN = store.get('token', '');
-  }
-  return GTOKEN;
+  return store.get('token', '');
 }
 
 export function setToken(token = ''): void {
-  GTOKEN = token;
   store.set('token', token);
 }
 

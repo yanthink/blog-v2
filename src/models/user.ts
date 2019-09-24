@@ -1,5 +1,6 @@
-import { Effect } from 'dva';
+import { Subscription } from 'dva';
 import { Reducer } from 'redux';
+import { Effect } from '@/models/connect';
 import { queryCurrent, query as queryUsers } from '@/services/user';
 import { IUser } from '@/models/data';
 import websocket from '@/utils/websocket';
@@ -18,6 +19,7 @@ export interface UserModelType {
   reducers: {
     saveCurrentUser: Reducer<UserModelState>;
   };
+  subscriptions: { setup: Subscription };
 }
 
 const UserModel: UserModelType = {
@@ -54,6 +56,23 @@ const UserModel: UserModelType = {
         ...state,
         currentUser: action.payload || {},
       };
+    },
+  },
+
+  subscriptions: {
+    setup({ history }) {
+      history.listen(() => {
+        // @ts-ignore
+        const { currentUser } = window.g_app._store.getState().user;
+        if (
+          currentUser &&
+          currentUser.name &&
+          (websocket.ws && websocket.ws.readyState === 3)
+        ) {
+          // @ts-ignore
+          window.g_app._store.dispatch({ type: 'user/fetchCurrent' });
+        }
+      });
     },
   },
 };

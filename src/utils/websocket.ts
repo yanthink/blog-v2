@@ -99,7 +99,6 @@ const websocket: IWebSocket = {
     if (this.ws && this.ws.readyState === 1) {
       this.ws.close();
     }
-    this.ws = undefined;
   },
 };
 

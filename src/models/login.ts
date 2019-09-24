@@ -1,14 +1,8 @@
-import { AnyAction } from 'redux';
-import { EffectsCommandMap } from 'dva';
 import { routerRedux } from 'dva/router';
+import { Effect } from '@/models/connect';
 import { setAuthority, setToken } from '@/utils/authority';
 import { reloadAuthorized } from '@/utils/Authorized';
 import websocket from '@/utils/websocket';
-
-export type Effect = (
-  action: AnyAction,
-  effects: EffectsCommandMap & { select: <T>(func: (state: {}) => T) => T },
-) => void;
 
 export interface LoginModelType {
   namespace: string;
