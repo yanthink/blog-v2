@@ -253,7 +253,9 @@ class ArticleEdit extends Component<ArticleEditProps, ArticleEditState> {
               <Link to="/system/tags/list">添加标签</Link>
             </FormItem>
             <FormItem {...formItemLayout} label="预览图">
-              {getFieldDecorator('preview')(
+              {getFieldDecorator('preview', {
+                initialValue: get(article, 'preview'),
+              })(
                 <Upload
                   accept="image/*"
                   name="file"
