@@ -247,9 +247,11 @@ class UserList extends Component<UserListProps, UserListState> {
                 </Button>
               </div>
               <div className={styles.operator}>
-                <Button icon="user-add" type="primary">
-                  新建
-                </Button>
+                <Link to="/users/online">
+                  <Button type="primary">
+                    在线用户
+                  </Button>
+                </Link>
               </div>
             </div>
           </Col>

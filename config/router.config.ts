@@ -86,6 +86,13 @@ export default [
         component: './users/list',
       },
       {
+        name: '在线用户',
+        path: 'users/online',
+        authority: 'users.index',
+        hideInMenu: true,
+        component: './users/online',
+      },
+      {
         name: '系统管理',
         icon: 'setting',
         path: 'system',

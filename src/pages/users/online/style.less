@@ -1,0 +1,42 @@
+@import '~antd/es/style/themes/default.less';
+
+.searchForm {
+  margin-bottom: 24px;
+
+  :global {
+    .ant-form-item {
+      display: flex;
+      margin-right: 0;
+
+      > .ant-form-item-label {
+        width: auto;
+        padding-right: 8px;
+        line-height: 32px;
+      }
+
+      .ant-form-item-control {
+        line-height: 32px;
+      }
+    }
+
+    .ant-form-item-control-wrapper {
+      flex: 1;
+    }
+  }
+
+  .action {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .submitButtons {
+    display: block;
+    white-space: nowrap;
+  }
+}
+
+@media screen and (max-width: @screen-md) {
+  .searchForm {
+    margin-bottom: 12px;
+  }
+}

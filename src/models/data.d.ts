@@ -18,6 +18,14 @@ export interface IUser {
   has_password?: boolean;
 }
 
+export interface IUserOnline {
+  user_id?: number;
+  ip?: string;
+  stack_level?: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
 export interface IArticle {
   id?: number;
   status?: boolean;

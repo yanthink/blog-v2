@@ -231,7 +231,10 @@ class BaseView extends Component<BaseViewProps, BaseViewState> {
             </FormItem>
             <FormItem label="所在省市">
               {getFieldDecorator('user_info.geographic', {
-                initialValue: get(currentUser, 'user_info.geographic'),
+                initialValue: get(currentUser, 'user_info.geographic', {
+                  city: {key: '', label: ''},
+                  province: {key: '', label: ''}
+                }),
                 rules: [
                   { required: true, message: '请输入您的所在省市!' },
                   { validator: validatorGeographic },

@@ -8,6 +8,7 @@ import { StateType as ArticleCreateModelState } from '@/pages/articles/create/mo
 import { StateType as ArticleEditModelState } from '@/pages/articles/edit/model';
 import { StateType as ArticleShowModelState } from '@/pages/articles/show/model';
 import { StateType as UserListModelState } from '@/pages/users/list/model';
+import { StateType as UserOnlineModelState } from '@/pages/users/online/model';
 import { StateType as AccountCenterModelState } from '@/pages/account/center/model';
 import { StateType as AccountNotificationsModelState } from '@/pages/account/notifications/model';
 import { StateType as AccountSettingsModelState } from '@/pages/account/settings/model';
@@ -29,6 +30,7 @@ export {
   ArticleEditModelState,
   ArticleShowModelState,
   UserListModelState,
+  UserOnlineModelState,
   AccountCenterModelState,
   AccountNotificationsModelState,
   AccountSettingsModelState,
@@ -52,6 +54,7 @@ export interface Loading {
     articleEdit?: boolean;
     articleShow?: boolean;
     userList?: boolean;
+    userOnline?: boolean;
     accountCenter?: boolean;
     accountNotifications?: boolean;
     accountSettings?: boolean;
@@ -73,6 +76,7 @@ export interface ConnectState {
   articleEdit: ArticleEditModelState;
   articleShow: ArticleShowModelState;
   userList: UserListModelState;
+  userOnline: UserOnlineModelState;
   accountCenter: AccountCenterModelState;
   accountNotifications: AccountNotificationsModelState;
   accountSettings: AccountSettingsModelState;
