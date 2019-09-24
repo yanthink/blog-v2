@@ -54,7 +54,7 @@ export default [
       },
       {
         name: '文章列表',
-        icon: 'edit',
+        icon: 'read',
         path: 'articles/list',
         component: './articles/list',
       },

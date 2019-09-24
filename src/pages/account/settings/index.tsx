@@ -1,10 +1,11 @@
 import React, { Component } from 'react';
-import { Menu } from 'antd';
+import { Menu, Icon } from 'antd';
 import { GridContent } from '@ant-design/pro-layout';
 import { connect } from 'dva';
-import { ConnectState, ConnectProps, AccountSettingsModelState } from '@/models/connect';
+import { ConnectState, ConnectProps, AccountSettingsModelState, Loading } from '@/models/connect';
 import { IUser } from '@/models/data';
 import BaseView from './components/base';
+import NotificationView from './components/notification';
 import SecurityView from './components/security';
 import styles from './style.less';
 
@@ -13,9 +14,10 @@ const { Item } = Menu;
 interface SettingsProps extends ConnectProps {
   accountSettings: AccountSettingsModelState;
   currentUser: IUser;
+  loading: Loading;
 }
 
-type SettingsStateKeys = 'base' | 'security';
+type SettingsStateKeys = 'base' | 'notification' | 'security';
 
 interface SettingsState {
   mode: 'inline' | 'horizontal';
@@ -25,16 +27,18 @@ interface SettingsState {
   selectKey: SettingsStateKeys;
 }
 
-@connect(({ accountSettings, user }: ConnectState) => ({
+@connect(({ accountSettings, user, loading }: ConnectState) => ({
   accountSettings,
   currentUser: user.currentUser,
+  loading,
 }))
 class Settings extends Component<SettingsProps, SettingsState> {
   constructor(props: SettingsProps) {
     super(props);
     const menuMap = {
-      base: '基本设置',
-      security: '修改密码',
+      base: <span><Icon type="profile" />基本设置</span>,
+      notification: <span><Icon type="mail" />通知设置</span>,
+      security:  <span><Icon type="safety" />修改密码</span>,
     };
     this.state = {
       mode: 'inline',
@@ -85,6 +89,8 @@ class Settings extends Component<SettingsProps, SettingsState> {
     switch (selectKey) {
       case 'base':
         return <BaseView {...this.props} />;
+      case 'notification':
+        return <NotificationView {...this.props} />
       case 'security':
         return <SecurityView {...this.props} />;
       default:

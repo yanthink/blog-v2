@@ -19,6 +19,13 @@ export async function updateBaseInfo(params: object) {
   });
 }
 
+export async function updateSettings(params: object) {
+  return request('/account/update_settings', {
+    method: 'POST',
+    data: params,
+  });
+}
+
 export async function updatePassword(params: object) {
   return request('/account/update_password', {
     method: 'POST',

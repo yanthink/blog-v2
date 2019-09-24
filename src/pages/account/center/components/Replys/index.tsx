@@ -103,7 +103,7 @@ class Replys extends React.Component<ReplysProps> {
                     }}
                   />
                   <span> // </span>
-                  <Link to="#">@ {item.parent ? get(item, 'parent.user.name') : get(item, 'target.user.name')}</Link>
+                  <Link to="#">@{item.parent ? get(item, 'parent.user.name') : get(item, 'target.user.name')}</Link>
                   <span>：</span>
                   <span
                     dangerouslySetInnerHTML={{

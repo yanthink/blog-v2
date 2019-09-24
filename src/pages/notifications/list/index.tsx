@@ -119,7 +119,7 @@ class NotificationList extends React.Component<NotificationListProps> {
               }}
             />
             <span> // </span>
-            <Link to="#">@ {get(notification, 'notifiable.name')}</Link>
+            <Link to="#">@{get(notification, 'notifiable.name')}</Link>
             <span>：</span>
             <span
               dangerouslySetInnerHTML={{

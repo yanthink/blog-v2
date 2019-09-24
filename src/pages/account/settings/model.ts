@@ -1,7 +1,13 @@
 import { Reducer } from 'redux';
 import { Effect } from '@/models/connect';
 import { GeographicItemType } from './data.d';
-import { queryCity, queryProvince, updateBaseInfo, updatePassword } from './service';
+import {
+  queryCity,
+  queryProvince,
+  updateBaseInfo,
+  updateSettings,
+  updatePassword,
+} from './service';
 
 export interface StateType {
   province?: GeographicItemType[];
@@ -16,6 +22,7 @@ export interface ModelType {
     fetchProvince: Effect;
     fetchCity: Effect;
     updateBaseInfo: Effect;
+    updateSettings: Effect;
     updatePassword: Effect;
   };
   reducers: {
@@ -55,6 +62,19 @@ const Model: ModelType = {
     },
     * updateBaseInfo({ payload, callback }, { call }) {
       const { data } = yield call(updateBaseInfo, payload);
+
+      // @ts-ignore
+      window.g_app._store.dispatch({
+        type: 'user/saveCurrentUser',
+        payload: data,
+      });
+
+      if (callback) {
+        callback();
+      }
+    },
+    * updateSettings({ payload, callback }, { call }) {
+      const { data } = yield call(updateSettings, payload);
 
       // @ts-ignore
       window.g_app._store.dispatch({

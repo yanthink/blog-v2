@@ -14,7 +14,7 @@ import {
 } from 'antd';
 import { FormComponentProps } from 'antd/es/form';
 import { get } from 'lodash';
-import { ConnectProps } from '@/models/connect';
+import { ConnectProps, Loading } from '@/models/connect';
 import { IUser } from '@/models/data';
 import GeographicView from './GeographicView';
 import AvatarView from './AvatarView';
@@ -49,6 +49,7 @@ const validatorGeographic = (
 
 interface BaseViewProps extends ConnectProps, FormComponentProps {
   currentUser: IUser;
+  loading: Loading;
 }
 
 interface BaseViewState {
@@ -127,6 +128,7 @@ class BaseView extends Component<BaseViewProps, BaseViewState> {
   render() {
     const {
       currentUser,
+      loading,
       form: { getFieldDecorator, isFieldTouched, getFieldError, getFieldValue },
     } = this.props;
     const { emails, emailCodeSending, emailCodeCountDown, identifyingCode } = this.state;
@@ -246,7 +248,11 @@ class BaseView extends Component<BaseViewProps, BaseViewState> {
                 initialValue: get(currentUser, 'user_info.address'),
               })(<Input />)}
             </FormItem>
-            <Button type="primary" onClick={this.handlerSubmit}>
+            <Button
+              type="primary"
+              onClick={this.handlerSubmit}
+              loading={loading.effects['accountSettings/updateBaseInfo']}
+            >
               更新基本信息
             </Button>
           </Form>

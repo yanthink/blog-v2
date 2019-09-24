@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { Button, Form, Input, message } from 'antd';
 import { FormComponentProps } from 'antd/es/form';
 import { router } from 'umi';
-import { ConnectProps } from '@/models/connect';
+import { ConnectProps, Loading } from '@/models/connect';
 import { IUser } from '@/models/data';
 
 const FormItem = Form.Item;
@@ -23,6 +23,7 @@ interface SecurityViewState {
 
 interface SecurityViewProps extends ConnectProps, FormComponentProps {
   currentUser: IUser;
+  loading: Loading;
 }
 
 class SecurityView extends Component<SecurityViewProps, SecurityViewState> {
@@ -74,6 +75,7 @@ class SecurityView extends Component<SecurityViewProps, SecurityViewState> {
     const {
       form: { getFieldDecorator },
       currentUser,
+      loading,
     } = this.props;
     return (
       <Form layout="vertical" hideRequiredMark>
@@ -104,7 +106,11 @@ class SecurityView extends Component<SecurityViewProps, SecurityViewState> {
             ],
           })(<Input.Password onBlur={this.handleConfirmBlur} />)}
         </FormItem>
-        <Button type="primary" onClick={this.handlerSubmit}>
+        <Button
+          type="primary"
+          onClick={this.handlerSubmit}
+          loading={loading.effects['accountSettings/updatePassword']}
+        >
           应用修改
         </Button>
       </Form>

@@ -89,7 +89,7 @@ class Notifications extends React.Component<NotificationsProps> {
               }}
             />
             <span> // </span>
-            <Link to="#">@ {currentUser.name}</Link>
+            <Link to="#">@{currentUser.name}</Link>
             <span>：</span>
             <span
               dangerouslySetInnerHTML={{
