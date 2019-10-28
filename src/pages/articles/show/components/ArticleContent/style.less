@@ -21,6 +21,32 @@
   padding-top: 24px;
 }
 
+.tags {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  margin-top: 40px;
+
+  a div {
+    cursor: pointer;
+  }
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 40px;
+
+  :global(.btn) {
+    margin: 0 10px;
+  }
+
+  :global(.anticon) {
+    font-size: 40px;
+  }
+}
+
 @media (max-width: @screen-md) {
   .header {
     margin-right: -12px;

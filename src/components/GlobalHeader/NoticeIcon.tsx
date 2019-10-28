@@ -2,20 +2,19 @@ import React from 'react';
 import { connect } from 'dva';
 import { Link } from 'umi';
 import { Badge, Icon } from 'antd';
-import { IUser } from '@/models/data';
-import { ConnectState } from '@/models/connect';
+import { ConnectState, AuthStateType } from '@/models/connect';
 import styles from './index.less';
 
 export interface NoticeIconProps {
-  currentUser?: IUser;
+  auth?: AuthStateType;
 }
 
 const NoticeIcon: React.FC<NoticeIconProps> = props => {
-  const { currentUser } = props;
-  if (currentUser && currentUser.name) {
+  const { auth } = props;
+  if (auth && auth.user && auth.user.id) {
     return (
       <Link to="/account/notifications" className={`${styles.action} ${styles.noticeBtn}`}>
-        <Badge count={currentUser.unread_count} className={styles.badge}>
+        <Badge count={auth.unread_count} className={styles.badge}>
           <Icon type="bell" className={styles.icon} />
         </Badge>
       </Link>
@@ -25,6 +24,6 @@ const NoticeIcon: React.FC<NoticeIconProps> = props => {
   return null;
 };
 
-export default connect(({ user }: ConnectState) => ({
-  currentUser: user.currentUser,
+export default connect(({ auth }: ConnectState) => ({
+  auth,
 }))(NoticeIcon);

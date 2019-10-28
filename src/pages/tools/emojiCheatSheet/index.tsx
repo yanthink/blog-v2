@@ -72,7 +72,7 @@ class EmojiCheatSheet extends React.Component {
 
   emojisSelector: any;
 
-  componentWillMount() {
+  UNSAFE_componentWillMount() {
     this.emojisSelector = createEmojisSelector();
   }
 

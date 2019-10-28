@@ -55,11 +55,11 @@ class UserOnline extends Component<UserOnlineProps, UserOnlineState> {
     },
   ];
 
-  componentWillMount() {
+  UNSAFE_componentWillMount() {
     this.queryList(this.props.location.search);
   }
 
-  componentWillReceiveProps(nextProps: Readonly<UserOnlineProps>): void {
+  UNSAFE_componentWillReceiveProps(nextProps: Readonly<UserOnlineProps>): void {
     if (nextProps.location.search !== this.props.location.search) {
       this.queryList(nextProps.location.search);
     }

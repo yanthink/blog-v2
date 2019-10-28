@@ -33,7 +33,7 @@ interface ReplysProps extends ConnectProps {
 }
 
 class Replys extends React.Component<ReplysProps> {
-  componentWillMount() {
+  UNSAFE_componentWillMount() {
     this.queryReplys(this.props.location.search);
   }
 

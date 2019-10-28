@@ -1,0 +1,75 @@
+@import '~antd/es/style/themes/default.less';
+
+.editor {
+  background-color: #fff;
+  border: 1px solid @border-color-base;
+  border-radius: @border-radius-base;
+}
+
+.textarea textarea, .textarea :global(.ant-mentions) {
+  border: none;
+}
+
+.mentionsAvatar {
+  width: 24px;
+  height: 24px;
+  margin-right: 8px;
+  border-radius: 50%;
+}
+
+.toolbar {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px;
+  background-color: #fafafa;
+
+  .actions {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .action {
+    padding: 0 8px;
+  }
+}
+
+.avatar {
+  margin-right: 12px;
+}
+
+.upload, .emojiPickerBtn {
+  width: 20px;
+  cursor: pointer;
+
+  :global(.anticon) {
+    font-size: 20px;
+  }
+}
+
+.submitBtn {
+  width: 100px;
+}
+
+.emojiPickerPopup {
+  :global {
+    .emoji {
+      width: 40px;
+      height: 40px;
+    }
+  }
+}
+
+.preview {
+  margin-top: 24px;
+  padding: 12px;
+  line-height: 21px;
+  border: 1px dashed @border-color-base;
+  border-radius: @border-radius-base;
+
+  > p:last-child {
+    margin-bottom: 0;
+  }
+}

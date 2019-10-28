@@ -3,9 +3,12 @@ import React, { Component } from 'react';
 import { FormComponentProps } from 'antd/es/form';
 import { connect } from 'dva';
 import { Link } from 'umi';
+import Echo from 'laravel-echo';
+// @ts-ignore
+import io from 'socket.io-client';
 import { ConnectState, ConnectProps } from '@/models/connect';
-import { getSocketUrl } from '@/utils/utils';
-import { getLoginCode } from './service';
+import { setSocketId } from '@/utils/authority';
+import * as services from './services';
 import styles from './style.less';
 
 const FormItem = Form.Item;
@@ -16,79 +19,73 @@ interface LoginProps extends ConnectProps, FormComponentProps {
 }
 
 interface LoginState {
+  uuid: string;
   base64Img: string;
   codeExpired: boolean;
   codeLoading: boolean;
 }
 
 @connect(({ loading }: ConnectState) => ({
-  submitting: loading.effects['authLogin/login'],
+  submitting: loading.effects['auth/attemptLogin'],
 }))
 class Login extends Component<LoginProps, LoginState> {
   static socketTimeout = 120000;
 
   state: LoginState = {
+    uuid: '',
     base64Img: '',
     codeExpired: false,
     codeLoading: false,
   };
 
-  ws: any;
+  echo: Echo;
 
   timer: any;
 
-  componentDidMount() {
+  constructor (props: LoginProps) {
+    super(props);
+
+    this.echo = new Echo({
+      client: io,
+      broadcaster: 'socket.io',
+      host: SOCKET_HOST,
+      withoutInterceptors: true,
+    });
+
+    setSocketId(this.echo.socketId());
+  }
+
+  componentDidMount () {
     this.createWebSocket();
   }
 
-  componentWillUnmount() {
+  componentWillUnmount () {
     clearTimeout(this.timer);
-    if (this.ws && this.ws.readyState === 1) {
-      this.ws.close();
-    }
+    setSocketId('');
+    this.echo.disconnect();
   }
 
   createWebSocket = async () => {
     clearTimeout(this.timer);
 
-    if (this.ws && this.ws.readyState === 1) {
-      this.ws.close();
-    }
-
     this.setState({ codeExpired: false, codeLoading: true });
 
     try {
-      const { data: { base64_img: base64Img, token } } = await getLoginCode();
+      const { data: { base64_img: base64Img, uuid } } = await services.getLoginCode();
 
-      this.ws = new WebSocket(getSocketUrl({ token }));
+      this.echo.channel(`ScanLogin.${uuid}`)
+        .listen('WechatLogined', (data: { access_token: string, permissions: string[] }) => {
+          this.props.dispatch({
+            type: 'auth/loginSuccess',
+            token: data.access_token,
+            permissions: data.permissions,
+            callback: () => {
+              message.success('登录成功！');
+            },
+          });
+        });
 
-      this.ws.addEventListener('message', (e: any) => {
-        const { data: msg } = e;
-
-        const { event, data } = JSON.parse(msg);
-        /* eslint no-case-declarations:0 */
-        switch (event) {
-          case 'App\\Events\\WechatScanLogin':
-            const { token, permissions } = data;
-
-            this.props.dispatch({
-              type: 'authLogin/loginSuccess',
-              payload: { token, permissions },
-              callback: () => {
-                message.success('登录成功！');
-                clearTimeout(this.timer);
-                if (this.ws && this.ws.readyState === 1) {
-                  this.ws.close();
-                }
-              },
-            });
-            break;
-          default:
-            break;
-        }
-      });
-
-      this.setState({ base64Img, codeExpired: false, codeLoading: false });
+      this.setState({ uuid, base64Img, codeExpired: false, codeLoading: false });
 
       this.timer = setTimeout(this.handleWebSocketTimeout, Login.socketTimeout);
     } catch (e) {
@@ -97,10 +94,7 @@ class Login extends Component<LoginProps, LoginState> {
   };
 
   handleWebSocketTimeout = () => {
-    if (this.ws && this.ws.readyState === 1) {
-      this.ws.close();
-    }
-
+    this.echo.leaveChannel(`ScanLogin.${this.state.uuid}`);
     this.setState({ codeExpired: true });
   };
 
@@ -110,9 +104,8 @@ class Login extends Component<LoginProps, LoginState> {
 
     form.validateFields({ force: true }, (err: any, values: object) => {
       if (!err) {
-        const { dispatch } = this.props;
-        dispatch({
-          type: 'authLogin/login',
+        this.props.dispatch({
+          type: 'auth/attemptLogin',
           payload: values,
         });
       }
@@ -151,7 +144,7 @@ class Login extends Component<LoginProps, LoginState> {
     );
   };
 
-  render() {
+  render () {
     const { form, submitting } = this.props;
     const { getFieldDecorator } = form;
 
@@ -177,8 +170,8 @@ class Login extends Component<LoginProps, LoginState> {
                   })(<Input.Password size="large" placeholder="账户密码" />)}
                 </FormItem>
                 <FormItem>
-                  {getFieldDecorator('remember')(
-                    <Checkbox>自动登录</Checkbox>,
+                  {getFieldDecorator('remember', { valuePropName: 'checked' })(
+                    <Checkbox disabled>自动登录</Checkbox>,
                   )}
                   <Link style={{ float: 'right' }} to="#">
                     忘记密码

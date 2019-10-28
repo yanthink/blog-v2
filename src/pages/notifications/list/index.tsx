@@ -30,7 +30,7 @@ interface NotificationListProps extends ConnectProps {
 class NotificationList extends React.Component<NotificationListProps> {
   markdown: HTMLDivElement | undefined = undefined;
 
-  componentWillMount() {
+  UNSAFE_componentWillMount() {
     this.queryList(this.props.location.search);
   }
 
@@ -40,7 +40,7 @@ class NotificationList extends React.Component<NotificationListProps> {
     }
   }
 
-  componentWillReceiveProps(nextProps: Readonly<NotificationListProps>): void {
+  UNSAFE_componentWillReceiveProps(nextProps: Readonly<NotificationListProps>): void {
     if (nextProps.location.search !== this.props.location.search) {
       this.queryList(nextProps.location.search);
     }

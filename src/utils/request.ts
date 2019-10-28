@@ -4,8 +4,7 @@
  */
 import { extend } from 'umi-request';
 import { notification } from 'antd';
-import cookie from 'cookie';
-import { getToken } from '@/utils/authority';
+import { getSocketId, getToken } from '@/utils/authority';
 
 const codeMessage = {
   200: '服务器成功返回请求的数据。',
@@ -33,18 +32,32 @@ const errorHandler = async (error: { response: Response }): Promise<void> => {
   if (response && response.status) {
     const { status, url } = response;
 
-    if (status === 401) {
-      // @ts-ignore https://umijs.org/zh/guide/with-dva.html#faq
-      window.g_app._store.dispatch({ type: 'login/logout' });
-    }
-
     const errorText = codeMessage[response.status] || response.statusText;
     const { message: msg } = await response.json();
 
-    notification.error({
-      message: `请求错误 ${status}: ${url}`,
-      description: msg || errorText,
-    });
+    switch (status) {
+      case 401:
+        window.g_app._store.dispatch({ type: 'auth/logout' });
+        break;
+      case 400:
+      case 403:
+      case 404:
+      case 422:
+      case 429:
+        notification.error({
+          message: `请求错误 ${status}: ${url}`,
+          description: msg || errorText,
+        });
+        break;
+      case 500:
+      case 501:
+      case 503:
+        notification.error({
+          message: `请求错误 ${status}: ${url}`,
+          description: msg || errorText,
+        });
+    }
+
 
     const error: any = new Error(msg || errorText);
     error.response = response;
@@ -56,12 +69,13 @@ const errorHandler = async (error: { response: Response }): Promise<void> => {
  * 配置request请求时的默认参数
  */
 const request = extend({
-  prefix: '/api',
+  prefix: API_URL,
   errorHandler, // 默认错误处理
   credentials: 'include', // 默认请求是否带上cookie
   headers: {
-    Accept: `application/x.sheng.${API_VERSION || 'v1'}+json`, // eslint-disable-line
+    Accept: 'application/json', // eslint-disable-line
     'Content-Type': 'application/json; charset=utf-8',
+    'X-Client': 'browser',
   },
 });
 
@@ -72,8 +86,8 @@ request.interceptors.request.use((url, options) => {
 
   options.headers = {
     ...headers,
-    Authorization: getToken(),
-    'X-XSRF-TOKEN': cookie.parse(document.cookie)['XSRF-TOKEN'],
+    Authorization: `Bearer ${getToken()}`,
+    'X-Socket-ID': getSocketId(),
   };
 
   return { url, options };
@@ -97,22 +111,6 @@ request.interceptors.response.use(response => {
       }
     } catch (e) {
       //
-    }
-  }
-
-  const unreadCount = response.headers.get('unread_count');
-  if (unreadCount !== null) {
-    // @ts-ignore
-    const { currentUser } = window.g_app._store.getState().user;
-    if (currentUser && currentUser.name) {
-      // @ts-ignore
-      window.g_app._store.dispatch({
-        type: 'user/saveCurrentUser',
-        payload: {
-          ...currentUser,
-          unread_count: unreadCount,
-        },
-      });
     }
   }
 

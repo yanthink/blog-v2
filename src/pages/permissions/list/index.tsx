@@ -68,11 +68,11 @@ class PermissionList extends Component<PermissionListProps, PermissionListState>
     },
   ];
 
-  componentWillMount() {
+  UNSAFE_componentWillMount() {
     this.queryList(this.props.location.search);
   }
 
-  componentWillReceiveProps(nextProps: Readonly<PermissionListProps>): void {
+  UNSAFE_componentWillReceiveProps(nextProps: Readonly<PermissionListProps>): void {
     if (nextProps.location.search !== this.props.location.search) {
       this.queryList(nextProps.location.search);
     }

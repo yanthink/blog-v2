@@ -36,9 +36,20 @@ interface Window {
     fieldsObject: GAFieldsObject | string,
   ) => void;
   jQuery: any;
+  io: any;
+  Echo: any;
+  g_app: {
+    _store: {
+      dispatch: Function;
+    };
+  };
 }
 
 declare let ga: Function;
-
-declare let API_VERSION: 'v2' | 'v1';
+declare let API_URL: string;
+declare let USER_TOKEN_STORAGE_KEY: string;
+declare let AUTHORITY_STORAGE_KEY: string;
+declare let SOCKET_ID_STORAGE_KEY: string;
+declare let SOCKET_HOST: string;
+declare let UPLOAD_URL: string;
 declare let phpdebugbar: any | undefined;

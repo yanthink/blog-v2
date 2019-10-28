@@ -1,94 +1,85 @@
 import React from 'react';
-import { Card, Row, Col, Button, Skeleton, Modal, Icon, Tooltip, message, Tag } from 'antd';
+import { Card, Row, Col, Button, Skeleton, message } from 'antd';
 import { FormComponentProps } from 'antd/es/form';
 import { connect } from 'dva';
-import { Link, router } from 'umi';
-import { stringify } from 'qs';
+import { Link } from 'umi';
 import { PageHeaderWrapper } from '@ant-design/pro-layout';
-import { getPageQuery } from '@/components/GlobalHeader/AvatarDropdown';
 import Authorized from '@/utils/Authorized';
-import {
-  ConnectState,
-  ConnectProps,
-  Loading,
-  UserModelState,
-  ArticleShowModelState,
-} from '@/models/connect';
+import Tocify from '@/components/MarkdownBody/tocify';
+import { ConnectState, ConnectProps, Loading, ArticleShowModelState } from '@/models/connect';
+import scrollToTop from '@/utils/scrollToTop';
+import { getPositions } from '@/utils/utils';
 import ArticleContent from './components/ArticleContent';
-import ArticleComment from './components/ArticleComment';
-import Tocify from './components/ArticleContent/tocify';
+import ArticleComments from './components/ArticleComments';
 import styles from './style.less';
 
-const { confirm } = Modal;
-
-const withReplysLimit = 3;
-
-const defaultQueryParams = {
-  include: 'author,tags',
+const defaultArticleQueryParams = {
+  include: 'user,tags',
 };
 
-const defaultFetchCommentsQueryParams = {
-  include: `user,replys:limit(${withReplysLimit}),replys.user,replys.parent.user`,
-  pageSize: 10,
+const defaultCommentsQueryParams = {
+  include: 'user,children.user',
+  parent_id: 0,
+  root_id: 0,
+  append: 'has_up_voted,has_down_voted',
 };
-
-interface ArticleShowState {
-  fetchingArticle: boolean;
-  fetchingComments: boolean;
-  tocify?: Tocify;
-}
 
 interface ArticleShowProps extends ConnectProps, FormComponentProps {
   loading: Loading;
-  user: UserModelState;
   articleShow: ArticleShowModelState;
   match: ConnectProps['match'] & {
     params: { [K in 'id']: string };
   };
 }
 
-@connect(({ loading, user, articleShow }: ConnectState) => ({
+interface ArticleShowState {
+  fetchingArticle: boolean;
+  tocify?: Tocify;
+}
+
+@connect(({ loading, articleShow }: ConnectState) => ({
   loading,
-  user,
   articleShow,
 }))
 class ArticleShow extends React.Component<ArticleShowProps, ArticleShowState> {
   state: ArticleShowState = {
     fetchingArticle: true,
-    fetchingComments: true,
   };
 
-  commentBoxId = '';
+  commentsPageChanged?: boolean;
 
-  constructor(props: ArticleShowProps) {
+  commentsBody?: HTMLDivElement;
+
+  constructor (props: ArticleShowProps) {
     super(props);
 
     this.state = {
       fetchingArticle: true,
-      fetchingComments: true,
-    }
+    };
   }
 
-  async componentWillMount() {
+  async UNSAFE_componentWillMount () {
     const { dispatch, match: { params }, location } = this.props;
 
     dispatch({
       type: 'articleShow/fetchArticle',
       id: params.id,
       payload: {
-        ...defaultQueryParams,
+        ...defaultArticleQueryParams,
         ...location.query,
       },
     });
 
     dispatch({
       type: 'articleShow/fetchComments',
-      articleId: params.id,
-      payload: { ...defaultFetchCommentsQueryParams },
+      article_id: params.id,
+      payload: {
+        ...defaultCommentsQueryParams,
+      },
     });
   }
 
-  componentDidUpdate(prevProps: ArticleShowProps) {
+  componentDidUpdate (prevProps: ArticleShowProps) {
     /* eslint react/no-did-update-set-state:0 */
     if (
       prevProps.loading.effects['articleShow/fetchArticle'] &&
@@ -98,180 +89,65 @@ class ArticleShow extends React.Component<ArticleShowProps, ArticleShowState> {
     }
 
     if (
+      this.commentsPageChanged &&
       prevProps.loading.effects['articleShow/fetchComments'] &&
       this.props.loading.effects['articleShow/fetchComments'] === false
     ) {
-      this.setState({ fetchingComments: false });
+      scrollToTop(window, getPositions(this.commentsBody as HTMLDivElement).top - 24);
     }
   }
 
-  setTocify = (tocify: Tocify) => {
-    this.commentBoxId = tocify.add('评论区', 1);
-    this.setState({ tocify });
-  };
-
-  loginConfirm = () => {
-    confirm({
-      title: '登录确认?',
-      content: '您还没有登录，点击【确定】前去登录。',
-      okText: '确定',
-      cancelText: '取消',
-      onOk() {
-        const { redirect } = getPageQuery();
-        // redirect
-        if (window.location.pathname !== '/auth/login' && !redirect) {
-          router.replace({
-            pathname: '/auth/login',
-            search: stringify({
-              redirect: window.location.href,
-            }),
-          });
-        }
-      },
-      onCancel() {
-      },
-    });
-  };
-
-  handleLike = () => {
-    const { dispatch, user: { currentUser }, match: { params } } = this.props;
-
-    if (!currentUser || !currentUser.name) {
-      this.loginConfirm();
-      return;
-    }
-
-    dispatch({
-      type: 'articleShow/articleLike',
-      id: params.id,
-    });
-  };
-
-  handleFavorite = () => {
-    const { dispatch, user: { currentUser }, match: { params } } = this.props;
-
-    if (!currentUser || !currentUser.name) {
-      this.loginConfirm();
-      return;
-    }
-
-    dispatch({
-      type: 'articleShow/articleFavorite',
-      id: params.id,
-    });
-  };
-
-  handleCommentLike = (commentId: number) => {
-    const { dispatch, user: { currentUser } } = this.props;
-
-    if (!currentUser || !currentUser.name) {
-      this.loginConfirm();
-      return;
-    }
-
-    dispatch({
-      type: 'articleShow/commentLike',
-      commentId,
-    });
-  };
-
-  handleReplyLike = (commentId: number, replyId: number) => {
-    const { dispatch, user: { currentUser } } = this.props;
-
-    if (!currentUser || !currentUser.name) {
-      this.loginConfirm();
-      return;
-    }
-
-    dispatch({
-      type: 'articleShow/replyLike',
-      commentId,
-      replyId,
-    });
-  };
-
-  handleCommentSubmit = (values: { content: string }, callback?: () => void) => {
-    const { dispatch, user: { currentUser }, match: { params } } = this.props;
-
-    if (!currentUser || !currentUser.name) {
-      this.loginConfirm();
-      return;
-    }
-
-    dispatch({
-      type: 'articleShow/sendComment',
-      articleId: params.id,
-      payload: {
-        ...defaultFetchCommentsQueryParams,
-        ...values,
-      },
-      callback: () => {
-        message.success('评论成功！');
-        if (callback) {
-          callback();
-        }
-      },
-    });
-  };
-
-  handleReplySubmit = (
-    values: { content: string, commentId: number, replyId?: number },
-    callback?: () => void,
-  ) => {
-    const { dispatch, user: { currentUser } } = this.props;
-    const { content, commentId, replyId } = values;
-
-    if (!currentUser || !currentUser.name) {
-      this.loginConfirm();
-      return;
-    }
-
-    dispatch({
-      type: 'articleShow/sendReply',
-      commentId,
-      payload: {
-        content,
-        parent_id: replyId,
-        include: 'user,parent.user',
-      },
-      callback: () => {
-        message.success('评论成功！');
-        if (callback) {
-          callback();
-        }
-      },
-    });
-  };
-
-  handleFetchMoreComments = () => {
+  handleSubmitComment = (values: { content: { markdown: string }, parent_id: number }, callback?: () => void) => {
     const { dispatch, match: { params } } = this.props;
 
     dispatch({
-      type: 'articleShow/appendFetchComments',
-      articleId: params.id,
-      payload: { ...defaultFetchCommentsQueryParams },
+      type: 'articleShow/submitComment',
+      article_id: params.id,
+      payload: {
+        ...defaultCommentsQueryParams,
+        ...values,
+      },
+      callback () {
+        message.success('评论成功！');
+        if (callback) {
+          callback();
+        }
+      },
     });
   };
 
-  handleFetchMoreReplys = (commentId: number) => {
-    const { dispatch } = this.props;
+  handleCommentsPageChange = (page: number) => {
+    const { dispatch, match: { params } } = this.props;
 
     dispatch({
-      type: 'articleShow/appendFetchReplys',
-      commentId,
-      payload: { include: 'user,parent.user' },
+      type: 'articleShow/fetchComments',
+      article_id: params.id,
+      payload: {
+        ...defaultCommentsQueryParams,
+        page,
+      },
     });
+
+    this.commentsPageChanged = true;
   };
 
-  render() {
+  setTocify = (tocify: Tocify) => {
+    tocify.add('评论', 1, 'comments');
+    this.setState({ tocify });
+  };
+
+  setCommentsRef = (ref: HTMLDivElement) => {
+    this.commentsBody = ref;
+  };
+
+  render () {
     const {
-      user,
-      loading,
-      articleShow: { article, comments, commentsPagination },
+      articleShow: { article, comments, pagination },
       match: { params },
+      loading,
     } = this.props;
 
-    const { fetchingArticle, fetchingComments, tocify } = this.state;
+    const { fetchingArticle, tocify } = this.state;
 
     const HeaderAction = (
       <Link to={`/articles/${params.id}/edit`}>
@@ -293,66 +169,20 @@ class ArticleShow extends React.Component<ArticleShowProps, ArticleShowState> {
                 loading={fetchingArticle}
               >
                 <ArticleContent article={article} getTocify={this.setTocify} />
-                <div className={styles.tags}>
-                  <Icon type="tags" theme="filled" style={{ marginRight: 12, fontSize: 16 }} />
-                  {
-                    article &&
-                    article.tags &&
-                    article.tags.map(tag => (
-                      <Link key={tag.id} to={`/articles/list?tagIds[0]=${tag.id}`}>
-                        <Tag color="orange">{tag.name}</Tag>
-                      </Link>
-                    ))
-                  }
-                </div>
-                <div className={styles.action}>
-                  <Tooltip title="点赞">
-                    <span className={styles.like}>
-                      <Icon
-                        type="like"
-                        theme={article.likes && article.likes.length > 0 ? 'twoTone' : 'outlined'}
-                        twoToneColor="#13C2C2"
-                        onClick={this.handleLike}
-                      />
-                      {article.like_count}
-                    </span>
-                  </Tooltip>
-                  <Tooltip title="收藏">
-                    <Icon
-                      className={styles.favorite}
-                      type="heart"
-                      theme={article.favorites && article.favorites.length > 0 ? 'twoTone' : 'outlined'}
-                      twoToneColor="#eb2f96"
-                      onClick={this.handleFavorite}
-                    />
-                  </Tooltip>
-                </div>
               </Skeleton>
             </Card>
-            <Card bordered={false} className={styles.commentCard}>
-              <div id={this.commentBoxId}>
-                <Skeleton
-                  active
-                  avatar
-                  paragraph={{ rows: 3 }}
-                  loading={fetchingComments}
-                >
-                  <ArticleComment
-                    currentUser={user.currentUser || {}}
-                    article={article || {}}
-                    data={comments || []}
-                    pagination={commentsPagination}
-                    commentsLoading={loading.effects['articleShow/appendFetchComments']}
-                    onFetchMoreComments={this.handleFetchMoreComments}
-                    onFetchMoreReplys={this.handleFetchMoreReplys}
-                    onCommentLike={this.handleCommentLike}
-                    onReplyLike={this.handleReplyLike}
-                    onCommentSubmit={this.handleCommentSubmit}
-                    onReplySubmit={this.handleReplySubmit}
-                    commentSubmitting={loading.effects['articleShow/sendComment']}
-                    replySubmitting={loading.effects['articleShow/sendReply']}
-                  />
-                </Skeleton>
+
+            <Card bordered={false} style={{ marginTop: 24 }}>
+              <div ref={this.setCommentsRef} id="comments">
+                <ArticleComments
+                  article={article}
+                  comments={comments}
+                  pagination={pagination}
+                  loading={loading.effects['articleShow/fetchComments']}
+                  onPageChange={this.handleCommentsPageChange}
+                  onSubmitComment={this.handleSubmitComment}
+                  submittingComment={loading.effects['articleShow/submitComment']}
+                />
               </div>
             </Card>
           </Col>

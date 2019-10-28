@@ -34,7 +34,7 @@ interface LikesProps extends ConnectProps {
 }
 
 class Likes extends React.Component<LikesProps> {
-  componentWillMount() {
+  UNSAFE_componentWillMount() {
     this.queryLikes(this.props.location.search);
   }
 

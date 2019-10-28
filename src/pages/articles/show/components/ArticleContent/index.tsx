@@ -1,12 +1,12 @@
 import React from 'react';
-import { Icon } from 'antd';
-import { get } from 'lodash';
+import { Icon, Tag, Tooltip } from 'antd';
+import { Link } from 'umi';
 // @ts-ignore
-import emojiToolkit from 'emoji-toolkit';
-import marked from 'marked';
-import { showTime, getDefaultMarkedOptions, resetMarkedOptions } from '@/utils/utils';
+import MarkdownBody from '@/components/MarkdownBody';
+import LikeBtn from '@/components/Buttons/LikeBtn';
+import FavoriteBtn from '@/components/Buttons/FavoriteBtn';
+import Tocify from '@/components/MarkdownBody/tocify';
 import { IArticle } from '@/models/data';
-import Tocify from './tocify';
 import styles from './style.less';
 
 interface ArticleContentProps {
@@ -15,120 +15,67 @@ interface ArticleContentProps {
 }
 
 export default class ArticleContent extends React.Component<ArticleContentProps> {
-  markdown: any;
-
-  tocify: Tocify;
-
-  constructor(props: ArticleContentProps) {
-    super(props);
-
-    this.tocify = new Tocify();
-  }
-
-  async componentDidMount() {
-    const { getTocify } = this.props;
-
-    if (getTocify) {
-      getTocify(this.tocify);
-    }
-
-    // https://webpack.docschina.org/guides/code-splitting/#%E5%8A%A8%E6%80%81%E5%AF%BC%E5%85%A5-dynamic-imports-
-    const [{ default: jQuery }, { debounce, throttle }]: any = await Promise.all([
-      import(/* webpackChunkName: 'jquery' */ 'jquery'),
-      // @ts-ignore
-      import(/* webpackChunkName: 'throttle-debounce' */ 'throttle-debounce'),
-    ]);
-
-    jQuery.debounce = debounce;
-    jQuery.throttle = throttle;
-    window.jQuery = jQuery;
-
-    await Promise.all([
-      // @ts-ignore
-      import(/* webpackChunkName: 'fluidbox' */ 'fluidbox'),
-      import(/* webpackChunkName: 'fluidbox' */ 'fluidbox/dist/css/fluidbox.min.css'),
-    ]);
-
-    /* eslint no-undef:0, func-names:0 */
-    // @ts-ignore
-    jQuery(this.markdown)
-      .find('img:not(.joypixels)')
-      .each(function () {
-        // @ts-ignore
-        jQuery(this).wrap(`<a href="${jQuery(this).attr('src')}" class="fluidbox"></a>`);
-      })
-      .promise()
-      // @ts-ignore
-      .done(() => jQuery(this.markdown).find('a.fluidbox').fluidbox());
-  }
-
-  shouldComponentUpdate() {
+  shouldComponentUpdate () {
     return false;
   }
 
-  componentWillUnmount() {
-    resetMarkedOptions();
-  }
-
-  setMarkdownRef = (ref: any) => {
-    this.markdown = ref;
-  };
-
-  createMarkup() {
-    const { article } = this.props;
-    if (article && article.content) {
-      this.tocify.reset();
-
-      const { renderer, ...otherOptions } = getDefaultMarkedOptions();
-      renderer.heading = (text, level) => {
-        const anchor = this.tocify.add(text, level);
-        return `<a id="${anchor}" href="#${anchor}" class="anchor-fix"><h${level}>${text}</h${level}></a>\n`;
-      };
-      marked.setOptions({ renderer, ...otherOptions });
-
-      const markup = emojiToolkit.toImage(marked(article.content));
-
-      resetMarkedOptions();
-
-      return { __html: markup };
-    }
-
-    return { __html: null };
-  }
-
-  render() {
+  render () {
     const { article } = this.props;
 
-    if (!article) {
+    if (!article || !article.content || !article.user) {
       return null;
     }
 
     return (
       <div className={styles.contentBox}>
         <div className={styles.header}>
-          <h1>{get(article, 'title')}</h1>
+          <h1>{article.title}</h1>
           <div className={styles.meta}>
             <a style={{ color: 'inherit' }}>
-              {get(article, 'author.name')}
+              {article.user.username}
             </a>
             <span style={{ margin: '0 6px' }}>⋅</span>
             <span>
               <Icon type="clock-circle-o" style={{ margin: '0 4px' }} />
-              {showTime(get(article, 'created_at', ''))}
+                <Tooltip title={article.created_at}>
+                  <span>{article.created_at_timeago}</span>
+                </Tooltip>
             </span>
             <span style={{ margin: '0 6px' }}>⋅</span>
             <span>
               <Icon type="eye-o" style={{ marginRight: 4 }} />
-              {get(article, 'current_read_count')} 阅读
+              {article.friendly_views_count} 阅读
             </span>
           </div>
         </div>
-        <div
-          ref={this.setMarkdownRef}
-          className={`${styles.content} markdown-body`}
-          dangerouslySetInnerHTML={this.createMarkup()}
-        />
+
+        <div className={styles.content}>
+          <MarkdownBody
+            markdown={article.content.markdown as string}
+            prismPlugin
+            toc
+            getTocify={this.props.getTocify}
+          />
+        </div>
+
+        <div className={styles.tags}>
+          <Icon type="tags" theme="filled" style={{ marginRight: 12, fontSize: 16 }} />
+          {
+            article &&
+            article.tags &&
+            article.tags.map(tag => (
+              <Link key={tag.id} to={`/articles/list?tagIds[0]=${tag.id}`}>
+                <Tag color="orange">{tag.name}</Tag>
+              </Link>
+            ))
+          }
+        </div>
+
+        <div className={styles.actions}>
+          <LikeBtn relation="article" item={article} />
+          <FavoriteBtn relation="article" item={article} hideText />
+        </div>
       </div>
-    )
+    );
   }
 }

@@ -95,11 +95,11 @@ class UserList extends Component<UserListProps, UserListState> {
     },
   ];
 
-  componentWillMount() {
+  UNSAFE_componentWillMount() {
     this.queryList(this.props.location.search);
   }
 
-  componentWillReceiveProps(nextProps: Readonly<UserListProps>): void {
+  UNSAFE_componentWillReceiveProps(nextProps: Readonly<UserListProps>): void {
     if (nextProps.location.search !== this.props.location.search) {
       this.queryList(nextProps.location.search);
     }

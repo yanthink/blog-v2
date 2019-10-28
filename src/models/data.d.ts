@@ -1,113 +1,107 @@
 export interface IUser {
   id?: number;
-  name?: string;
+  username?: string;
   email?: string;
-  user_info?: {
-    city?: string;
-    gender?: number;
-    country?: string;
-    language?: string;
-    nickName?: string;
-    province?: string;
-    avatarUrl?: string;
-    signature?: string;
-  };
-  created_at?: string;
-  updated_at?: string;
-  unread_count?: number;
+  wechat_openid?: string;
   has_password?: boolean;
-}
-
-export interface IUserOnline {
-  user_id?: number;
-  ip?: string;
-  stack_level?: number;
+  avatar?: string;
+  gender?: 'male' | 'famale';
+  bio?: string;
+  settings?: {
+    comment_email_notify?: boolean;
+    like_email_notify?: boolean;
+  };
+  extends?: {
+    country?: string;
+    province?: string;
+    city?: string;
+    geographic?: object;
+  };
+  cache?: {
+    unread_count?: number;
+    articles_count?: number;
+    comments_count?: number;
+  };
   created_at?: string;
   updated_at?: string;
 }
 
 export interface IArticle {
   id?: number;
-  status?: boolean;
+  user_id?: number;
+  visible?: boolean;
   title?: string;
   preview?: string;
-  content?: string;
-  author_id?: number;
-  comment_count?: number;
-  read_count?: number;
-  current_read_count?: number;
-  like_count?: number;
+  cache?: {
+    views_count?: number;
+    favorites_count?: number;
+    likes_count?: number;
+    comments_count?: number;
+  };
   created_at?: string;
   updated_at?: string;
   deleted_at?: string;
-  highlight?: {
+  highlights?: {
     title?: string[];
     content?: string[];
   };
-  author?: IUser;
+  created_at_timeago?: string;
+  updated_at_timeago?: string;
+  friendly_views_count?: string;
+  friendly_comments_count?: string;
+  friendly_likes_count?: string;
+  has_liked?: boolean;
+  has_favorited?: boolean;
+  content?: IContent;
+  user?: IUser;
   tags?: ITag[];
-  likes?: ILike[];
-  favorites?: IFavorite[];
+  comments?: IComment[];
+}
+
+export interface IComment {
+  id?: number;
+  commentable_type?: string;
+  commentable_id?: number;
+  user_id?: number;
+  root_id?: number;
+  parent_id?: number;
+  popular?: number;
+  cache?: {
+    comments_count?: number;
+    up_voters_count?: number;
+    down_voters_count?: number;
+  };
+  created_at?: string;
+  updated_at?: string;
+  deleted_at?: string;
+  created_at_timeago?: string;
+  updated_at_timeago?: string;
+  friendly_comments_count?: string;
+  friendly_up_voters_count?: string;
+  friendly_down_voters_count?: string;
+  content?: IContent;
+  user?: IUser;
+  children?: IComment[];
+}
+
+export interface IContent {
+  id?: number;
+  contentable_type?: string;
+  contentable_id?: number;
+  body?: string;
+  markdown?: string;
+  created_at?: string;
+  updated_at?: string;
+  deleted_at?: string;
 }
 
 export interface ITag {
   id?: number;
   name?: string;
+  slug?: string;
   order?: number;
   created_at?: string;
   updated_at?: string;
-}
-
-export interface IComment {
-  id?: number;
-  user_id?: number;
-  content?: string;
-  target_type?: string;
-  target_id?: number;
-  reply_count?: number;
-  like_count?: number;
-  created_at?: string;
-  user?: IUser;
-  target?: IArticle;
-  replys?: IReply[];
-  likes?: ILike[],
-  replysPagination?: IPagination;
-}
-
-export interface IReply {
-  id?: number;
-  user_id?: number;
-  content?: string;
-  target_type?: string;
-  target_id?: number;
-  parent_id?: number;
-  like_count?: number;
-  created_at?: string;
-  user?: IUser;
-  target?: IComment;
-  parent?: IReply | null;
-  likes?: ILike[],
-}
-
-export interface ILike {
-  id?: number;
-  user_id?: number;
-  target_type?: string;
-  target_id?: number;
-  created_at?: string;
-  updated_at?: string;
-  target?: IArticle | IComment | IReply;
-}
-
-export interface IFavorite {
-  id?: number;
-  user_id?: number;
-  target_type?: string;
-  target_id?: number;
-  created_at?: string;
-  updated_at?: string;
-  deleted_at?: string;
-  target?: IArticle;
 }
 
 export interface INotification {
@@ -115,16 +109,7 @@ export interface INotification {
   type?: string;
   notifiable_type?: string;
   notifiable_id?: number;
-  data?: {
-    content?: string;
-    form_id?: number;
-    target_id?: number;
-    comment_id?: number;
-    target_name?: number;
-    form_user_id?: number;
-    form_user_name?: string;
-    form_user_avatar?: string;
-  };
+  data?: object;
   read_at?: string;
   created_at?: string;
   updated_at?: string;
@@ -150,7 +135,8 @@ export interface IPermission {
 }
 
 export interface IPagination {
+  current_page?: number;
+  last_page?: number;
+  per_page?: number;
   total?: number;
-  pageSize?: number;
-  current?: number;
 }

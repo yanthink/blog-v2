@@ -78,11 +78,11 @@ class RoleList extends Component<RoleListProps, RoleListState> {
     },
   ];
 
-  componentWillMount() {
+  UNSAFE_componentWillMount() {
     this.queryList(this.props.location.search);
   }
 
-  componentWillReceiveProps(nextProps: Readonly<RoleListProps>): void {
+  UNSAFE_componentWillReceiveProps(nextProps: Readonly<RoleListProps>): void {
     if (nextProps.location.search !== this.props.location.search) {
       this.queryList(nextProps.location.search);
     }

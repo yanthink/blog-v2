@@ -1,4 +1,7 @@
 @import '~antd/es/style/themes/default.less';
+@import '~yt-simplemde-editor/dist/style.css';
+@import '~emoji-assets/sprites/joypixels-sprite-32.min.css';
+@import '~yt-emoji-picker/dist/style.css';
 
 html,
 body,
@@ -91,23 +94,29 @@ img.joypixels {
 .editor-preview-active,
 .editor-preview-side,
 .editor-preview-active-side {
-  -webkit-font-smoothing: none !important;
-  -moz-osx-font-smoothing: unset !important;
-
-  .token.property, .token.tag, .token.constant, .token.symbol, .token.deleted {
-    color: lighten(#f92672, 10%);
+  ul {
+    padding-left: 24px;
   }
 
-  .token.comment, .token.prolog, .token.doctype, .token.cdata {
-    color: #8a9496;
+  pre {
+    background-color: #282c34;
   }
 
-  .token.atrule, .token.attr-value, .token.function, .token.class-name {
-    color: gold;
-  }
+  .line-numbers {
+    code {
+      border: none;
+    }
 
-  .token.selector, .token.attr-name, .token.string, .token.char, .token.builtin, .token.inserted {
-    color: #abe338;
+    .line-numbers-rows {
+      top: -16px;
+      bottom: -16px;
+      padding: 15px 0;
+      border-right: 1px solid rgba(0, 0, 0, .66);
+
+      > span::before {
+        color: hsla(0, 0%, 100%, .3);
+      }
+    }
   }
 }
 
@@ -169,6 +178,7 @@ img.joypixels {
     .ant-pro-global-header-trigger {
       padding-left: 12px;
     }
+
     .ant-pro-sider-menu-sider {
       .ant-menu-item, .ant-menu-submenu {
         padding-left: 12px !important;
@@ -187,8 +197,10 @@ img.joypixels {
     // pageHeader
     .ant-pro-page-header-wrap-page-header-warp {
       margin: 12px 24px;
+
       .ant-page-header {
         padding: 12px;
+
         .ant-page-header-heading-extra {
           right: 12px;
         }
@@ -201,10 +213,12 @@ img.joypixels {
 
     .ant-card-head {
       padding: 0 12px;
+
       .ant-tabs-nav .ant-tabs-tab {
         margin-right: 16px;
       }
     }
+
     .ant-card-body {
       padding: 12px;
     }

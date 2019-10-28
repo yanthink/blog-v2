@@ -13,7 +13,7 @@ interface MessagesProps extends ConnectProps {
 }
 
 class Messages extends React.Component<MessagesProps> {
-  componentWillMount() {
+  UNSAFE_componentWillMount() {
     this.queryMessages(this.props.location.search);
   }
 

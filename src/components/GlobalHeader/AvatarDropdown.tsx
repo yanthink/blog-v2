@@ -3,20 +3,14 @@ import { ClickParam } from 'antd/es/menu';
 import React from 'react';
 import { connect } from 'dva';
 import { router } from 'umi';
-import { parse, stringify } from 'qs';
-import { ConnectProps, ConnectState } from '@/models/connect';
-import { IUser } from '@/models/data';
+import { stringify } from 'qs';
+import { ConnectProps, ConnectState, AuthStateType } from '@/models/connect';
+import { getPageQuery } from '@/utils/utils';
 import HeaderDropdown from '../HeaderDropdown';
 import styles from './index.less';
 
-export function getPageQuery(): {
-  [key: string]: string;
-} {
-  return parse(window.location.href.split('?')[1]);
-}
-
 export interface GlobalHeaderRightProps extends ConnectProps {
-  currentUser?: IUser;
+  auth?: AuthStateType;
 }
 
 class AvatarDropdown extends React.Component<GlobalHeaderRightProps> {
@@ -27,7 +21,7 @@ class AvatarDropdown extends React.Component<GlobalHeaderRightProps> {
       const { dispatch } = this.props;
       if (dispatch) {
         dispatch({
-          type: 'login/logout',
+          type: 'auth/logout',
         });
       }
 
@@ -49,8 +43,8 @@ class AvatarDropdown extends React.Component<GlobalHeaderRightProps> {
     }
   };
 
-  render(): React.ReactNode {
-    const { currentUser = {} } = this.props;
+  render (): React.ReactNode {
+    const { auth } = this.props;
     const menuHeaderDropdown = (
       <Menu className={styles.menu} selectedKeys={[]} onClick={this.onMenuClick}>
         <Menu.Item key="center">
@@ -69,16 +63,16 @@ class AvatarDropdown extends React.Component<GlobalHeaderRightProps> {
       </Menu>
     );
 
-    return currentUser && currentUser.name ? (
+    return auth && auth.user && auth.user.id ? (
       <HeaderDropdown overlay={menuHeaderDropdown}>
         <span className={`${styles.action} ${styles.account}`}>
           <Avatar
             size="small"
             className={styles.avatar}
-            src={currentUser.user_info && currentUser.user_info.avatarUrl}
+            src={auth.user.avatar}
             alt="avatar"
           />
-          <span className={styles.name}>{currentUser.name}</span>
+          <span className={styles.name}>{auth.user.username}</span>
         </span>
       </HeaderDropdown>
     ) : (
@@ -92,6 +86,6 @@ class AvatarDropdown extends React.Component<GlobalHeaderRightProps> {
   }
 }
 
-export default connect(({ user }: ConnectState) => ({
-  currentUser: user.currentUser,
+export default connect(({ auth }: ConnectState) => ({
+  auth,
 }))(AvatarDropdown);

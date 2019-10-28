@@ -33,7 +33,7 @@ interface CommentsProps extends ConnectProps {
 }
 
 class Comments extends React.Component<CommentsProps> {
-  componentWillMount() {
+  UNSAFE_componentWillMount() {
     this.queryComments(this.props.location.search);
   }
 

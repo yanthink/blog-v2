@@ -1,0 +1,48 @@
+import { IPagination } from '@/models/data';
+import { PaginationProps } from 'antd/es/pagination';
+import { Icon } from 'antd';
+import { Link } from 'umi';
+import { stringify } from 'qs';
+import React from 'react';
+
+export function getAntdPaginationProps (pagination: IPagination, pathname: string, query: object): PaginationProps {
+  return {
+    total: pagination.total,
+    current: pagination.current_page,
+    pageSize: pagination.per_page || 10,
+    simple: window.innerWidth < 768,
+    itemRender (page, type, originalElement) {
+      let children: any = page;
+
+      if (type === 'prev') {
+        children = <Icon type="left" />;
+      } else if (type === 'next') {
+        children = <Icon type="right" />;
+      } else if (type === 'jump-prev') {
+        children = (
+          <div className="ant-pagination-item-container">
+            <Icon className="ant-pagination-item-link-icon" type="double-left" />
+            <span className="ant-pagination-item-ellipsis">•••</span>
+          </div>
+        );
+      } else if (type === 'jump-next') {
+        children = (
+          <div className="ant-pagination-item-container">
+            <Icon className="ant-pagination-item-link-icon" type="double-right" />
+            <span className="ant-pagination-item-ellipsis">•••</span>
+          </div>
+        );
+      }
+
+      return (
+        // @ts-ignore
+        <Link
+          {...originalElement.props}
+          to={`${pathname}?${stringify({ ...query, page })}`}
+        >
+          {children}
+        </Link>
+      );
+    },
+  };
+}

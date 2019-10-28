@@ -2,13 +2,12 @@ import { AnyAction } from 'redux';
 import { EffectsCommandMap } from 'dva';
 import { MenuDataItem } from '@ant-design/pro-layout';
 import { RouterTypes } from 'umi';
-import { StateType as AuthLoginModelState } from '@/pages/auth/login/model';
+import { StateType as AuthStateType } from './auth';
 import { StateType as ArticleListModelState } from '@/pages/articles/list/model';
 import { StateType as ArticleCreateModelState } from '@/pages/articles/create/model';
 import { StateType as ArticleEditModelState } from '@/pages/articles/edit/model';
 import { StateType as ArticleShowModelState } from '@/pages/articles/show/model';
 import { StateType as UserListModelState } from '@/pages/users/list/model';
-import { StateType as UserOnlineModelState } from '@/pages/users/online/model';
 import { StateType as AccountCenterModelState } from '@/pages/account/center/model';
 import { StateType as AccountNotificationsModelState } from '@/pages/account/notifications/model';
 import { StateType as AccountSettingsModelState } from '@/pages/account/settings/model';
@@ -17,20 +16,17 @@ import { StateType as PermissionListModelState } from '@/pages/permissions/list/
 import { StateType as NotificationListModelState } from '@/pages/notifications/list/model';
 import { StateType as TagListModelState } from '@/pages/tags/list/model';
 import { GlobalModelState } from './global';
-import { UserModelState } from './user';
 import { DefaultSettings as SettingModelState } from '../../config/defaultSettings';
 
 export {
   GlobalModelState,
   SettingModelState,
-  UserModelState,
-  AuthLoginModelState,
+  AuthStateType,
   ArticleListModelState,
   ArticleCreateModelState,
   ArticleEditModelState,
   ArticleShowModelState,
   UserListModelState,
-  UserOnlineModelState,
   AccountCenterModelState,
   AccountNotificationsModelState,
   AccountSettingsModelState,
@@ -47,14 +43,12 @@ export interface Loading {
     global?: boolean;
     menu?: boolean;
     setting?: boolean;
-    user?: boolean;
-    authLogin?: boolean;
+    auth?: boolean;
     articleList?: boolean;
     articleCreate?: boolean;
     articleEdit?: boolean;
     articleShow?: boolean;
     userList?: boolean;
-    userOnline?: boolean;
     accountCenter?: boolean;
     accountNotifications?: boolean;
     accountSettings?: boolean;
@@ -69,14 +63,12 @@ export interface ConnectState {
   global: GlobalModelState;
   loading: Loading;
   settings: SettingModelState;
-  user: UserModelState;
-  authLogin: AuthLoginModelState;
+  auth: AuthStateType;
   articleList: ArticleListModelState;
   articleCreate: ArticleCreateModelState;
   articleEdit: ArticleEditModelState;
   articleShow: ArticleShowModelState;
   userList: UserListModelState;
-  userOnline: UserOnlineModelState;
   accountCenter: AccountCenterModelState;
   accountNotifications: AccountNotificationsModelState;
   accountSettings: AccountSettingsModelState;

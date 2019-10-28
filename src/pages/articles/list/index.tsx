@@ -9,17 +9,18 @@ import { parse, stringify } from 'qs';
 import { ConnectState, ConnectProps, ArticleListModelState } from '@/models/connect';
 import { IArticle, ITag } from '@/models/data';
 import Authorized from '@/utils/Authorized';
+import scrollToTop from '@/utils/scrollToTop';
+import { getAntdPaginationProps } from '@/utils/XUtils';
 import ArticleListContent from './components/ArticleListContent';
 import StandardFormRow from './components/StandardFormRow';
 import TagSelect from './components/TagSelect';
-import scrollToTop from './utils/scrollToTop';
-import { queryAllTags } from './service';
+import * as services from './services';
 import styles from './style.less';
 
 const FormItem = Form.Item;
 
 const defaultQueryParams = {
-  include: 'author,tags',
+  include: 'user,tags',
 };
 
 interface ArticleListProps extends ConnectProps, FormComponentProps {
@@ -42,28 +43,28 @@ class ArticleList extends Component<ArticleListProps, ArticleListState> {
     allTags: [],
   };
 
-  async componentWillMount() {
+  async UNSAFE_componentWillMount () {
     this.queryList(this.props.location.search);
 
-    const { data: allTags } = await queryAllTags();
+    const { data: allTags } = await services.queryAllTags();
     this.setState({ allTags });
   }
 
-  componentWillReceiveProps(nextProps: Readonly<ArticleListProps>): void {
+  UNSAFE_componentWillReceiveProps (nextProps: ArticleListProps) {
     if (nextProps.location.search !== this.props.location.search) {
       this.queryList(nextProps.location.search);
     }
   }
 
-  componentDidUpdate(prevProps: Readonly<ArticleListProps>) {
+  componentDidUpdate (prevProps: ArticleListProps) {
     if (scrollToTopFlag === 2 && !this.props.loading) {
       scrollToTop(window, 150);
       scrollToTopFlag = 0;
     }
 
     if (
-      prevProps.location.query.page !== this.props.location.query.page
-      && this.props.location.query.page
+      prevProps.location.query.page !== this.props.location.query.page &&
+      this.props.location.query.page
     ) {
       scrollToTopFlag = 1;
     }
@@ -87,7 +88,7 @@ class ArticleList extends Component<ArticleListProps, ArticleListState> {
     });
   };
 
-  render() {
+  render () {
     const {
       form,
       articleList: { list, pagination },
@@ -112,13 +113,13 @@ class ArticleList extends Component<ArticleListProps, ArticleListState> {
 
     return (
       // @ts-ignore
-      <PageHeaderWrapper extra={Authorized.check('articles.store', HeaderAction, null)}>
+      <PageHeaderWrapper extra={Authorized.check('create-article', HeaderAction, null)}>
         <Card bordered={false} hidden={query && !!query.keyword}>
           <Form layout="inline">
             <StandardFormRow title="所属标签" block style={{ paddingBottom: 11 }}>
               <FormItem>
-                {getFieldDecorator('tagIds', {
-                  initialValue: query.tagIds,
+                {getFieldDecorator('tags_id', {
+                  initialValue: query.tags_id,
                 })(
                   <TagSelect expandable>
                     {this.state.allTags.map(tag => (
@@ -144,43 +145,7 @@ class ArticleList extends Component<ArticleListProps, ArticleListState> {
             itemLayout="vertical"
             dataSource={list}
             className={styles.list}
-            pagination={{
-              ...pagination,
-              simple: window.innerWidth < 768,
-              itemRender(page, type, originalElement) {
-                let children: any = page;
-
-                if (type === 'prev') {
-                  children = <Icon type="left" />;
-                } else if (type === 'next') {
-                  children = <Icon type="right" />;
-                } else if (type === 'jump-prev') {
-                  children = (
-                    <div className="ant-pagination-item-container">
-                      <Icon className="ant-pagination-item-link-icon" type="double-left" />
-                      <span className="ant-pagination-item-ellipsis">•••</span>
-                    </div>
-                  );
-                } else if (type === 'jump-next') {
-                  children = (
-                    <div className="ant-pagination-item-container">
-                      <Icon className="ant-pagination-item-link-icon" type="double-right" />
-                      <span className="ant-pagination-item-ellipsis">•••</span>
-                    </div>
-                  );
-                }
-
-                return (
-                  // @ts-ignore
-                  <Link
-                    {...originalElement.props}
-                    to={`${pathname}?${stringify({ ...query, page })}`}
-                  >
-                    {children}
-                  </Link>
-                );
-              },
-            }}
+            pagination={getAntdPaginationProps(pagination, pathname, query)}
             renderItem={(article: IArticle) => (
               <List.Item
                 key={article.id}
@@ -205,20 +170,22 @@ class ArticleList extends Component<ArticleListProps, ArticleListState> {
                     <Link
                       className={styles.listItemMetaTitle}
                       style={{
-                        textDecoration: article.status ? 'none' : 'line-through',
+                        textDecoration: article.visible ? 'none' : 'line-through',
                       }}
-                      to={`/articles/${article.id}/show`}
+                      to={`/articles/${article.id}`}
                     >
-                      {article.highlight && article.highlight.title
-                        ? article.highlight.title.map((html, key) => (
-                          <span
-                            key={key}
-                            dangerouslySetInnerHTML={{
-                              __html: html,
-                            }}
-                          />
-                        ))
-                        : article.title}
+                      {
+                        article.highlights && article.highlights.title
+                          ? article.highlights.title.map((html, key) => (
+                            <span
+                              key={key}
+                              dangerouslySetInnerHTML={{
+                                __html: html,
+                              }}
+                            />
+                          ))
+                          : article.title
+                      }
                     </Link>
                   }
                   description={(get(article, 'tags', []) as ITag[]).map((tag: ITag) => (
@@ -236,7 +203,7 @@ class ArticleList extends Component<ArticleListProps, ArticleListState> {
 }
 
 export default Form.create<ArticleListProps>({
-  onValuesChange({ location: { pathname } }: ArticleListProps, changedValues, allValues) {
+  onValuesChange ({ location: { pathname } }: ArticleListProps, changedValues, allValues) {
     router.push({
       pathname,
       search: stringify({

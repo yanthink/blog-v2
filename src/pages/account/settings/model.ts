@@ -63,7 +63,6 @@ const Model: ModelType = {
     * updateBaseInfo({ payload, callback }, { call }) {
       const { data } = yield call(updateBaseInfo, payload);
 
-      // @ts-ignore
       window.g_app._store.dispatch({
         type: 'user/saveCurrentUser',
         payload: data,
@@ -76,7 +75,6 @@ const Model: ModelType = {
     * updateSettings({ payload, callback }, { call }) {
       const { data } = yield call(updateSettings, payload);
 
-      // @ts-ignore
       window.g_app._store.dispatch({
         type: 'user/saveCurrentUser',
         payload: data,

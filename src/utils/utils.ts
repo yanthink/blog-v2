@@ -1,88 +1,32 @@
-/* eslint no-useless-escape:0 import/prefer-default-export:0 */
 import moment from 'moment';
 import marked from 'marked';
 import Prism from 'prismjs';
-import { stringify } from 'qs';
+import { parse } from 'qs';
 
-const reg = /(((^https?:(?:\/\/)?)(?:[-;:&=\+\$,\w]+@)?[A-Za-z0-9.-]+(?::\d+)?|(?:www.|[-;:&=\+\$,\w]+@)[A-Za-z0-9.-]+)((?:\/[\+~%\/.\w-_]*)?\??(?:[-\+=&;%@.\w_]*)#?(?:[\w]*))?)$/;
-
-export function isUrl(path: string): boolean {
-  return reg.test(path);
+export function getPageQuery () {
+  return parse(window.location.href.split('?')[1]);
 }
 
-export function showTime(time: string, level = 4): string {
-  const mTime = moment(time);
-  const diffSeconds = moment().diff(mTime, 's');
-  const u = ['年', '个月', '星期', '天', '小时', '分钟', '秒'];
-  const t = [31536000, 2592000, 604800, 86400, 3600, 60, 1];
+export function diffForHumans (time?: string) {
+  const mtime = moment(time);
+  const now = moment();
 
-  if (diffSeconds > t[level]) {
-    if (moment().year() === mTime.year()) {
-      return mTime.format('MM-DD HH:mm');
-    }
-
-    return mTime.format('YYYY-MM-DD HH:mm');
+  if (now.diff(mtime, 'day') > 15) {
+    return mtime.year() === now.year() ? mtime.format('MM-DD HH:ss') : mtime.format('YYYY-MM-DD HH:ss');
   }
 
-  for (let i = 1; i <= 6; i++) {
-    // eslint-disable-line
-    const inm = Math.floor(diffSeconds / t[i]);
+  return mtime.fromNow();
+}
 
-    if (inm !== 0) {
-      return `${inm}${u[i]}前`;
-    }
+export function friendlyNumbers (n: number) {
+  if (n >= 1000) {
+    return Math.floor(n / 1000) + 'k';
   }
 
-  return time;
+  return String(n);
 }
 
-const dynamicLoaded: string[] = [];
-
-export function dynamicLoad(srcs: string | string[]): Promise<any> {
-  const srcList = Array.isArray(srcs) ? srcs : srcs.split(/\s+/);
-  return Promise.all(
-    srcList.map(src => {
-      if (!dynamicLoaded[src]) {
-        dynamicLoaded[src] = new Promise((resolve, reject) => {
-          if (src.indexOf('.css') > 0) {
-            const style = document.createElement('link');
-            style.rel = 'stylesheet';
-            style.type = 'text/css';
-            style.href = src;
-            style.onload = e => resolve(e);
-            style.onerror = e => reject(e);
-            document.head && document.head.appendChild(style);
-          } else {
-            const script = document.createElement('script');
-            script.async = true;
-            script.src = src;
-            script.onload = e => resolve(e);
-            script.onerror = e => reject(e);
-            document.head && document.head.appendChild(script);
-          }
-        });
-      }
-
-      return dynamicLoaded[src];
-    }),
-  );
-}
-
-export function randomString(len: number) {
-  const text = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-
-  const rdmIndex = (text: string) => Math.random() * text.length || 0;
-
-  let rdmString = '';
-
-  while (rdmString.length < len) {
-    rdmString += text.charAt(rdmIndex(text));
-  }
-
-  return rdmString;
-}
-
-export function rendererLink(href: string, title: string, text: string) {
+export function rendererLink (href: string, title: string, text: string) {
   let url = href;
   let target: boolean | string = false;
 
@@ -110,7 +54,7 @@ export function rendererLink(href: string, title: string, text: string) {
   return out;
 }
 
-export function getDefaultMarkedOptions() {
+export function getDefaultMarkedOptions () {
   const renderer = new marked.Renderer();
   renderer.link = rendererLink;
 
@@ -119,7 +63,7 @@ export function getDefaultMarkedOptions() {
     headerIds: false,
     gfm: true,
     breaks: true,
-    highlight(code: string, lang: string) {
+    highlight (code: string, lang: string) {
       if (lang) {
         const language = lang.toLowerCase();
         const grammar = Prism.languages[language];
@@ -133,14 +77,72 @@ export function getDefaultMarkedOptions() {
   };
 }
 
-export function resetMarkedOptions() {
+export function resetMarkedOptions () {
   marked.setOptions(getDefaultMarkedOptions());
 }
 
-export function getSocketUrl(params: object) {
-  const socketUrl = process.env.NODE_ENV === 'development'
-    ? 'wss://api.blog.test/wss'
-    : `wss://${window.location.host}/wss`;
+/* eslint no-param-reassign:0, one-var:0, object-shorthand:0, no-loop-func:0 */
+/* eslint eqeqeq:0, no-multi-assign:0, no-multiple-empty-lines:0 */
+export function getPositions(dom: HTMLElement) {
+  let left = dom.offsetLeft,
+    top = dom.offsetTop + dom.scrollTop,
+    current = dom.offsetParent;
 
-  return `${socketUrl}?${stringify(params)}`;
+  while (current !== null) {
+    // @ts-ignore
+    left += current.offsetLeft;
+    // @ts-ignore
+    top += current.offsetTop;
+    // @ts-ignore
+    current = current.offsetParent;
+  }
+  return { left: left, top: top };
+}
+
+export function isParentElement(childElement: any, parentElement: any) {
+  const pEls = !Array.isArray(parentElement) ? [parentElement] : parentElement;
+  while (childElement.tagName.toUpperCase() !== 'BODY') {
+    if (pEls.some(el => childElement == el)) {
+      return true;
+    }
+    // @ts-ignore
+    childElement = childElement.parentNode;
+  }
+  return false;
+}
+
+export function insertText(texteara: HTMLTextAreaElement, str: string): string {
+  // @ts-ignore
+  if (document.selection) {
+    // @ts-ignore
+    const sel = document.selection.createRange();
+    sel.text = str;
+  } else if (typeof texteara.selectionStart === 'number' && typeof texteara.selectionEnd === 'number') {
+    const startPos = texteara.selectionStart;
+    const endPos = texteara.selectionEnd;
+    let cursorPos = startPos;
+    const tmpStr = texteara.value;
+    texteara.value = tmpStr.substring(0, startPos) + str + tmpStr.substring(endPos, tmpStr.length);
+    cursorPos += str.length;
+    texteara.selectionStart = texteara.selectionEnd = cursorPos;
+  } else {
+    texteara.value += str;
+  }
+
+  return texteara.value;
+}
+
+export function moveEnd(texteara: HTMLTextAreaElement) {
+  texteara.focus();
+  const len = texteara.value.length;
+  // @ts-ignore
+  if (document.selection) {
+    // @ts-ignore
+    const sel = texteara.createTextRange();
+    sel.moveStart('character', len);
+    sel.collapse();
+    sel.select();
+  } else if (typeof texteara.selectionStart == 'number' && typeof texteara.selectionEnd == 'number') {
+    texteara.selectionStart = texteara.selectionEnd = len;
+  }
 }

@@ -1,0 +1,53 @@
+@import '~antd/es/style/themes/default.less';
+
+.list {
+  margin-top: 20px;
+
+  :global {
+    .ant-comment {
+      width: 100%;
+
+      .markdown-body {
+        background-color: transparent;
+      }
+    }
+
+    .ant-list-item {
+      border-bottom-style: dashed;
+    }
+
+    .ant-comment-content-detail {
+      //overflow: hidden;
+
+      p {
+        margin-bottom: 8px;
+      }
+    }
+
+    .ant-comment-actions {
+      margin-top: 0;
+    }
+
+    .ant-comment-actions > li > span {
+      display: inline-block;
+    }
+
+    .ant-comment-nested .ant-comment {
+      padding: 0 12px;
+      background-color: #f7f7f7;
+
+      .ant-comment-content-author-name, .ant-comment-content-author-time {
+        height: 22px;
+        line-height: 22px;
+      }
+    }
+
+    .ant-tag {
+      margin: 0 0 0 4px;
+      padding: 0 5px;
+      color: @primary-color;
+      line-height: 1.4;
+      border-color: @primary-color;
+    }
+  }
+}

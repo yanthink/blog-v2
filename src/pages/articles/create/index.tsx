@@ -15,8 +15,6 @@ import { getToken } from '@/utils/authority';
 import { ConnectState, ConnectProps } from '@/models/connect';
 import { IArticle, ITag } from '@/models/data';
 import { queryAllTags } from '../list/service';
-import 'yt-simplemde-editor/dist/style.css';
-import 'emoji-assets/sprites/joypixels-sprite-32.min.css';
 import styles from './style.less';
 
 const FormItem = Form.Item;
@@ -60,7 +58,7 @@ class ArticleCreate extends Component<ArticleCreateProps, ArticleCreateState> {
     previewBase64: '',
   };
 
-  async componentWillMount() {
+  async UNSAFE_componentWillMount() {
     const { data: allTags } = await queryAllTags();
     this.setState({ allTags });
   }

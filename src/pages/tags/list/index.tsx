@@ -73,11 +73,11 @@ class TagList extends Component<TagListProps, TagListState> {
     },
   ];
 
-  componentWillMount() {
+  UNSAFE_componentWillMount() {
     this.queryList(this.props.location.search);
   }
 
-  componentWillReceiveProps(nextProps: Readonly<TagListProps>): void {
+  UNSAFE_componentWillReceiveProps(nextProps: Readonly<TagListProps>): void {
     if (nextProps.location.search !== this.props.location.search) {
       this.queryList(nextProps.location.search);
     }

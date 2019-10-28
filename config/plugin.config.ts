@@ -27,15 +27,10 @@ function getModulePackageName(module: { context: string }) {
 
 export default (config: any) => {
   if (process.env.NODE_ENV !== 'production') {
-    const configStr = '/* eslint-disable */\nexport default ' + config.toString();
-    fs.writeFileSync('./.webpack.config.js', configStr);
-  }
-
-  if (process.env.NODE_ENV !== 'production') {
     config.plugin('webpack-theme-color-replacer').use(ThemeColorReplacer, [
       {
         fileName: 'css/theme-colors-[contenthash:8].css',
-        matchColors: getAntdSerials('#1890ff'), // 主色系列
+        matchColors: getAntdSerials('#13C2C2'), // 主色系列
         // 改变样式选择器，解决样式覆盖问题
         changeSelector(selector: string): string {
           switch (selector) {
@@ -84,6 +79,9 @@ export default (config: any) => {
         },
       },
     });
+
+  const configStr = '/* eslint-disable */\nexport default ' + config.toString();
+  fs.writeFileSync('./.webpack.config.js', configStr);
 };
 
 const getAntdSerials = (color: string) => {

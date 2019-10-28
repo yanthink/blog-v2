@@ -2,7 +2,7 @@ import React from 'react';
 import { Button, message, notification } from 'antd';
 // @ts-ignore
 import emojiToolkit from 'emoji-toolkit';
-import { dynamicLoad, resetMarkedOptions } from '@/utils/utils';
+import { resetMarkedOptions } from '@/utils/utils';
 import defaultSettings from '../config/defaultSettings';
 
 emojiToolkit.sprites = true;
@@ -78,5 +78,10 @@ if (pwa) {
 }
 
 if (window.location.hostname === 'www.einsition.com') {
-  dynamicLoad('https://hm.baidu.com/hm.js?ac1bc08008f195f8b3c753b4b718104b');
+  // 百度统计
+  (function () {
+    const hm = document.createElement('script');
+    hm.src = 'https://hm.baidu.com/hm.js?ac1bc08008f195f8b3c753b4b718104b';
+    document.head && document.head.appendChild(hm);
+  })();
 }

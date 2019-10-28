@@ -23,8 +23,8 @@ export default class Tocify {
     this.index = 0;
   }
 
-  add(text: string, level: number) {
-    const anchor = `toc${level}${++this.index}`;
+  add(text: string, level: number, id = '') {
+    const anchor = id || `toc${level}${++this.index}`;
     const item = { anchor, level, text };
     const items = this.tocItems;
 

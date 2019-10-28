@@ -36,7 +36,7 @@ const GlobalHeaderRight: React.FC<GlobalHeaderRightProps> = props => {
           router.push({
             pathname: '/articles/list',
             query: {
-              keyword: value,
+              q: value,
             },
           });
         }}

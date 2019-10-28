@@ -1,9 +1,8 @@
-import { Icon } from 'antd';
+import { Icon, Tooltip } from 'antd';
 import React from 'react';
 import { get } from 'lodash';
 import Ellipsis from '@/components/Ellipsis';
 import { IArticle } from '@/models/data';
-import { showTime } from '@/utils/utils';
 import styles from './index.less';
 
 interface ArticleListContentProps {
@@ -13,19 +12,33 @@ interface ArticleListContentProps {
 const IconText: React.FC<{
   type: string;
   text: React.ReactNode;
-}> = ({ type, text }) => (
-  <span style={{ marginRight: 16 }}>
-    <Icon type={type} style={{ marginRight: 4 }} />
-    {text}
-  </span>
-);
+  tooltip?: string;
+}> = ({ type, text, tooltip }) => {
+  if (tooltip) {
+    return (
+      <Tooltip title={tooltip}>
+        <span style={{ marginRight: 16 }}>
+          <Icon type={type} style={{ marginRight: 4 }} />
+          {text}
+        </span>
+      </Tooltip>
+    );
+  }
+
+  return (
+    <span style={{ marginRight: 16 }}>
+      <Icon type={type} style={{ marginRight: 4 }} />
+      {text}
+    </span>
+  );
+};
 
 const ArticleListContent: React.FC<ArticleListContentProps> = ({ data: article }) => (
   <div className={styles.listContent}>
     <div className={styles.description}>
       <Ellipsis lines={3}>
-        {article.highlight && article.highlight.content
-          ? article.highlight.content.map((html, key) => (
+        {article.highlights && article.highlights.content
+          ? article.highlights.content.map((html, key) => (
             <span
               key={key}
               dangerouslySetInnerHTML={{
@@ -33,15 +46,15 @@ const ArticleListContent: React.FC<ArticleListContentProps> = ({ data: article }
               }}
             />
           ))
-          : String(article.content).substr(0, 500)}
+          : get(article, 'content.markdown', '').substr(0, 300)}
       </Ellipsis>
     </div>
     <div className={styles.extra}>
       <IconText type="user" text={get(article, 'author.name', '')} />
-      <IconText type="clock-circle-o" text={showTime(article.updated_at || '')} />
-      <IconText type="eye" text={article.current_read_count} />
-      <IconText key="like" type="like-o" text={article.like_count} />
-      <IconText type="message" key="message" text={article.comment_count} />
+      <IconText type="clock-circle-o" text={article.created_at_timeago} tooltip={article.created_at} />
+      <IconText type="eye" text={article.friendly_views_count} />
+      <IconText key="like" type="like-o" text={article.friendly_likes_count} />
+      <IconText type="message" key="message" text={article.friendly_comments_count} />
     </div>
   </div>
 );

@@ -13,7 +13,7 @@ interface SystemsProps extends ConnectProps {
 }
 
 class Systems extends React.Component<SystemsProps> {
-  componentWillMount() {
+  UNSAFE_componentWillMount() {
     this.querySystems(this.props.location.search);
   }
 

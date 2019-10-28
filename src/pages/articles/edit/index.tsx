@@ -17,8 +17,6 @@ import { ConnectState, ConnectProps } from '@/models/connect';
 import { IArticle, ITag } from '@/models/data';
 import { queryArticle } from '../show/service';
 import { queryAllTags } from '../list/service';
-import 'yt-simplemde-editor/dist/style.css';
-import 'emoji-assets/sprites/joypixels-sprite-32.min.css';
 import styles from './style.less';
 
 const FormItem = Form.Item;
@@ -67,7 +65,7 @@ class ArticleEdit extends Component<ArticleEditProps, ArticleEditState> {
     previewBase64: '',
   };
 
-  async componentWillMount() {
+  async UNSAFE_componentWillMount() {
     const onePromise = queryArticle(this.props.match.params.id, { include: 'tags' });
     const tagsPromise = queryAllTags();
     const { data: article } = await onePromise;

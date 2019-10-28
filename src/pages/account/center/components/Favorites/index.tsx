@@ -19,7 +19,7 @@ interface FavoritesProps extends ConnectProps {
 }
 
 class Favorites extends React.Component<FavoritesProps> {
-  componentWillMount() {
+  UNSAFE_componentWillMount() {
     this.queryFavorites(this.props.location.search);
   }
 

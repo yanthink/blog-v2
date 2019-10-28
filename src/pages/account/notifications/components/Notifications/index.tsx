@@ -22,7 +22,7 @@ interface NotificationsProps extends ConnectProps {
 }
 
 class Notifications extends React.Component<NotificationsProps> {
-  componentWillMount() {
+  UNSAFE_componentWillMount() {
     this.queryNotifications(this.props.location.search);
   }
 
