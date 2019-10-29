@@ -1,6 +1,6 @@
-import React, { Fragment } from 'react';
+import React from 'react';
 import { List, Comment, Tooltip, Icon, Tag } from 'antd';
-import { get } from 'lodash';
+import { get, unionBy } from 'lodash';
 import Editor from './Editor';
 import MarkdownBody from '@/components/MarkdownBody';
 import Upvote from '@/components/Buttons/UpvoteBtn';
@@ -37,24 +37,32 @@ class ArticleComments extends React.Component<ArticleCommentsProps, ArticleComme
   };
 
   renderChildren = (parentComment: IComment) => {
-    const NestedEditor: React.FC<{ comment: IComment }> = ({ comment }) => (
-      <Editor
-        placeholder={`@${get(comment, 'user.username')}`}
-        onSubmit={(values: { content: { markdown: string } }, callback?: () => void) => {
-          this.handleSubmitComment({ ...values, parent_id: this.state.parent_id }, () => {
-            this.setState({ parent_id: 0 }, callback);
-          });
-        }}
-        submitting={this.props.submittingComment}
-        minRows={4}
-      />
-    );
+    const NestedEditor: React.FC<{ comment: IComment }> = ({ comment }) => {
+      const { children = [], user = {} } = parentComment;
+      const users = children.map(comment => comment.user);
+      users.unshift(user);
+      const defaultMentionUsers = unionBy(users, 'id');
+
+      return (
+        <Editor
+          placeholder={`@${get(comment, 'user.username')}`}
+          onSubmit={(values: { content: { markdown: string } }, callback?: () => void) => {
+            this.handleSubmitComment({ ...values, parent_id: this.state.parent_id }, () => {
+              this.setState({ parent_id: 0 }, callback);
+            });
+          }}
+          submitting={this.props.submittingComment}
+          minRows={4}
+          defaultMentionUsers={defaultMentionUsers}
+        />
+      );
+    };
 
     return (
       <>
         {parentComment.id === this.state.parent_id && <NestedEditor comment={parentComment} />}
         {parentComment.children && parentComment.children.map((comment: IComment) => (
-          <Fragment key={comment.id}>
+          <div key={comment.id} id={`comment-${comment.id}`}>
             <Comment
               author={
                 <span>
@@ -79,7 +87,7 @@ class ArticleComments extends React.Component<ArticleCommentsProps, ArticleComme
               ]}
             />
             {comment.id === this.state.parent_id && <NestedEditor comment={comment} />}
-          </Fragment>
+          </div>
         ))}
       </>
     );
@@ -90,12 +98,17 @@ class ArticleComments extends React.Component<ArticleCommentsProps, ArticleComme
 
     return (
       <div className={styles.comments}>
-        <Editor onSubmit={this.handleSubmitComment} submitting={submittingComment} preview />
+        <Editor
+          onSubmit={this.handleSubmitComment}
+          submitting={submittingComment}
+          preview
+          defaultMentionUsers={unionBy(comments.map(comment => comment.user), 'id')}
+        />
         <List
           className={styles.list}
           itemLayout="horizontal"
           dataSource={comments}
-          header={`${pagination.total} 评论`}
+          header={`${pagination.total || 0} 评论`}
           loading={loading}
           pagination={{
             total: pagination.total,
@@ -105,7 +118,7 @@ class ArticleComments extends React.Component<ArticleCommentsProps, ArticleComme
             onChange: onPageChange,
           }}
           renderItem={(comment: IComment) => (
-            <List.Item>
+            <List.Item id={`comment-${comment.id}`}>
               <Comment
                 author={
                   <span>

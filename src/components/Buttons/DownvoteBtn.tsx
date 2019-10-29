@@ -43,7 +43,7 @@ class DownvoteBtn extends React.Component<DownvoteBtnProps, DownvoteBtnState> {
       <Icon
         type="dislike"
         theme={slot === 'on' ? 'twoTone' : 'outlined'}
-        twoToneColor="#13C2C2"
+        twoToneColor="#ff4d4f"
       />
       {!this.props.hideText && <span>{this.state.upVotersCount}</span>}
     </div>

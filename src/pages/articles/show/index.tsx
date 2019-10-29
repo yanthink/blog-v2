@@ -7,8 +7,6 @@ import { PageHeaderWrapper } from '@ant-design/pro-layout';
 import Authorized from '@/utils/Authorized';
 import Tocify from '@/components/MarkdownBody/tocify';
 import { ConnectState, ConnectProps, Loading, ArticleShowModelState } from '@/models/connect';
-import scrollToTop from '@/utils/scrollToTop';
-import { getPositions } from '@/utils/utils';
 import ArticleContent from './components/ArticleContent';
 import ArticleComments from './components/ArticleComments';
 import styles from './style.less';
@@ -44,24 +42,15 @@ interface ArticleShowState {
 class ArticleShow extends React.Component<ArticleShowProps, ArticleShowState> {
   state: ArticleShowState = {
     fetchingArticle: true,
+    tocify: undefined,
   };
-
-  commentsPageChanged?: boolean;
-
-  commentsBody?: HTMLDivElement;
-
-  constructor (props: ArticleShowProps) {
-    super(props);
-
-    this.state = {
-      fetchingArticle: true,
-    };
-  }
 
   async UNSAFE_componentWillMount () {
     const { dispatch, match: { params }, location } = this.props;
 
-    dispatch({
+    this.setState({ fetchingArticle: true });
+
+    const fetchArticle = dispatch({
       type: 'articleShow/fetchArticle',
       id: params.id,
       payload: {
@@ -70,32 +59,32 @@ class ArticleShow extends React.Component<ArticleShowProps, ArticleShowState> {
       },
     });
 
-    dispatch({
+    const fetchComments = dispatch({
       type: 'articleShow/fetchComments',
       article_id: params.id,
       payload: {
         ...defaultCommentsQueryParams,
       },
     });
+
+    await fetchArticle;
+    await fetchComments;
+
+    this.setState({ fetchingArticle: false }, () => {
+      if (this.props.location.hash) {
+        this.scrollToAnchor(this.props.location.hash.substring(1));
+      }
+    });
   }
 
-  componentDidUpdate (prevProps: ArticleShowProps) {
-    /* eslint react/no-did-update-set-state:0 */
-    if (
-      prevProps.loading.effects['articleShow/fetchArticle'] &&
-      this.props.loading.effects['articleShow/fetchArticle'] === false
-    ) {
-      this.setState({ fetchingArticle: false });
-    }
-
-    if (
-      this.commentsPageChanged &&
-      prevProps.loading.effects['articleShow/fetchComments'] &&
-      this.props.loading.effects['articleShow/fetchComments'] === false
-    ) {
-      scrollToTop(window, getPositions(this.commentsBody as HTMLDivElement).top - 24);
-    }
-  }
+  scrollToAnchor = (id: string) => {
+    const dom = document.getElementById(id);
+    dom && dom.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start',
+      inline: 'start',
+    });
+  };
 
   handleSubmitComment = (values: { content: { markdown: string }, parent_id: number }, callback?: () => void) => {
     const { dispatch, match: { params } } = this.props;
@@ -116,10 +105,10 @@ class ArticleShow extends React.Component<ArticleShowProps, ArticleShowState> {
     });
   };
 
-  handleCommentsPageChange = (page: number) => {
+  handleCommentsPageChange = async (page: number) => {
     const { dispatch, match: { params } } = this.props;
 
-    dispatch({
+    await dispatch({
       type: 'articleShow/fetchComments',
       article_id: params.id,
       payload: {
@@ -128,16 +117,12 @@ class ArticleShow extends React.Component<ArticleShowProps, ArticleShowState> {
       },
     });
 
-    this.commentsPageChanged = true;
+    this.scrollToAnchor('comments');
   };
 
   setTocify = (tocify: Tocify) => {
     tocify.add('评论', 1, 'comments');
     this.setState({ tocify });
-  };
-
-  setCommentsRef = (ref: HTMLDivElement) => {
-    this.commentsBody = ref;
   };
 
   render () {
@@ -172,18 +157,16 @@ class ArticleShow extends React.Component<ArticleShowProps, ArticleShowState> {
               </Skeleton>
             </Card>
 
-            <Card bordered={false} style={{ marginTop: 24 }}>
-              <div ref={this.setCommentsRef} id="comments">
-                <ArticleComments
-                  article={article}
-                  comments={comments}
-                  pagination={pagination}
-                  loading={loading.effects['articleShow/fetchComments']}
-                  onPageChange={this.handleCommentsPageChange}
-                  onSubmitComment={this.handleSubmitComment}
-                  submittingComment={loading.effects['articleShow/submitComment']}
-                />
-              </div>
+            <Card bordered={false} style={{ marginTop: 24 }} id="comments">
+              <ArticleComments
+                article={article}
+                comments={comments}
+                pagination={pagination}
+                loading={loading.effects['articleShow/fetchComments']}
+                onPageChange={this.handleCommentsPageChange}
+                onSubmitComment={this.handleSubmitComment}
+                submittingComment={loading.effects['articleShow/submitComment']}
+              />
             </Card>
           </Col>
           <Col xl={6} lg={0} md={0} sm={0} xs={0}>

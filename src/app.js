@@ -2,9 +2,18 @@
 // https://dvajs.com/api/
 export const dva = {
   config: {
-    onError(e) {
+    onError (e) {
       // effect 执行错误或 subscription 通过 done 主动抛错时触发
       e.preventDefault();
     },
   },
 };
+
+let lastPathname = '';
+
+export function onRouteChange ({ location }) {
+  if (lastPathname !== location.pathname) {
+    window.scrollTo(0, 0);
+    lastPathname = location.pathname;
+  }
+}

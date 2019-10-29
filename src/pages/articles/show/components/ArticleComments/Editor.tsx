@@ -37,6 +37,7 @@ interface ArticleCommentEditorProps extends ConnectProps {
   maxLength?: number;
   auth?: AuthStateType;
   preview?: boolean;
+  defaultMentionUsers?: IUser[];
 }
 
 /* eslint max-len: 0 */
@@ -47,14 +48,19 @@ class ArticleCommentEditor extends React.Component<ArticleCommentEditorProps, Ar
 
   static stackCount: number = 0;
 
-  state: ArticleCommentEditorState = {
-    value: '',
-    textareaStyles: {},
-    resizing: false,
-    search: '',
-    mentionUsers: [],
-    loadingMentions: false,
-  };
+  constructor (props: ArticleCommentEditorProps) {
+    super(props);
+
+    this.state = {
+      value: '',
+      textareaStyles: {},
+      resizing: false,
+      search: '',
+      mentionUsers: (props.defaultMentionUsers || []).slice(0, 6),
+      loadingMentions: false,
+    };
+  }
+
 
   emojiPickerBtn: any;
 
@@ -146,8 +152,9 @@ class ArticleCommentEditor extends React.Component<ArticleCommentEditorProps, Ar
     this.setState({ value }, () => this.resizeTextarea());
   };
 
-  handleBeforeUpload = (file: RcFile) => {
+  handleBeforeUpload = (file: RcFile, fileList: RcFile[]) => {
     message.loading('正在上传...');
+    return true;
   };
 
   handleUploadChange = ({ file }: UploadChangeParam) => {
@@ -205,6 +212,19 @@ class ArticleCommentEditor extends React.Component<ArticleCommentEditorProps, Ar
   };
 
   fetchUsers = debounce(async (search: string) => {
+    const { defaultMentionUsers = [] } = this.props;
+
+    if (!search) {
+      return this.setState({ mentionUsers: defaultMentionUsers.slice(0, 6) });
+    }
+
+    const mentionUsers = defaultMentionUsers.filter((user) => {
+      return (user.username as string).toLowerCase().indexOf(search.toLowerCase()) >= 0;
+    }).slice(0, 6);
+    if (mentionUsers.length) {
+      return this.setState({ mentionUsers });
+    }
+
     this.setState({ search, loadingMentions: !!search, mentionUsers: [] });
 
     const { data } = await services.searchUsers(search);

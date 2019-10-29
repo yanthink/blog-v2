@@ -9,7 +9,6 @@ import { parse, stringify } from 'qs';
 import { ConnectState, ConnectProps, ArticleListModelState } from '@/models/connect';
 import { IArticle, ITag } from '@/models/data';
 import Authorized from '@/utils/Authorized';
-import scrollToTop from '@/utils/scrollToTop';
 import { getAntdPaginationProps } from '@/utils/XUtils';
 import ArticleListContent from './components/ArticleListContent';
 import StandardFormRow from './components/StandardFormRow';
@@ -31,8 +30,6 @@ interface ArticleListProps extends ConnectProps, FormComponentProps {
 interface ArticleListState {
   allTags: ITag[];
 }
-
-let scrollToTopFlag = 0;
 
 @connect(({ articleList, loading }: ConnectState) => ({
   articleList,
@@ -56,25 +53,16 @@ class ArticleList extends Component<ArticleListProps, ArticleListState> {
     }
   }
 
-  componentDidUpdate (prevProps: ArticleListProps) {
-    if (scrollToTopFlag === 2 && !this.props.loading) {
-      scrollToTop(window, 150);
-      scrollToTopFlag = 0;
-    }
+  scrollToAnchor = (id: string) => {
+    const dom = document.getElementById(id);
+    dom && dom.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start',
+      inline: 'start',
+    });
+  };
 
-    if (
-      prevProps.location.query.page !== this.props.location.query.page &&
-      this.props.location.query.page
-    ) {
-      scrollToTopFlag = 1;
-    }
-
-    if (scrollToTopFlag === 1 && this.props.loading) {
-      scrollToTopFlag = 2;
-    }
-  }
-
-  queryList = (params: object | string) => {
+  queryList = async (params: object | string) => {
     const query = params instanceof Object ? params : parse(params.replace(/^\?/, ''));
 
     const queryParams = {
@@ -82,10 +70,14 @@ class ArticleList extends Component<ArticleListProps, ArticleListState> {
       ...query,
     };
 
-    this.props.dispatch({
+    await this.props.dispatch({
       type: 'articleList/fetch',
       payload: queryParams,
     });
+
+    if (queryParams.page) {
+      this.scrollToAnchor('searchForm');
+    }
   };
 
   render () {
@@ -106,15 +98,14 @@ class ArticleList extends Component<ArticleListProps, ArticleListState> {
       </Link>
     );
 
-    const title =
-      !loading && query && query.keyword
-        ? `关于 “${query.keyword}” 的搜索结果, 共 ${pagination.total} 条`
-        : '';
+    const title = !loading && query && query.keyword
+      ? `关于 “${query.keyword}” 的搜索结果, 共 ${pagination.total} 条`
+      : '';
 
     return (
       // @ts-ignore
-      <PageHeaderWrapper extra={Authorized.check('create-article', HeaderAction, null)}>
-        <Card bordered={false} hidden={query && !!query.keyword}>
+      <PageHeaderWrapper extra={Authorized.check('articles.create', HeaderAction, null)}>
+        <Card bordered={false} hidden={query && !!query.keyword} id="searchForm">
           <Form layout="inline">
             <StandardFormRow title="所属标签" block style={{ paddingBottom: 11 }}>
               <FormItem>
@@ -163,7 +154,7 @@ class ArticleList extends Component<ArticleListProps, ArticleListState> {
                     </Link>,
                     null,
                   ),
-                ].filter(_ => _)}
+                ].filter(Boolean)}
               >
                 <List.Item.Meta
                   title={

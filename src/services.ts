@@ -12,9 +12,6 @@ export async function loadUserData () {
 }
 
 export async function searchUsers (q: string) {
-  if (!q) {
-    return { data: [] };
-  }
   return request('search/users', {
     params: { q },
   });
