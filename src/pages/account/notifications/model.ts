@@ -1,20 +1,20 @@
 import { Reducer } from 'redux';
 import { Effect } from '@/models/connect';
-import { INotification, IPagination } from '@/models/data';
+import { INotification, IMeta } from '@/models/data';
 import { queryNotifications } from './service';
 
 export interface StateType {
   notifications: {
     list: INotification[];
-    pagination: IPagination;
+    pagination: IMeta;
   },
   messages: {
     list: [];
-    pagination: IPagination;
+    pagination: IMeta;
   },
   systems: {
     list: [];
-    pagination: IPagination;
+    pagination: IMeta;
   },
 }
 

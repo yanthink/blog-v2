@@ -1,12 +1,12 @@
 import { Reducer } from 'redux';
 import { message } from 'antd';
 import { Effect } from '@/models/connect';
-import { ITag, IPagination } from '@/models/data';
+import { ITag, IMeta } from '@/models/data';
 import { queryList, store, update } from './service';
 
 export interface StateType {
   list: ITag[];
-  pagination: IPagination;
+  pagination: IMeta;
 }
 
 export interface ModelType {

@@ -1,24 +1,24 @@
 import { Reducer } from 'redux';
 import { Effect } from '@/models/connect';
-import { IFavorite, IComment, IReply, ILike, IPagination } from '@/models/data';
+import { IFavorite, IComment, IReply, ILike, IMeta } from '@/models/data';
 import { queryFavorites, queryComments, queryReplys, queryLikes } from './service'
 
 export interface StateType {
   favorites: {
     list: IFavorite[];
-    pagination: IPagination;
+    pagination: IMeta;
   };
   comments: {
     list: IComment[];
-    pagination: IPagination;
+    pagination: IMeta;
   };
   replys: {
     list: IReply[];
-    pagination: IPagination;
+    pagination: IMeta;
   };
   likes: {
     list: ILike[];
-    pagination: IPagination;
+    pagination: IMeta;
   };
 }
 

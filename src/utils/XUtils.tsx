@@ -1,15 +1,15 @@
-import { IPagination } from '@/models/data';
+import { IMeta } from '@/models/data';
 import { PaginationProps } from 'antd/es/pagination';
 import { Icon } from 'antd';
 import { Link } from 'umi';
 import { stringify } from 'qs';
 import React from 'react';
 
-export function getAntdPaginationProps (pagination: IPagination, pathname: string, query: object): PaginationProps {
+export function getAntdPaginationProps (meta: IMeta, pathname: string, query: object): PaginationProps {
   return {
-    total: pagination.total,
-    current: pagination.current_page,
-    pageSize: pagination.per_page || 10,
+    total: meta.total,
+    current: meta.current_page,
+    pageSize: meta.per_page || 10,
     simple: window.innerWidth < 768,
     itemRender (page, type, originalElement) {
       let children: any = page;

@@ -16,10 +16,8 @@ const defaultArticleQueryParams = {
 };
 
 const defaultCommentsQueryParams = {
-  include: 'user,children.user',
-  parent_id: 0,
+  include: 'user,children.user,children.parent.user',
   root_id: 0,
-  append: 'has_up_voted,has_down_voted',
 };
 
 interface ArticleShowProps extends ConnectProps, FormComponentProps {
@@ -120,6 +118,23 @@ class ArticleShow extends React.Component<ArticleShowProps, ArticleShowState> {
     this.scrollToAnchor('comments');
   };
 
+  handleFetchMoreChildrenComments = async (comment_id: number) => {
+    const { dispatch, match: { params } } = this.props;
+
+    const hide = message.loading('正在请求...', 0);
+
+    await dispatch({
+      type: 'articleShow/appendFetchChildrenComments',
+      article_id: params.id,
+      comment_id,
+      payload: {
+        include: 'user,parent.user',
+      },
+    });
+
+    hide();
+  };
+
   setTocify = (tocify: Tocify) => {
     tocify.add('评论', 1, 'comments');
     this.setState({ tocify });
@@ -127,7 +142,7 @@ class ArticleShow extends React.Component<ArticleShowProps, ArticleShowState> {
 
   render () {
     const {
-      articleShow: { article, comments, pagination },
+      articleShow: { article, comments, meta },
       match: { params },
       loading,
     } = this.props;
@@ -161,9 +176,10 @@ class ArticleShow extends React.Component<ArticleShowProps, ArticleShowState> {
               <ArticleComments
                 article={article}
                 comments={comments}
-                pagination={pagination}
+                meta={meta}
                 loading={loading.effects['articleShow/fetchComments']}
                 onPageChange={this.handleCommentsPageChange}
+                onFetchMoreChildrenComments={this.handleFetchMoreChildrenComments}
                 onSubmitComment={this.handleSubmitComment}
                 submittingComment={loading.effects['articleShow/submitComment']}
               />

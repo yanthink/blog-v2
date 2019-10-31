@@ -1,11 +1,11 @@
 import { Reducer } from 'redux';
 import { Effect } from '@/models/connect';
-import { IUserOnline, IPagination } from '@/models/data';
+import { IUserOnline, IMeta } from '@/models/data';
 import { queryOnline } from './service';
 
 export interface StateType {
   list: IUserOnline[];
-  pagination: IPagination;
+  pagination: IMeta;
 }
 
 export interface ModelType {

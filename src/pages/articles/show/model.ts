@@ -1,13 +1,13 @@
 import { Reducer } from 'redux';
-import { unionBy, find, findIndex } from 'lodash';
+import { unionBy, find, findIndex, get } from 'lodash';
 import { Effect } from '@/models/connect';
-import { IArticle, IComment, IPagination } from '@/models/data';
+import { IArticle, IComment, IMeta } from '@/models/data';
 import * as services from './services';
 
 export interface StateType {
   article: IArticle;
   comments: IComment[];
-  pagination: IPagination;
+  meta: IMeta;
 }
 
 export interface ModelType {
@@ -17,6 +17,7 @@ export interface ModelType {
     fetchArticle: Effect;
     fetchComments: Effect;
     appendFetchComments: Effect;
+    appendFetchChildrenComments: Effect;
     submitComment: Effect;
   };
   reducers: {
@@ -32,7 +33,7 @@ const Model: ModelType = {
   state: {
     article: {},
     comments: [],
-    pagination: {
+    meta: {
       current_page: 0,
     },
   },
@@ -44,27 +45,48 @@ const Model: ModelType = {
     },
 
     * fetchComments ({ article_id, payload }, { call, put }) {
-      const { data: comments, meta: pagination } = yield call(services.queryArticleComments, article_id, payload);
+      const { data: comments, meta: meta } = yield call(services.queryArticleComments, article_id, payload);
 
       yield put({
         type: 'queryComments',
         comments,
-        pagination,
+        meta,
       });
     },
 
     * appendFetchComments ({ article_id, payload }, { select, call, put }) {
       const state = yield select(({ articleShow }) => articleShow);
 
-      const { data: comments, meta: pagination } = yield call(services.queryArticleComments, article_id, {
+      const { data: comments, meta } = yield call(services.queryArticleComments, article_id, {
         ...payload,
-        page: state.pagination.current_page + 1,
+        page: state.meta.current_page + 1,
       });
 
       yield put({
         type: 'appendComments',
         comments,
-        pagination,
+        meta,
+      });
+    },
+
+    * appendFetchChildrenComments ({ article_id, comment_id, payload }, { select, call, put }) {
+      const state = yield select(({ articleShow }) => articleShow);
+
+      const comment: IComment = find(state.comments, comment => comment.id === comment_id);
+
+      const { data: comments, meta } = yield call(services.queryArticleComments, article_id, {
+        ...payload,
+        root_id: comment_id,
+        page: get(comment, 'meta.current_page', 0) + 1,
+      });
+
+      comment.children = unionBy((comment.children || []).concat(comments), 'id');
+      comment.meta = meta;
+
+      yield put({
+        type: 'queryComments',
+        comments: state.comments,
+        meta: state.meta,
       });
     },
 
@@ -80,13 +102,13 @@ const Model: ModelType = {
         comment.children.splice(index + 1, 0, data);
       } else {
         state.comments.unshift(data);
-        state.pagination.total++;
+        state.meta.total++;
       }
 
       yield put({
         type: 'queryComments',
         comments: state.comments,
-        pagination: { ...state.pagination },
+        meta: { ...state.meta },
       });
 
       state.article.cache.comments_count++;
@@ -106,21 +128,21 @@ const Model: ModelType = {
       } as StateType;
     },
 
-    queryComments (state, { comments, pagination }) {
+    queryComments (state, { comments, meta }) {
       return {
         ...state,
         comments,
-        pagination,
+        meta: meta,
       } as StateType;
     },
 
-    appendComments (state: any, { comments, pagination }) {
+    appendComments (state: any, { comments, meta }) {
       const uniqueComments = unionBy(state.comments.concat(comments), 'id');
 
       return {
         ...state,
         comments: uniqueComments,
-        pagination,
+        meta: meta,
       } as StateType;
     },
   },

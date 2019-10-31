@@ -1,12 +1,12 @@
 import { Reducer } from 'redux';
 import { message } from 'antd';
 import { Effect } from '@/models/connect';
-import { IRole, IPagination } from '@/models/data';
+import { IRole, IMeta } from '@/models/data';
 import { queryList, store, update, assignPermissions } from './service';
 
 export interface StateType {
   list: IRole[];
-  pagination: IPagination;
+  pagination: IMeta;
 }
 
 export interface ModelType {

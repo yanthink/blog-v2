@@ -5,14 +5,15 @@ import Editor from './Editor';
 import MarkdownBody from '@/components/MarkdownBody';
 import Upvote from '@/components/Buttons/UpvoteBtn';
 import DownvoteBtn from '@/components/Buttons/DownvoteBtn';
-import { IArticle, IComment, IPagination } from '@/models/data';
+import { IArticle, IComment, IMeta } from '@/models/data';
 import styles from './style.less';
 
 export interface ArticleCommentsProps {
   article: IArticle;
   comments: IComment[];
-  pagination: IPagination;
+  meta: IMeta;
   onPageChange: (page: number, pageSize?: number) => void;
+  onFetchMoreChildrenComments: (comment_id: number) => void;
   loading: boolean;
   onSubmitComment: (values: { content: { markdown: string }, parent_id: number }, callback?: () => void) => void;
   submittingComment: boolean;
@@ -34,6 +35,26 @@ class ArticleComments extends React.Component<ArticleCommentsProps, ArticleComme
   handleCommentClick = (comment: IComment) => {
     const parent_id = this.state.parent_id === comment.id ? 0 : comment.id as number;
     this.setState({ parent_id });
+  };
+
+  renderLoadMoreReplysBtn = (comment: IComment) => {
+    const { meta = {}, children = [], cache = {} } = comment;
+
+    const total = meta.total || cache.comments_count || 0;
+    const currentPage = meta.current_page || 0;
+    const lastPage = meta.last_page || 0;
+
+    if ((!currentPage && total > children.length) || currentPage < lastPage) {
+      return (
+        <div className={styles.loadMoreReplysBtn}>
+          <a onClick={() => this.props.onFetchMoreChildrenComments(comment.id as number)}>
+            更多{total - children.length}条回复 <Icon type="down" />
+          </a>
+        </div>
+      );
+    }
+
+    return null;
   };
 
   renderChildren = (parentComment: IComment) => {
@@ -72,7 +93,7 @@ class ArticleComments extends React.Component<ArticleCommentsProps, ArticleComme
                 </span>
               }
               avatar={get(comment, 'user.avatar')}
-              content={<MarkdownBody markdown={get(comment, 'content.markdown')} />}
+              content={<MarkdownBody markdown={get(comment, 'content.combine_markdown')} />}
               datetime={
                 <Tooltip title={comment.created_at}>
                   <span>{comment.created_at_timeago}</span>
@@ -89,12 +110,13 @@ class ArticleComments extends React.Component<ArticleCommentsProps, ArticleComme
             {comment.id === this.state.parent_id && <NestedEditor comment={comment} />}
           </div>
         ))}
+        {this.renderLoadMoreReplysBtn(parentComment)}
       </>
     );
   };
 
   render () {
-    const { article, comments, pagination, onPageChange, loading, submittingComment } = this.props;
+    const { article, comments, meta, onPageChange, loading, submittingComment } = this.props;
 
     return (
       <div className={styles.comments}>
@@ -108,12 +130,12 @@ class ArticleComments extends React.Component<ArticleCommentsProps, ArticleComme
           className={styles.list}
           itemLayout="horizontal"
           dataSource={comments}
-          header={`${pagination.total || 0} 评论`}
+          header={`${meta.total || 0} 评论`}
           loading={loading}
           pagination={{
-            total: pagination.total,
-            current: pagination.current_page,
-            pageSize: pagination.per_page || 10,
+            total: meta.total,
+            current: meta.current_page,
+            pageSize: meta.per_page || 10,
             simple: window.innerWidth < 768,
             onChange: onPageChange,
           }}

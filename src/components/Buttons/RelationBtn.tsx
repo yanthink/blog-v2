@@ -1,4 +1,5 @@
 import React, { ReactNode } from 'react';
+import { debounce } from 'lodash';
 import request from '@/utils/request';
 
 export interface RelationBtnProps {
@@ -42,7 +43,7 @@ class RelationBtn extends React.Component<RelationBtnProps, RelationBtnState> {
     this.setState({ status: item[RelationBtn.actions[action]] });
   }
 
-  toggle = async () => {
+  toggle = debounce(async () => {
     const { relation, action, item, onAfterToggle } = this.props;
 
     await request(`relations/${action}`, {
@@ -60,7 +61,7 @@ class RelationBtn extends React.Component<RelationBtnProps, RelationBtnState> {
     }
 
     this.setState({ status });
-  };
+  }, 600);
 
   render () {
     return (

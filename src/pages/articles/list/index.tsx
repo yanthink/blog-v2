@@ -83,7 +83,7 @@ class ArticleList extends Component<ArticleListProps, ArticleListState> {
   render () {
     const {
       form,
-      articleList: { list, pagination },
+      articleList: { list, meta },
       loading,
       location: { pathname, search },
     } = this.props;
@@ -99,7 +99,7 @@ class ArticleList extends Component<ArticleListProps, ArticleListState> {
     );
 
     const title = !loading && query && query.keyword
-      ? `关于 “${query.keyword}” 的搜索结果, 共 ${pagination.total} 条`
+      ? `关于 “${query.keyword}” 的搜索结果, 共 ${meta.total} 条`
       : '';
 
     return (
@@ -109,8 +109,8 @@ class ArticleList extends Component<ArticleListProps, ArticleListState> {
           <Form layout="inline">
             <StandardFormRow title="所属标签" block style={{ paddingBottom: 11 }}>
               <FormItem>
-                {getFieldDecorator('tags_id', {
-                  initialValue: query.tags_id,
+                {getFieldDecorator('tag_ids', {
+                  initialValue: query.tag_ids,
                 })(
                   <TagSelect expandable>
                     {this.state.allTags.map(tag => (
@@ -136,7 +136,7 @@ class ArticleList extends Component<ArticleListProps, ArticleListState> {
             itemLayout="vertical"
             dataSource={list}
             className={styles.list}
-            pagination={getAntdPaginationProps(pagination, pathname, query)}
+            pagination={getAntdPaginationProps(meta, pathname, query)}
             renderItem={(article: IArticle) => (
               <List.Item
                 key={article.id}

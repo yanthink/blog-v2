@@ -1,12 +1,12 @@
 import { Reducer } from 'redux';
 import { message } from 'antd';
 import { Effect } from '@/models/connect';
-import { IPermission, IPagination } from '@/models/data';
+import { IPermission, IMeta } from '@/models/data';
 import { queryList, store, update } from './service';
 
 export interface StateType {
   list: IPermission[];
-  pagination: IPagination;
+  pagination: IMeta;
 }
 
 export interface ModelType {

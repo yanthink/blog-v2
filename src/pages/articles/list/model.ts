@@ -1,11 +1,11 @@
 import { Reducer } from 'redux';
 import { Effect } from '@/models/connect';
-import { IArticle, IPagination } from '@/models/data';
+import { IArticle, IMeta } from '@/models/data';
 import * as services from './services';
 
 export interface StateType {
   list: IArticle[];
-  pagination: IPagination;
+  meta: IMeta;
 }
 
 export interface ModelType {
@@ -24,28 +24,28 @@ const Model: ModelType = {
 
   state: {
     list: [],
-    pagination: {
+    meta: {
       current_page: 0,
     },
   },
 
   effects: {
     * fetch ({ payload }, { call, put }) {
-      const { data: list, meta: pagination } = yield call(services.queryArticles, payload);
+      const { data: list, meta } = yield call(services.queryArticles, payload);
       yield put({
         type: 'queryList',
         list,
-        pagination,
+        meta,
       });
     },
   },
 
   reducers: {
-    queryList (state, { list, pagination }) {
+    queryList (state, { list, meta }) {
       return {
         ...state,
         list,
-        pagination,
+        meta,
       };
     },
   },

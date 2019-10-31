@@ -82,6 +82,7 @@ export interface IComment {
   content?: IContent;
   user?: IUser;
   children?: IComment[];
+  meta?: IMeta;
 }
 
 export interface IContent {
@@ -134,7 +135,7 @@ export interface IPermission {
   updated_at?: string;
 }
 
-export interface IPagination {
+export interface IMeta {
   current_page?: number;
   last_page?: number;
   per_page?: number;
