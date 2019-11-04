@@ -1,20 +1,20 @@
 import { Reducer } from 'redux';
 import { Effect } from '@/models/connect';
 import { INotification, IMeta } from '@/models/data';
-import { queryNotifications } from './service';
+import * as services from './services';
 
 export interface StateType {
   notifications: {
     list: INotification[];
-    pagination: IMeta;
+    meta: IMeta;
   },
   messages: {
     list: [];
-    pagination: IMeta;
+    meta: IMeta;
   },
   systems: {
     list: [];
-    pagination: IMeta;
+    meta: IMeta;
   },
 }
 
@@ -38,52 +38,52 @@ const Model: ModelType = {
   state: {
     notifications: {
       list: [],
-      pagination: {},
+      meta: {},
     },
     messages: {
       list: [],
-      pagination: {},
+      meta: {},
     },
     systems: {
       list: [],
-      pagination: {},
+      meta: {},
     },
   },
   effects: {
-    * fetchNotifications({ payload }, { call, put }) {
-      const { data: list, pagination } = yield call(queryNotifications, payload);
+    * fetchNotifications ({ payload }, { call, put }) {
+      const { data: list, meta } = yield call(services.queryNotifications, payload);
 
       yield put({
         type: 'queryNotifications',
         payload: {
           list,
-          pagination,
+          meta,
         },
       });
     },
-    * fetchMessages() {
+    * fetchMessages () {
       yield;
       // todo
     },
-    * fetchSystems() {
+    * fetchSystems () {
       yield;
       // todo
     },
   },
   reducers: {
-    queryNotifications(state, action) {
+    queryNotifications (state, action) {
       return {
         ...state,
         notifications: action.payload,
       } as StateType;
     },
-    queryMessages(state, action) {
+    queryMessages (state, action) {
       return {
         ...state,
         messages: action.payload,
       } as StateType;
     },
-    querySystems(state, action) {
+    querySystems (state, action) {
       return {
         ...state,
         systems: action.payload,

@@ -3,7 +3,6 @@ import { connect } from 'dva';
 import { GridContent } from '@ant-design/pro-layout';
 import { Menu, Icon } from 'antd';
 import { ConnectState, ConnectProps, Loading, AccountNotificationsModelState } from '@/models/connect';
-import { IUser } from '@/models/data';
 import Notifications from './components/Notifications';
 import Messages from './components/Messages';
 import Systems from './components/Systems';
@@ -24,13 +23,11 @@ interface NoticeState {
 interface NoticeProps extends ConnectProps {
   loading: Loading,
   accountNotifications: AccountNotificationsModelState,
-  currentUser: IUser,
 }
 
-@connect(({ loading, accountNotifications, user }: ConnectState) => ({
+@connect(({ loading, accountNotifications }: ConnectState) => ({
   loading,
   accountNotifications,
-  currentUser: user.currentUser,
 }))
 class Notice extends React.Component<NoticeProps, NoticeState> {
   state: NoticeState = {
@@ -43,12 +40,12 @@ class Notice extends React.Component<NoticeProps, NoticeState> {
     selectKey: 'notifications',
   };
 
-  componentDidMount() {
+  componentDidMount () {
     window.addEventListener('resize', this.resize);
     this.resize();
   }
 
-  componentWillUnmount() {
+  componentWillUnmount () {
     window.removeEventListener('resize', this.resize);
   }
 
@@ -94,7 +91,7 @@ class Notice extends React.Component<NoticeProps, NoticeState> {
     }
   };
 
-  render() {
+  render () {
     const { mode, selectKey } = this.state;
     return (
       <GridContent>

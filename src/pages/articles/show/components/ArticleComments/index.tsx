@@ -17,6 +17,7 @@ export interface ArticleCommentsProps {
   loading: boolean;
   onSubmitComment: (values: { content: { markdown: string }, parent_id: number }, callback?: () => void) => void;
   submittingComment: boolean;
+  topComment?: number;
 }
 
 export interface ArticleCommentsState {
@@ -83,7 +84,11 @@ class ArticleComments extends React.Component<ArticleCommentsProps, ArticleComme
       <>
         {parentComment.id === this.state.parent_id && <NestedEditor comment={parentComment} />}
         {parentComment.children && parentComment.children.map((comment: IComment) => (
-          <div key={comment.id} id={`comment-${comment.id}`}>
+          <div
+            key={comment.id}
+            id={`comment-${comment.id}`}
+            className={this.props.topComment === comment.id ? styles.topComment : ''}
+          >
             <Comment
               author={
                 <span>
@@ -116,7 +121,7 @@ class ArticleComments extends React.Component<ArticleCommentsProps, ArticleComme
   };
 
   render () {
-    const { article, comments, meta, onPageChange, loading, submittingComment } = this.props;
+    const { article, comments, meta, onPageChange, loading, submittingComment, topComment } = this.props;
 
     return (
       <div className={styles.comments}>
@@ -140,7 +145,10 @@ class ArticleComments extends React.Component<ArticleCommentsProps, ArticleComme
             onChange: onPageChange,
           }}
           renderItem={(comment: IComment) => (
-            <List.Item id={`comment-${comment.id}`}>
+            <List.Item
+              id={`comment-${comment.id}`}
+              className={topComment === comment.id ? styles.topComment : ''}
+            >
               <Comment
                 author={
                   <span>

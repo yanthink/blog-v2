@@ -10,7 +10,7 @@ export interface DownvoteBtnProps {
 }
 
 export interface DownvoteBtnState {
-  upVotersCount: number;
+  downVotesCount: number;
 }
 
 class DownvoteBtn extends React.Component<DownvoteBtnProps, DownvoteBtnState> {
@@ -20,18 +20,18 @@ class DownvoteBtn extends React.Component<DownvoteBtnProps, DownvoteBtnState> {
     const { item } = props;
 
     this.state = {
-      upVotersCount: item.cache.up_voters_count,
+      downVotesCount: item.cache.down_voters_count,
     };
   }
 
   componentWillReceiveProps (nextProps: Readonly<DownvoteBtnProps>, nextContext: any): void {
-    this.setState({ upVotersCount: nextProps.item.cache.up_voters_count });
+    this.setState({ downVotesCount: nextProps.item.cache.down_voters_count });
   }
 
   onAfterToggle = (status: boolean) => {
-    let { upVotersCount } = this.state;
-    status ? upVotersCount++ : upVotersCount--;
-    this.setState({ upVotersCount });
+    let { downVotesCount } = this.state;
+    status ? downVotesCount++ : downVotesCount--;
+    this.setState({ downVotesCount });
 
     if (this.props.onAfterToggle) {
       this.props.onAfterToggle();
@@ -45,7 +45,7 @@ class DownvoteBtn extends React.Component<DownvoteBtnProps, DownvoteBtnState> {
         theme={slot === 'on' ? 'twoTone' : 'outlined'}
         twoToneColor="#ff4d4f"
       />
-      {!this.props.hideText && <span>{this.state.upVotersCount}</span>}
+      {!this.props.hideText && <span>{this.state.downVotesCount}</span>}
     </div>
   );
 

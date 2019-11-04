@@ -3,6 +3,7 @@ import { Card, Row, Col, Button, Skeleton, message } from 'antd';
 import { FormComponentProps } from 'antd/es/form';
 import { connect } from 'dva';
 import { Link } from 'umi';
+import { debounce } from 'lodash';
 import { PageHeaderWrapper } from '@ant-design/pro-layout';
 import Authorized from '@/utils/Authorized';
 import Tocify from '@/components/MarkdownBody/tocify';
@@ -15,7 +16,11 @@ const defaultArticleQueryParams = {
   include: 'user,tags',
 };
 
-const defaultCommentsQueryParams = {
+const defaultCommentsQueryParams: {
+  include: string;
+  root_id: number;
+  top_comment?: number;
+} = {
   include: 'user,children.user,children.parent.user',
   root_id: 0,
 };
@@ -57,6 +62,16 @@ class ArticleShow extends React.Component<ArticleShowProps, ArticleShowState> {
       },
     });
 
+    if (this.props.location.hash) {
+      const arr = this.props.location.hash.split('-');
+
+      if (arr.length === 2 && arr[0] === '#comment' && arr[1] !== undefined && Number(arr[1]) > 0) {
+        defaultCommentsQueryParams.top_comment = Number(arr[1]);
+      } else {
+        delete defaultCommentsQueryParams.top_comment;
+      }
+    }
+
     const fetchComments = dispatch({
       type: 'articleShow/fetchComments',
       article_id: params.id,
@@ -69,8 +84,10 @@ class ArticleShow extends React.Component<ArticleShowProps, ArticleShowState> {
     await fetchComments;
 
     this.setState({ fetchingArticle: false }, () => {
-      if (this.props.location.hash) {
-        this.scrollToAnchor(this.props.location.hash.substring(1));
+      if (defaultCommentsQueryParams.top_comment) {
+        setTimeout(() => {
+          this.scrollToAnchor(`comment-${defaultCommentsQueryParams.top_comment}`);
+        }, 500);
       }
     });
   }
@@ -84,26 +101,23 @@ class ArticleShow extends React.Component<ArticleShowProps, ArticleShowState> {
     });
   };
 
-  handleSubmitComment = (values: { content: { markdown: string }, parent_id: number }, callback?: () => void) => {
+  handleSubmitComment = debounce(async (values, callback?: () => void) => {
     const { dispatch, match: { params } } = this.props;
 
-    dispatch({
+    await dispatch({
       type: 'articleShow/submitComment',
       article_id: params.id,
       payload: {
         ...defaultCommentsQueryParams,
         ...values,
       },
-      callback () {
-        message.success('评论成功！');
-        if (callback) {
-          callback();
-        }
-      },
     });
-  };
 
-  handleCommentsPageChange = async (page: number) => {
+    message.success('评论成功！');
+    callback && callback();
+  }, 600);
+
+  handleCommentsPageChange = debounce(async (page: number) => {
     const { dispatch, match: { params } } = this.props;
 
     await dispatch({
@@ -116,9 +130,9 @@ class ArticleShow extends React.Component<ArticleShowProps, ArticleShowState> {
     });
 
     this.scrollToAnchor('comments');
-  };
+  }, 200);
 
-  handleFetchMoreChildrenComments = async (comment_id: number) => {
+  handleFetchMoreChildrenComments = debounce(async (comment_id: number) => {
     const { dispatch, match: { params } } = this.props;
 
     const hide = message.loading('正在请求...', 0);
@@ -133,7 +147,7 @@ class ArticleShow extends React.Component<ArticleShowProps, ArticleShowState> {
     });
 
     hide();
-  };
+  }, 200);
 
   setTocify = (tocify: Tocify) => {
     tocify.add('评论', 1, 'comments');
@@ -182,6 +196,7 @@ class ArticleShow extends React.Component<ArticleShowProps, ArticleShowState> {
                 onFetchMoreChildrenComments={this.handleFetchMoreChildrenComments}
                 onSubmitComment={this.handleSubmitComment}
                 submittingComment={loading.effects['articleShow/submitComment']}
+                topComment={defaultCommentsQueryParams.top_comment}
               />
             </Card>
           </Col>

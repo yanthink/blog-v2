@@ -1,0 +1,43 @@
+.notification {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.avatar {
+  width: 32px;
+  height: 32px;
+  border: 1px solid white;
+  border-radius: 50%;
+}
+
+.content {
+  flex: 1;
+  margin: 0 20px;
+}
+
+.contentHead {
+  min-height: 32px;
+  padding-top: 4px;
+  font-weight: 500;
+
+  a {
+    color: rgba(0, 0, 0, .65);
+    font-weight: 700;
+    text-decoration: underline;
+  }
+}
+
+.contentBody {
+  margin-top: 16px;
+
+  p:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.timeago {
+  padding-top: 4px;
+  color: #bbb;
+  text-align: right;
+}

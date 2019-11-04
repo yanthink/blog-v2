@@ -1,14 +1,14 @@
 import React from 'react';
-import { List, Avatar, Tooltip, Icon } from 'antd';
-import { Link } from 'umi';
-import { get } from 'lodash';
+import { List } from 'antd';
+import { connect } from 'dva';
 import { parse } from 'qs';
-import marked from 'marked';
-// @ts-ignore
-import emojiToolkit from 'emoji-toolkit';
-import moment from 'moment';
-import { ConnectProps, Loading, AccountNotificationsModelState } from '@/models/connect';
-import { INotification, IUser } from '@/models/data';
+import { ConnectProps, Loading, AccountNotificationsModelState, ConnectState } from '@/models/connect';
+import { INotification } from '@/models/data';
+import CommentMyArticle from './components/CommentMyArticle';
+import LikedMyArticle from './components/LikedMyArticle';
+import MentionedMe from './components/MentionedMe';
+import ReplyMyComment from './components/ReplyMyComment';
+import UpVotedMyComment from './components/UpVotedMyComment';
 import styles from './index.less';
 
 const defaultQueryParams = {};
@@ -16,13 +16,15 @@ const defaultQueryParams = {};
 interface NotificationsProps extends ConnectProps {
   loading: Loading;
   accountNotifications: AccountNotificationsModelState;
-  currentUser: IUser;
 
   [key: string]: any;
 }
 
+@connect(({ auth }: ConnectState) => ({
+  auth,
+}))
 class Notifications extends React.Component<NotificationsProps> {
-  UNSAFE_componentWillMount() {
+  UNSAFE_componentWillMount () {
     this.queryNotifications(this.props.location.search);
   }
 
@@ -46,80 +48,27 @@ class Notifications extends React.Component<NotificationsProps> {
     this.queryNotifications({ ...query, page, pageSize });
   };
 
-  renderItemTitle = (notification: INotification) => {
-    const typeToTitleMap = {
-      'App\\Notifications\\CommentArticle': '评论了你的文章',
-      'App\\Notifications\\ReplyComment': '回复了你的评论',
-      'App\\Notifications\\LikeArticle': '赞了你的文章',
-      'App\\Notifications\\LikeComment': '赞了你的评论',
-      'App\\Notifications\\LikeReply': '赞了你的回复',
-    };
-
-    return (
-      <span>
-        <Link to="#">{get(notification, 'data.form_user_name')}</Link>
-        <span> • {get(typeToTitleMap, notification.type as string)} </span>
-        <Link
-          to={`/articles/${get(notification, 'data.target_root_id')}/show?notification_id=${notification.id}`}
-        >
-          {get(notification, 'data.target_root_title')}
-        </Link>
-      </span>
-    );
-  };
-
-  renderItemContent = (notification: INotification) => {
-    const { currentUser } = this.props;
-
+  renderNotification = (notification: INotification) => {
     switch (notification.type) {
-      case 'App\\Notifications\\CommentArticle':
-        return (
-          <span
-            dangerouslySetInnerHTML={{
-              __html: emojiToolkit.toImage(marked(get(notification, 'data.content'))),
-            }}
-          />
-        );
-      case 'App\\Notifications\\ReplyComment':
-        return (
-          <div>
-            <span
-              dangerouslySetInnerHTML={{
-                __html: emojiToolkit.toImage(marked(get(notification, 'data.content'))),
-              }}
-            />
-            <span> // </span>
-            <Link to="#">@{currentUser.name}</Link>
-            <span>：</span>
-            <span
-              dangerouslySetInnerHTML={{
-                __html: emojiToolkit.toImage(
-                  marked(get(notification, 'data.target_name')),
-                ),
-              }}
-            />
-          </div>
-        );
-      case 'App\\Notifications\\LikeArticle':
-        return null;
-      case 'App\\Notifications\\LikeComment':
-      case 'App\\Notifications\\LikeReply':
-        return (
-          <span
-            dangerouslySetInnerHTML={{
-              __html: emojiToolkit.toImage(marked(get(notification, 'data.target_name'))),
-            }}
-          />
-        );
+      case 'App\\Notifications\\CommentMyArticle':
+        return <CommentMyArticle notification={notification} />;
+      case 'App\\Notifications\\LikedMyArticle':
+        return <LikedMyArticle notification={notification} />;
+      case 'App\\Notifications\\MentionedMe':
+        return <MentionedMe notification={notification} />;
+      case 'App\\Notifications\\ReplyMyComment':
+        return <ReplyMyComment notification={notification} />;
+      case 'App\\Notifications\\UpVotedMyComment':
+        return <UpVotedMyComment notification={notification} />;
       default:
         return null;
     }
   };
 
-  render() {
+  render () {
     const {
       loading,
-      accountNotifications: { notifications: { list, pagination } },
+      accountNotifications: { notifications: { list, meta } },
     } = this.props;
 
     return (
@@ -131,35 +80,15 @@ class Notifications extends React.Component<NotificationsProps> {
           loading={loading.effects['accountNotifications/fetchNotifications']}
           dataSource={list}
           pagination={{
-            ...pagination,
+            total: meta.total,
+            current: meta.current_page,
+            pageSize: meta.per_page || 10,
             simple: window.innerWidth < 768,
             onChange: this.handlePageChange,
           }}
           renderItem={(item: INotification) => (
-            <List.Item
-              key={item.id}
-            >
-              <div className={item.read_at ? styles.read : ''}>
-                <div className={styles.top}>
-                  <div className={styles.avatar}>
-                    <Avatar src={get(item, 'data.form_user_avatar')} />
-                  </div>
-                  <div className={styles.topContent}>
-                    {this.renderItemTitle(item)}
-                  </div>
-                  <div className={styles.topTime}>
-                    <Tooltip title={item.created_at}>
-                    <span>
-                      <Icon type="clock-circle-o" style={{ marginRight: 4 }} />
-                      {moment(item.created_at).fromNow()}
-                    </span>
-                    </Tooltip>
-                  </div>
-                </div>
-                <div className={styles.content}>
-                  {this.renderItemContent(item)}
-                </div>
-              </div>
+            <List.Item key={item.id} className={item.read_at ? '' : styles.unread}>
+              {this.renderNotification(item)}
             </List.Item>
           )}
         />

@@ -79,6 +79,11 @@ class MarkdownBody extends React.Component<MarkdownBodyProps> {
     this.markdownBody = ref;
   };
 
+  replaceUserMention = (markdown = '') => {
+    const reg = /@((?!_)(?!.*?_$)[a-zA-Z0-9_\u4e00-\u9fa5]{1,10})/;
+    return markdown.replace(new RegExp(reg, 'g'), '[@$1](/$1)');
+  };
+
   createMarkup () {
     if (this.tocify) {
       this.tocify.reset();
@@ -91,7 +96,9 @@ class MarkdownBody extends React.Component<MarkdownBodyProps> {
       marked.setOptions({ renderer, ...otherOptions });
     }
 
-    const markup = emojiToolkit.toImage(marked(this.props.markdown || ''));
+    const markdown = this.replaceUserMention(this.props.markdown);
+
+    const markup = emojiToolkit.toImage(marked(markdown));
 
     resetMarkedOptions();
 

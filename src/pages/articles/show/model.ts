@@ -90,7 +90,7 @@ const Model: ModelType = {
       });
     },
 
-    * submitComment ({ article_id, payload, callback }, { select, call, put }) {
+    * submitComment ({ article_id, payload }, { select, call, put }) {
       const { data } = yield call(services.postArticleComment, article_id, payload);
 
       const state = yield select(({ articleShow }) => articleShow);
@@ -113,10 +113,6 @@ const Model: ModelType = {
 
       state.article.cache.comments_count++;
       yield put({ type: 'setArticle', article: { ...state.article } });
-
-      if (callback) {
-        callback();
-      }
     },
   },
 

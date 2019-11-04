@@ -131,28 +131,28 @@ export default [
       //     },
       //   ],
       // },
-      // {
-      //   name: '账户中心',
-      //   path: 'account',
-      //   hideInMenu: true,
-      //   routes: [
-      //     {
-      //       name: '账户中心',
-      //       path: 'center',
-      //       component: './account/center',
-      //     },
-      //     {
-      //       name: '我的通知',
-      //       path: 'notifications',
-      //       component: './account/notifications',
-      //     },
-      //     {
-      //       name: '个人设置',
-      //       path: 'settings',
-      //       component: './account/settings',
-      //     },
-      //   ],
-      // },
+      {
+        name: '账户中心',
+        path: 'account',
+        hideInMenu: true,
+        routes: [
+          {
+            name: '账户中心',
+            path: 'center',
+            component: './account/center',
+          },
+          {
+            name: '我的通知',
+            path: 'notifications',
+            component: './account/notifications',
+          },
+          {
+            name: '个人设置',
+            path: 'settings',
+            component: './account/settings',
+          },
+        ],
+      },
       // {
       //   name: '403',
       //   path: 'exception/403',

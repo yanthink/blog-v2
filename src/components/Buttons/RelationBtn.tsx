@@ -1,8 +1,15 @@
 import React, { ReactNode } from 'react';
+import { connect } from 'dva';
+import { router } from 'umi';
+import { Modal } from 'antd';
 import { debounce } from 'lodash';
+import { stringify } from 'qs';
 import request from '@/utils/request';
+import { getPageQuery } from '@/utils/utils';
+import { AuthStateType, ConnectState } from '@/models/connect';
 
 export interface RelationBtnProps {
+  auth?: AuthStateType;
   relation: string;
   action: string;
   item: any;
@@ -44,7 +51,32 @@ class RelationBtn extends React.Component<RelationBtnProps, RelationBtnState> {
   }
 
   toggle = debounce(async () => {
-    const { relation, action, item, onAfterToggle } = this.props;
+    const { relation, action, item, onAfterToggle, auth = { logged: false } } = this.props;
+
+    if (!auth.logged) {
+      Modal.confirm({
+        title: '登录确认?',
+        content: '您还没有登录，点击【确定】前去登录。',
+        okText: '确定',
+        cancelText: '取消',
+        onOk () {
+          const { redirect } = getPageQuery();
+          // redirect
+          if (window.location.pathname !== '/auth/login' && !redirect) {
+            router.replace({
+              pathname: '/auth/login',
+              search: stringify({
+                redirect: window.location.href,
+              }),
+            });
+          }
+        },
+        onCancel () {
+        },
+      });
+
+      return;
+    }
 
     await request(`relations/${action}`, {
       method: 'POST',
@@ -72,4 +104,6 @@ class RelationBtn extends React.Component<RelationBtnProps, RelationBtnState> {
   }
 }
 
-export default RelationBtn;
+export default connect(({ auth }: ConnectState) => ({
+  auth,
+}))(RelationBtn);

@@ -114,6 +114,7 @@ export interface INotification {
   read_at?: string;
   created_at?: string;
   updated_at?: string;
+  created_at_timeago?: string;
   notifiable?: IUser;
 }
 
