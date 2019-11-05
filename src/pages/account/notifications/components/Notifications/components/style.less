@@ -1,3 +1,5 @@
+@import '~antd/es/style/themes/default.less';
+
 .notification {
   display: flex;
   flex-direction: row;
@@ -40,4 +42,10 @@
   padding-top: 4px;
   color: #bbb;
   text-align: right;
+}
+
+@media (max-width: @screen-md) {
+  .content {
+    margin: 0 12px;
+  }
 }

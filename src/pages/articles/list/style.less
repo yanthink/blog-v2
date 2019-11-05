@@ -31,6 +31,17 @@ a.listItemMetaTitle {
 }
 .listItemExtra {
   width: 320px;
+  overflow: hidden;
+
+  .preview {
+    position: absolute;
+    width: 320px;
+    height: 180px;
+    object-fit: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+  }
+
   img {
     max-width: 100%;
     max-height: 100%;

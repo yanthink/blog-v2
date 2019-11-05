@@ -91,6 +91,7 @@ export interface IContent {
   contentable_id?: number;
   body?: string;
   markdown?: string;
+  combine_markdown?: string;
   created_at?: string;
   updated_at?: string;
   deleted_at?: string;
@@ -134,6 +135,18 @@ export interface IPermission {
   display_name?: string;
   created_at?: string;
   updated_at?: string;
+}
+
+export interface IFollowable {
+  user_id?: number;
+  followable_type?: string;
+  followable_id?: number;
+  relation?: string;
+  created_at?: string;
+  updated_at?: string;
+  deleted_at?: string;
+  created_at_timeago?: string;
+  followable?: IArticle | IComment;
 }
 
 export interface IMeta {

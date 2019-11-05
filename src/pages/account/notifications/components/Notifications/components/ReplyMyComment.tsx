@@ -27,7 +27,7 @@ class ReplyMyComment extends React.Component<ReplyMyCommentProps> {
 
   getCombineMarkdown = () => {
     const { notification, auth = { user: { username: '' } } } = this.props;
-    return `${get(notification, 'data.content')}//@${auth.user.username}：${get(notification, 'data.parent_content')}`;
+    return `${get(notification, 'data.content')} //@${auth.user.username}：${get(notification, 'data.parent_content')}`;
   };
 
   render () {

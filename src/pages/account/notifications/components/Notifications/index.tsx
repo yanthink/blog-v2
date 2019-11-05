@@ -72,27 +72,25 @@ class Notifications extends React.Component<NotificationsProps> {
     } = this.props;
 
     return (
-      <div className="markdown-body">
-        <List
-          size="large"
-          rowKey="id"
-          itemLayout="vertical"
-          loading={loading.effects['accountNotifications/fetchNotifications']}
-          dataSource={list}
-          pagination={{
-            total: meta.total,
-            current: meta.current_page,
-            pageSize: meta.per_page || 10,
-            simple: window.innerWidth < 768,
-            onChange: this.handlePageChange,
-          }}
-          renderItem={(item: INotification) => (
-            <List.Item key={item.id} className={item.read_at ? '' : styles.unread}>
-              {this.renderNotification(item)}
-            </List.Item>
-          )}
-        />
-      </div>
+      <List
+        size="large"
+        rowKey="id"
+        itemLayout="vertical"
+        loading={loading.effects['accountNotifications/fetchNotifications']}
+        dataSource={list}
+        pagination={{
+          total: meta.total,
+          current: meta.current_page,
+          pageSize: meta.per_page || 10,
+          simple: window.innerWidth < 768,
+          onChange: this.handlePageChange,
+        }}
+        renderItem={(item: INotification) => (
+          <List.Item key={item.id} className={item.read_at ? '' : styles.unread}>
+            {this.renderNotification(item)}
+          </List.Item>
+        )}
+      />
     );
   }
 }

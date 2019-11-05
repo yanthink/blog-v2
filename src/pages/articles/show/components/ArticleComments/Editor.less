@@ -69,7 +69,9 @@
   border: 1px dashed @border-color-base;
   border-radius: @border-radius-base;
 
-  > p:last-child {
-    margin-bottom: 0;
+  :global(.markdown-body) {
+    > p:last-child {
+      margin-bottom: 0;
+    }
   }
 }

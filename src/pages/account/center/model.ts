@@ -1,24 +1,22 @@
 import { Reducer } from 'redux';
 import { Effect } from '@/models/connect';
-import { IFavorite, IComment, IReply, ILike, IMeta } from '@/models/data';
-import { queryFavorites, queryComments, queryReplys, queryLikes } from './service'
+import { IArticle, IComment, IMeta } from '@/models/data';
+import * as services from './services';
 
 export interface StateType {
   favorites: {
-    list: IFavorite[];
-    pagination: IMeta;
+    list: IArticle[];
+    meta: IMeta;
   };
+
   comments: {
     list: IComment[];
-    pagination: IMeta;
+    meta: IMeta;
   };
-  replys: {
-    list: IReply[];
-    pagination: IMeta;
-  };
-  likes: {
-    list: ILike[];
-    pagination: IMeta;
+
+  likers: {
+    list: IComment[];
+    meta: IMeta;
   };
 }
 
@@ -28,14 +26,12 @@ export interface ModelType {
   effects: {
     fetchFavorites: Effect;
     fetchComments: Effect;
-    fetchReplys: Effect;
-    fetchLikes: Effect;
+    fetchLikers: Effect;
   };
   reducers: {
     queryFavorites: Reducer<StateType>;
     queryComments: Reducer<StateType>;
-    queryReplys: Reducer<StateType>;
-    queryLikes: Reducer<StateType>;
+    queryLikers: Reducer<StateType>;
   };
 }
 
@@ -45,94 +41,85 @@ const Model: ModelType = {
   state: {
     favorites: {
       list: [],
-      pagination: {},
+      meta: {},
     },
+
     comments: {
       list: [],
-      pagination: {},
+      meta: {},
     },
-    replys: {
+
+    likers: {
       list: [],
-      pagination: {},
-    },
-    likes: {
-      list: [],
-      pagination: {},
+      meta: {},
     },
   },
 
   effects: {
-    * fetchFavorites({ payload }, { call, put }) {
-      const { data: list, pagination } = yield call(queryFavorites, payload);
+    * fetchFavorites ({ payload }, { call, put }) {
+      const { data: list, meta } = yield call(services.queryFollowRelations, {
+        ...payload,
+        relation: 'favorite',
+      });
 
       yield put({
         type: 'queryFavorites',
         payload: {
           list,
-          pagination,
+          meta,
         },
       });
     },
-    * fetchComments({ payload }, { call, put }) {
-      const { data: list, pagination } = yield call(queryComments, payload);
+
+    * fetchComments ({ payload }, { call, put }) {
+      const { data: list, meta } = yield call(services.queryComments, payload);
 
       yield put({
         type: 'queryComments',
         payload: {
           list,
-          pagination,
+          meta,
         },
       });
     },
-    * fetchReplys({ payload }, { call, put }) {
-      const { data: list, pagination } = yield call(queryReplys, payload);
 
-      yield put({
-        type: 'queryReplys',
-        payload: {
-          list,
-          pagination,
-        },
+    * fetchLikers ({ payload }, { call, put }) {
+      const { data: list, meta } = yield call(services.queryFollowRelations, {
+        ...payload,
+        relation: ['like', 'upvote'],
       });
-    },
-    * fetchLikes({ payload }, { call, put }) {
-      const { data: list, pagination } = yield call(queryLikes, payload);
 
       yield put({
-        type: 'queryLikes',
+        type: 'queryLikers',
         payload: {
           list,
-          pagination,
+          meta,
         },
       });
     },
   },
 
   reducers: {
-    queryFavorites(state, action) {
+    queryFavorites (state, action) {
       return {
         ...state,
         favorites: action.payload,
       } as StateType;
     },
-    queryComments(state, action) {
+
+    queryComments (state, action) {
       return {
         ...state,
         comments: action.payload,
       } as StateType;
     },
-    queryReplys(state, action) {
+
+    queryLikers (state, action) {
       return {
         ...state,
-        replys: action.payload,
+        likers: action.payload,
       } as StateType;
-    },
-    queryLikes(state, action) {
-      return {
-        ...state,
-        likes: action.payload,
-      } as StateType;
-    },
+    }
   },
 };
 

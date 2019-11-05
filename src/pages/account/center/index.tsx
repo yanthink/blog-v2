@@ -4,12 +4,10 @@ import { Card, Col, Row, Button, Icon, Divider, Affix } from 'antd';
 import { router } from 'umi';
 import { GridContent } from '@ant-design/pro-layout';
 import { get } from 'lodash';
-import { ConnectState, ConnectProps, Loading, AccountCenterModelState } from '@/models/connect';
-import { IUser } from '@/models/data';
+import { ConnectState, ConnectProps, Loading, AuthStateType, AccountCenterModelState } from '@/models/connect';
 import Favorites from './components/Favorites';
 import Comments from './components/Comments';
-import Replys from './components/Replys';
-import Likes from './components/Likes';
+import Likers from './components/Likers';
 import styles from './style.less';
 
 const operationTabList = [
@@ -22,30 +20,24 @@ const operationTabList = [
     tab: '评论',
   },
   {
-    key: 'replys',
-    tab: '回复',
-  },
-  {
-    key: 'likes',
+    key: 'likers',
     tab: '点赞',
   },
 ];
 
 interface CenterProps extends ConnectProps {
   loading: Loading;
-  currentUser: IUser;
-  currentUserLoading: boolean;
+  auth: AuthStateType;
   accountCenter: AccountCenterModelState;
 }
 
 interface CenterState {
-  tabKey: 'favorites' | 'comments' | 'replys' | 'likes';
+  tabKey: 'favorites' | 'comments' | 'likers';
 }
 
-@connect(({ loading, user, accountCenter }: ConnectState) => ({
+@connect(({ loading, auth, accountCenter }: ConnectState) => ({
   loading,
-  currentUser: user.currentUser,
-  currentUserLoading: loading.effects['user/fetchCurrent'],
+  auth,
   accountCenter,
 }))
 class Center extends PureComponent<CenterProps, CenterState> {
@@ -65,20 +57,20 @@ class Center extends PureComponent<CenterProps, CenterState> {
         return <Favorites {...this.props} />;
       case 'comments':
         return <Comments {...this.props} />;
-      case 'replys':
-        return <Replys {...this.props} />;
-      case 'likes':
-        return <Likes {...this.props} />;
+      case 'likers':
+        return <Likers {...this.props} />;
       default:
         return null;
     }
   };
 
 
-  render() {
+  render () {
     const { tabKey } = this.state;
-    const { currentUser, currentUserLoading } = this.props;
-    const dataLoading = currentUserLoading || !(currentUser && currentUser.name);
+    const { auth } = this.props;
+
+    const dataLoading = !auth.logged;
+
     return (
       <GridContent>
         <Row gutter={24}>
@@ -87,19 +79,19 @@ class Center extends PureComponent<CenterProps, CenterState> {
               <Card bordered={false} loading={dataLoading}>
                 <div>
                   <div className={styles.avatarHolder}>
-                    <img alt="" src={get(currentUser, 'user_info.avatarUrl')} />
-                    <div className={styles.name}>{currentUser.name}</div>
-                    <div>{get(currentUser, 'user_info.signature') || '暂无个人描述~'}</div>
+                    <img alt="" src={auth.user.avatar} />
+                    <div className={styles.name}>{auth.user.username}</div>
+                    <div>{auth.user.bio || '暂无个人描述~'}</div>
                   </div>
                   <div className={styles.detail}>
                     <p>
                       <Icon type="mail" />
-                      {get(currentUser, 'email', '暂无~')}
+                      {auth.user.email || '暂无~'}
                     </p>
                     <p>
                       <Icon type="environment" />
-                      {`${get(currentUser, 'user_info.province')} `}
-                      {get(currentUser, 'user_info.city')}
+                      {`${get(auth.user, 'extends.province')} `}
+                      {get(auth.user, 'extends.city')}
                     </p>
                   </div>
                   <Divider />

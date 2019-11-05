@@ -3,13 +3,14 @@ import { Icon, List } from 'antd';
 import { Link } from 'umi';
 import { parse } from 'qs';
 import { get } from 'lodash';
-import MarkdownBody from '@/components/MarkdownBody';
 import { AccountCenterModelState, ConnectProps, Loading } from '@/models/connect';
-import { IComment } from '@/models/data';
+import Ellipsis from '@/components/Ellipsis';
+import MarkdownBody from '@/components/MarkdownBody';
 import styles from './index.less';
+import { IFollowable } from '@/models/data';
 
 const defaultQueryParams = {
-  include: 'commentable,parent.user',
+  include: 'followable.commentable',
 };
 
 const IconText: React.FC<{
@@ -22,19 +23,19 @@ const IconText: React.FC<{
   </span>
 );
 
-interface CommentsProps extends ConnectProps {
+interface LikesProps extends ConnectProps {
   loading: Loading;
   accountCenter: AccountCenterModelState;
 
   [key: string]: any;
 }
 
-class Comments extends React.Component<CommentsProps> {
+class Likes extends React.Component<LikesProps> {
   UNSAFE_componentWillMount () {
-    this.queryComments(this.props.location.search);
+    this.queryLikers(this.props.location.search);
   }
 
-  queryComments = (params: object | string) => {
+  queryLikers = (params: object | string) => {
     const query = params instanceof Object ? params : parse(params.replace(/^\?/, ''));
 
     const queryParams = {
@@ -43,7 +44,7 @@ class Comments extends React.Component<CommentsProps> {
     };
 
     this.props.dispatch({
-      type: 'accountCenter/fetchComments',
+      type: 'accountCenter/fetchLikers',
       payload: queryParams,
     });
   };
@@ -51,16 +52,39 @@ class Comments extends React.Component<CommentsProps> {
   handlePageChange = (page: number, pageSize?: number) => {
     const { location: { search } } = this.props;
     const query = parse(search.replace(/^\?/, ''));
-    this.queryComments({ ...query, page, pageSize });
+    this.queryLikers({ ...query, page, pageSize });
   };
 
-  renderItemTitle = (comment: IComment) => {
-    switch (comment.commentable_type) {
+  renderItemTitle = (item: IFollowable) => {
+    switch (item.followable_type) {
       case 'App\\Models\\Article':
         return (
-          <Link to={`/articles/${comment.commentable_id}`}>
-            {get(comment, 'commentable.title')}
+          <Link to={`/articles/${item.followable_id}`}>
+            {get(item, 'followable.title')}
           </Link>
+        );
+      case 'App\\Models\\Comment':
+        return (
+          <Link to={`/articles/${get(item, 'followable.commentable_id')}`}>
+            {get(item, 'followable.commentable.title')}
+          </Link>
+        );
+      default:
+        return null;
+    }
+  };
+
+  renderItemDescription = (item: IFollowable) => {
+    switch (item.followable_type) {
+      case 'App\\Models\\Article':
+        return (
+          <Ellipsis lines={3}>
+            {get(item, 'followable.content.markdown', '').substr(0, 360)}
+          </Ellipsis>
+        );
+      case 'App\\Models\\Comment':
+        return (
+          <MarkdownBody markdown={get(item, 'followable.content.combine_markdown')} />
         );
       default:
         return null;
@@ -70,7 +94,7 @@ class Comments extends React.Component<CommentsProps> {
   render () {
     const {
       loading,
-      accountCenter: { comments: { list, meta } },
+      accountCenter: { likers: { list, meta } },
     } = this.props;
 
     return (
@@ -79,7 +103,7 @@ class Comments extends React.Component<CommentsProps> {
           size="large"
           rowKey="id"
           itemLayout="vertical"
-          loading={loading.effects['accountCenter/fetchComments']}
+          loading={loading.effects['accountCenter/fetchLikers']}
           dataSource={list}
           pagination={{
             total: meta.total,
@@ -88,19 +112,25 @@ class Comments extends React.Component<CommentsProps> {
             simple: window.innerWidth < 768,
             onChange: this.handlePageChange,
           }}
-          renderItem={(item: IComment) => (
+          renderItem={(item: IFollowable) => (
             <List.Item>
               <List.Item.Meta
                 title={this.renderItemTitle(item)}
               />
-              <div className={styles.content}>
+              <div className={`${styles.content}  markdown-body`}>
                 <div className={styles.description}>
-                  <MarkdownBody markdown={get(item, 'content.combine_markdown')} />
+                  {this.renderItemDescription(item)}
                 </div>
                 <div className={styles.extra}>
                   <IconText type="clock-circle-o" text={item.created_at_timeago} />
-                  <IconText key="like" type="like-o" text={item.friendly_up_voters_count} />
-                  <IconText type="message" key="message" text={item.friendly_comments_count} />
+                  <IconText
+                    key="like"
+                    type="like-o"
+                    text={
+                      get(item, 'followable.friendly_likes_count') ||
+                      get(item, 'followable.friendly_up_voters_count')
+                    }
+                  />
                 </div>
               </div>
             </List.Item>
@@ -111,4 +141,4 @@ class Comments extends React.Component<CommentsProps> {
   }
 }
 
-export default Comments;
+export default Likes;
