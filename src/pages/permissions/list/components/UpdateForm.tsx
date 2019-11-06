@@ -16,11 +16,7 @@ const formItemLayout = {
 
 interface UpdateFormProps extends FormComponentProps {
   modalVisible: boolean;
-  handleUpdate: (
-    id: number,
-    values: Partial<IPermission>,
-    callback?: () => void,
-  ) => void;
+  handleUpdate: (id: number, values: Partial<IPermission>) => Promise<void>;
   handleModalVisible: () => void;
   loading: boolean;
   permission: IPermission;
@@ -38,11 +34,10 @@ const UpdateForm: React.FC<UpdateFormProps> = props => {
   const { getFieldDecorator } = form;
 
   const okHandle = () => {
-    form.validateFields((err, values) => {
+    form.validateFields(async (err, values) => {
       if (err) return;
-      handleUpdate(permission.id as number, values, () => {
-        form.resetFields();
-      });
+      await handleUpdate(permission.id as number, values);
+      form.resetFields();
     });
   };
 

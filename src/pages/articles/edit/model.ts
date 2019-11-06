@@ -1,6 +1,5 @@
-import { message } from 'antd';
 import { Effect } from '@/models/connect';
-import { update } from './service';
+import * as services from './services';
 
 export interface StateType {
 }
@@ -19,12 +18,8 @@ const Model: ModelType = {
   state: {},
 
   effects: {
-    * submitForm({ id, payload, callback }, { call }) {
-      yield call(update, id, payload);
-      message.success('提交成功');
-      if (callback) {
-        callback();
-      }
+    * submitForm ({ id, payload }, { call }) {
+      yield call(services.updateArticle, id, payload);
     },
   },
 };

@@ -4,7 +4,6 @@ import emojiDependencies from 'yt-simplemde-editor/dist/emoji';
 // @ts-ignore
 import emojiToolkit from 'emoji-toolkit';
 import marked from 'marked';
-import cookie from 'cookie';
 import React, { Component } from 'react';
 import { connect } from 'dva';
 import { Link, router } from 'umi';
@@ -14,7 +13,7 @@ import { PageHeaderWrapper } from '@ant-design/pro-layout';
 import { getToken } from '@/utils/authority';
 import { ConnectState, ConnectProps } from '@/models/connect';
 import { IArticle, ITag } from '@/models/data';
-import { queryAllTags } from '../list/service';
+import * as services from './services';
 import styles from './style.less';
 
 const FormItem = Form.Item;
@@ -24,13 +23,13 @@ const uploadUrl = '/api/attachments/upload';
 
 type GetBase64Callback = (base64: any) => void;
 
-function getBase64(img: File | Blob, cb: GetBase64Callback): void {
+function getBase64 (img: File | Blob, cb: GetBase64Callback): void {
   const reader = new FileReader();
   reader.addEventListener('load', () => cb(reader.result));
   reader.readAsDataURL(img);
 }
 
-function beforeUpload(file: File): boolean {
+function beforeUpload (file: File): boolean {
   const isLt2M = file.size / 1024 / 1024 < 2;
   if (!isLt2M) {
     message.error('Image must smaller than 2MB!');
@@ -58,23 +57,23 @@ class ArticleCreate extends Component<ArticleCreateProps, ArticleCreateState> {
     previewBase64: '',
   };
 
-  async UNSAFE_componentWillMount() {
-    const { data: allTags } = await queryAllTags();
+  async UNSAFE_componentWillMount () {
+    const { data: allTags } = await services.queryAllTags();
     this.setState({ allTags });
   }
 
   handleSubmit = (e?: React.FormEvent) => {
     e && e.preventDefault();
     const { dispatch, form } = this.props;
-    form.validateFieldsAndScroll((err, values: IArticle) => {
+    form.validateFieldsAndScroll(async (err, values: IArticle) => {
       if (!err) {
-        dispatch({
+        await dispatch({
           type: 'articleCreate/submitForm',
           payload: values,
-          callback: () => {
-            router.push('/articles/list');
-          },
         });
+
+        message.success('发布成功！');
+        router.push('/articles/list');
       }
     });
   };
@@ -94,7 +93,7 @@ class ArticleCreate extends Component<ArticleCreateProps, ArticleCreateState> {
             uploading: false,
           },
           () => {
-            setFieldsValue({ preview: file.response.data.fileUrl });
+            setFieldsValue({ preview: file.response.data.url });
           },
         ),
       );
@@ -106,11 +105,8 @@ class ArticleCreate extends Component<ArticleCreateProps, ArticleCreateState> {
     return emojiToolkit.toImage(html);
   };
 
-  render() {
-    const { submitting } = this.props;
-    const {
-      form: { getFieldDecorator },
-    } = this.props;
+  render () {
+    const { submitting, form: { getFieldDecorator } } = this.props;
     const { allTags, uploading, previewBase64 } = this.state;
 
     const formItemLayout = {
@@ -176,14 +172,13 @@ class ArticleCreate extends Component<ArticleCreateProps, ArticleCreateState> {
       },
       uploadOptions: {
         action: uploadUrl,
-        jsonName: 'data.fileUrl',
+        jsonName: 'data.url',
         beforeUpload,
         headers: {
-          Accept: `application/x.sheng.${API_VERSION}+json`, // eslint-disable-line
+          Accept: `application/json`,
           Authorization: getToken(),
-          'X-XSRF-TOKEN': cookie.parse(document.cookie)['XSRF-TOKEN'],
         },
-        onError(err: any, response: { message?: string }) {
+        onError (err: any, response: { message?: string }) {
           if (response.message) {
             message.error(response.message);
           }
@@ -207,7 +202,7 @@ class ArticleCreate extends Component<ArticleCreateProps, ArticleCreateState> {
               })(<Input placeholder="给文章起个名字" />)}
             </FormItem>
             <FormItem {...formItemLayout} label="状态">
-              {getFieldDecorator('status', {
+              {getFieldDecorator('visible', {
                 initialValue: 1,
               })(
                 <Radio.Group>
@@ -260,7 +255,7 @@ class ArticleCreate extends Component<ArticleCreateProps, ArticleCreateState> {
               )}
             </FormItem>
             <FormItem {...formItemLayout} label="内容">
-              {getFieldDecorator('content', {
+              {getFieldDecorator('content.markdown', {
                 rules: [{ required: true, message: '请输入文章内容' }],
               })(<SimpleMDEEditor {...editorProps} />)}
             </FormItem>

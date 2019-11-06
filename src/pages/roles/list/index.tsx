@@ -1,16 +1,17 @@
 import React, { Component, Fragment } from 'react';
-import { Card, Col, Form, Button, Input, Row, Table, Icon, Divider, message } from 'antd';
-import { Link, router } from 'umi';
+import { Card, Col, Form, Button, Input, Row, Table, Divider, message } from 'antd';
+import { router } from 'umi';
 import { parse, stringify } from 'qs';
 import { FormComponentProps } from 'antd/es/form';
 import { PageHeaderWrapper } from '@ant-design/pro-layout';
 import { connect } from 'dva';
 import { ConnectState, ConnectProps, RoleListModelState, Loading } from '@/models/connect';
 import { IPermission, IRole } from '@/models/data';
+import { getAntdPaginationProps } from '@/utils/XUtils';
 import CreateForm from './components/CreateForm';
 import UpdateForm from './components/UpdateForm';
 import PermissionForm from './components/PermissionForm';
-import { getAllPermissions, getRolePermissions } from './service';
+import * as services from './services';
 import styles from './style.less';
 
 const FormItem = Form.Item;
@@ -78,11 +79,11 @@ class RoleList extends Component<RoleListProps, RoleListState> {
     },
   ];
 
-  UNSAFE_componentWillMount() {
+  UNSAFE_componentWillMount () {
     this.queryList(this.props.location.search);
   }
 
-  UNSAFE_componentWillReceiveProps(nextProps: Readonly<RoleListProps>): void {
+  UNSAFE_componentWillReceiveProps (nextProps: Readonly<RoleListProps>): void {
     if (nextProps.location.search !== this.props.location.search) {
       this.queryList(nextProps.location.search);
     }
@@ -138,16 +139,18 @@ class RoleList extends Component<RoleListProps, RoleListState> {
     if (!!flag && role) {
       const hide = message.loading('正在加载权限数据...', 0);
 
-      const { allPermissions } = this.state;
-      if (allPermissions.length === 0) {
-        const { data: allPermissions } = await getAllPermissions();
-        this.setState({ allPermissions });
+      try {
+        const { allPermissions } = this.state;
+        if (allPermissions.length === 0) {
+          const { data: allPermissions } = await services.getAllPermissions();
+          this.setState({ allPermissions });
+        }
+
+        const { data: currentPermissions } = await services.getRolePermissions(role.id as number);
+        this.setState({ currentPermissions });
+      } finally {
+        hide();
       }
-
-      const { data: currentPermissions } = await getRolePermissions(role.id as number);
-      this.setState({ currentPermissions });
-
-      hide();
     }
 
     this.setState({
@@ -156,63 +159,47 @@ class RoleList extends Component<RoleListProps, RoleListState> {
     });
   };
 
-  handleAdd = (values: object, callback?: () => void) => {
-    const { dispatch } = this.props;
-    dispatch({
+  handleAdd = async (values: object) => {
+    await this.props.dispatch({
       type: 'roleList/create',
       payload: {
         ...values,
       },
-      callback: () => {
-        if (callback) {
-          callback();
-        }
-        this.handleCreateModalVisible();
-        this.queryList(this.props.location.search);
-      },
     });
+
+    message.success('添加成功！');
+
+    this.handleCreateModalVisible();
+    this.queryList(this.props.location.search);
   };
 
-  handleUpdate = (id: number, values: object, callback?: () => void) => {
-    const { dispatch } = this.props;
-    dispatch({
+  handleUpdate = async (id: number, values: object) => {
+    await this.props.dispatch({
       type: 'roleList/update',
       id,
       payload: {
         ...values,
       },
-      callback: () => {
-        if (callback) {
-          callback();
-        }
-        this.handleUpdateModalVisible();
-        this.queryList(this.props.location.search);
-      },
     });
+
+    message.success('修改成功！');
+
+    this.handleUpdateModalVisible();
+    this.queryList(this.props.location.search);
   };
 
-  handleAssignPermissions = (
-    roleId: number,
-    values: { permissions: number },
-    callback?: () => void,
-  ) => {
-    const { dispatch } = this.props;
-    dispatch({
+  handleAssignPermissions = async (role_id: number, values: { permissions: number }) => {
+    await this.props.dispatch({
       type: 'roleList/assignPermissions',
-      roleId,
-      payload: {
-        ...values,
-      },
-      callback: () => {
-        if (callback) {
-          callback();
-        }
-        this.handlePermissionModalVisible();
-      },
+      role_id,
+      payload: { ...values },
     });
+
+    message.success('权限分配成功');
+    this.handlePermissionModalVisible();
   };
 
-  renderSearchForm() {
+  renderSearchForm () {
     const { form } = this.props;
     const { getFieldDecorator } = form;
     return (
@@ -249,9 +236,9 @@ class RoleList extends Component<RoleListProps, RoleListState> {
     );
   }
 
-  render() {
+  render () {
     const {
-      roleList: { list, pagination },
+      roleList: { list, meta },
       loading,
       location: { pathname, search },
     } = this.props;
@@ -273,43 +260,7 @@ class RoleList extends Component<RoleListProps, RoleListState> {
             <div className={styles.searchForm}>{this.renderSearchForm()}</div>
             <Table
               dataSource={list}
-              pagination={{
-                ...pagination,
-                simple: window.innerWidth < 768,
-                itemRender(page, type, originalElement) {
-                  let children: any = page;
-
-                  if (type === 'prev') {
-                    children = <Icon type="left" />;
-                  } else if (type === 'next') {
-                    children = <Icon type="right" />;
-                  } else if (type === 'jump-prev') {
-                    children = (
-                      <div className="ant-pagination-item-container">
-                        <Icon className="ant-pagination-item-link-icon" type="double-left" />
-                        <span className="ant-pagination-item-ellipsis">•••</span>
-                      </div>
-                    );
-                  } else if (type === 'jump-next') {
-                    children = (
-                      <div className="ant-pagination-item-container">
-                        <Icon className="ant-pagination-item-link-icon" type="double-right" />
-                        <span className="ant-pagination-item-ellipsis">•••</span>
-                      </div>
-                    );
-                  }
-
-                  return (
-                    // @ts-ignore
-                    <Link
-                      {...originalElement.props}
-                      to={`${pathname}?${stringify({ ...query, page })}`}
-                    >
-                      {children}
-                    </Link>
-                  );
-                },
-              }}
+              pagination={getAntdPaginationProps(meta, pathname, query)}
               columns={this.columns}
               loading={loading.effects['roleList/fetch']}
               rowKey="id"

@@ -18,11 +18,7 @@ const formItemLayout = {
 
 interface PermissionFormProps extends FormComponentProps {
   modalVisible: boolean;
-  handleAssignPermissions: (
-    userId: number,
-    values: { permissions: number },
-    callback?: () => void,
-  ) => void;
+  handleAssignPermissions: (user_id: number, values: { permissions: number }) => Promise<void>;
   handleModalVisible: () => void;
   loading: boolean;
   currentUser: IUser,
@@ -46,18 +42,17 @@ const PermissionForm: React.FC<PermissionFormProps> = props => {
   const groupPermissions = groupBy(allPermissions, item => (item.name as string).split('.')[0]);
 
   const okHandle = () => {
-    form.validateFields((err, values) => {
+    form.validateFields(async (err, values) => {
       if (err) return;
-      handleAssignPermissions(currentUser.id as number, values, () => {
-        form.resetFields();
-      });
+      await handleAssignPermissions(currentUser.id as number, values);
+      form.resetFields();
     });
   };
 
   return (
     <Modal
       destroyOnClose
-      title={`给「${currentUser.name}」分配权限`}
+      title={`给「${currentUser.username}」分配权限`}
       visible={modalVisible}
       onOk={okHandle}
       onCancel={() => handleModalVisible()}
@@ -71,8 +66,8 @@ const PermissionForm: React.FC<PermissionFormProps> = props => {
           {map(groupPermissions, (permissions: IPermission[], key) => (
             <FormItem {...formItemLayout} key={key} label={key}>
               {permissions.map(item => (
-                <Tooltip title={item.name}>
-                  <Checkbox value={item.id} key={item.id}>{item.display_name}</Checkbox>
+                <Tooltip title={item.name} key={item.id}>
+                  <Checkbox value={item.id}>{item.display_name}</Checkbox>
                 </Tooltip>
               ))}
             </FormItem>

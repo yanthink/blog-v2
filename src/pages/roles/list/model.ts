@@ -1,12 +1,11 @@
 import { Reducer } from 'redux';
-import { message } from 'antd';
 import { Effect } from '@/models/connect';
 import { IRole, IMeta } from '@/models/data';
-import { queryList, store, update, assignPermissions } from './service';
+import * as services from './services';
 
 export interface StateType {
   list: IRole[];
-  pagination: IMeta;
+  meta: IMeta;
 }
 
 export interface ModelType {
@@ -28,42 +27,33 @@ const Model: ModelType = {
 
   state: {
     list: [],
-    pagination: {},
+    meta: {},
   },
 
   effects: {
-    * fetch({ payload }, { call, put }) {
-      const { data: list, pagination } = yield call(queryList, payload);
+    * fetch ({ payload }, { call, put }) {
+      const { data: list, meta } = yield call(services.queryRoles, payload);
       yield put({
         type: 'queryList',
-        payload: { list, pagination },
+        payload: { list, meta },
       });
     },
-    * create({ payload, callback }, { call }) {
-      yield call(store, payload);
-      message.success('添加成功！');
-      if (callback) {
-        callback();
-      }
+
+    * create ({ payload }, { call }) {
+      yield call(services.storeRole, payload);
     },
-    * update({ id, payload, callback }, { call }) {
-      yield call(update, id, payload);
-      message.success('修改成功！');
-      if (callback) {
-        callback();
-      }
+
+    * update ({ id, payload }, { call }) {
+      yield call(services.updateRole, id, payload);
     },
-    * assignPermissions({ roleId, payload, callback }, { call }) {
-      yield call(assignPermissions, roleId, payload);
-      message.success('分配成功！');
-      if (callback) {
-        callback();
-      }
+
+    * assignPermissions ({ role_id, payload }, { call }) {
+      yield call(services.assignPermissions, role_id, payload);
     },
   },
 
   reducers: {
-    queryList(state, { payload }) {
+    queryList (state, { payload }) {
       return {
         ...state,
         ...payload,

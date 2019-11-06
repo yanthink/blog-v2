@@ -104,7 +104,7 @@ class ArticleList extends Component<ArticleListProps, ArticleListState> {
 
     return (
       // @ts-ignore
-      <PageHeaderWrapper extra={Authorized.check('articles.create', HeaderAction, null)}>
+      <PageHeaderWrapper extra={Authorized.check('articles.store', HeaderAction, null)}>
         <Card bordered={false} hidden={query && !!query.keyword} id="searchForm">
           <Form layout="inline">
             <StandardFormRow title="所属标签" block style={{ paddingBottom: 11 }}>

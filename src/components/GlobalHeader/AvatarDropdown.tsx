@@ -6,6 +6,7 @@ import { router } from 'umi';
 import { stringify } from 'qs';
 import { ConnectProps, ConnectState, AuthStateType } from '@/models/connect';
 import { getPageQuery } from '@/utils/utils';
+import { getToken } from '@/utils/authority';
 import HeaderDropdown from '../HeaderDropdown';
 import styles from './index.less';
 
@@ -17,16 +18,16 @@ class AvatarDropdown extends React.Component<GlobalHeaderRightProps> {
   onMenuClick = (event: ClickParam) => {
     const { key } = event;
 
-    if (key === 'logout') {
-      const { dispatch } = this.props;
-      if (dispatch) {
-        dispatch({
+    switch (key) {
+      case 'logout':
+        return this.props.dispatch({
           type: 'auth/logout',
         });
-      }
-
-      return;
+      case 'telescope':
+        window.open(`/api/web/login?_token=${getToken()}`);
+        return;
     }
+
     router.push(`/account/${key}`);
   };
 
@@ -47,6 +48,13 @@ class AvatarDropdown extends React.Component<GlobalHeaderRightProps> {
     const { auth } = this.props;
     const menuHeaderDropdown = (
       <Menu className={styles.menu} selectedKeys={[]} onClick={this.onMenuClick}>
+        {
+          auth && auth.user.id === 1 &&
+          <Menu.Item key="telescope">
+            <Icon type="bug" />
+            <span>调试工具</span>
+          </Menu.Item>
+        }
         <Menu.Item key="center">
           <Icon type="user" />
           <span>个人中心</span>

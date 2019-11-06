@@ -18,11 +18,7 @@ const formItemLayout = {
 
 interface PermissionFormProps extends FormComponentProps {
   modalVisible: boolean;
-  handleAssignPermissions: (
-    roleId: number,
-    values: { permissions: number },
-    callback?: () => void,
-  ) => void;
+  handleAssignPermissions: (role_id: number, values: { permissions: number }) => Promise<void>;
   handleModalVisible: () => void;
   loading: boolean;
   currentRole: IRole,
@@ -46,11 +42,10 @@ const PermissionForm: React.FC<PermissionFormProps> = props => {
   const groupPermissions = groupBy(allPermissions, item => (item.name as string).split('.')[0]);
 
   const okHandle = () => {
-    form.validateFields((err, values) => {
+    form.validateFields(async (err, values) => {
       if (err) return;
-      handleAssignPermissions(currentRole.id as number, values, () => {
-        form.resetFields();
-      });
+      await handleAssignPermissions(currentRole.id as number, values);
+      form.resetFields();
     });
   };
 
@@ -71,8 +66,8 @@ const PermissionForm: React.FC<PermissionFormProps> = props => {
           {map(groupPermissions, (permissions: IPermission[], key) => (
             <FormItem {...formItemLayout} key={key} label={key}>
               {permissions.map(item => (
-                <Tooltip title={item.name}>
-                  <Checkbox value={item.id} key={item.id}>{item.display_name}</Checkbox>
+                <Tooltip title={item.name} key={item.id}>
+                  <Checkbox value={item.id}>{item.display_name}</Checkbox>
                 </Tooltip>
               ))}
             </FormItem>

@@ -15,7 +15,7 @@ const formItemLayout = {
 
 interface CreateFormProps extends FormComponentProps {
   modalVisible: boolean;
-  handleAdd: (values: object, callback?: () => void) => void;
+  handleAdd: (values: object) => Promise<void>;
   handleModalVisible: () => void;
   loading: boolean;
 }
@@ -25,11 +25,10 @@ const CreateForm: React.FC<CreateFormProps> = props => {
   const { getFieldDecorator } = form;
 
   const okHandle = () => {
-    form.validateFields((err, values) => {
+    form.validateFields(async (err, values) => {
       if (err) return;
-      handleAdd(values, () => {
-        form.resetFields();
-      });
+      await handleAdd(values);
+      form.resetFields();
     });
   };
 

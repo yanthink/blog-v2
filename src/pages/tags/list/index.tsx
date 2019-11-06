@@ -1,12 +1,13 @@
 import React, { Component, Fragment } from 'react';
-import { Card, Col, Form, Button, Input, Row, Table, Icon } from 'antd';
-import { Link, router } from 'umi';
+import { Card, Col, Form, Button, Input, Row, Table, message } from 'antd';
+import { router } from 'umi';
 import { parse, stringify } from 'qs';
 import { FormComponentProps } from 'antd/es/form';
 import { PageHeaderWrapper } from '@ant-design/pro-layout';
 import { connect } from 'dva';
 import { ConnectState, ConnectProps, TagListModelState, Loading } from '@/models/connect';
-import { ITag } from '@/models/data'
+import { ITag } from '@/models/data';
+import { getAntdPaginationProps } from '@/utils/XUtils';
 import CreateForm from './components/CreateForm';
 import UpdateForm from './components/UpdateForm';
 import styles from './style.less';
@@ -49,6 +50,11 @@ class TagList extends Component<TagListProps, TagListState> {
       key: 'name',
     },
     {
+      title: 'slug',
+      dataIndex: 'slug',
+      key: 'slug',
+    },
+    {
       title: '排序',
       dataIndex: 'order',
       key: 'order',
@@ -73,11 +79,11 @@ class TagList extends Component<TagListProps, TagListState> {
     },
   ];
 
-  UNSAFE_componentWillMount() {
+  UNSAFE_componentWillMount () {
     this.queryList(this.props.location.search);
   }
 
-  UNSAFE_componentWillReceiveProps(nextProps: Readonly<TagListProps>): void {
+  UNSAFE_componentWillReceiveProps (nextProps: Readonly<TagListProps>): void {
     if (nextProps.location.search !== this.props.location.search) {
       this.queryList(nextProps.location.search);
     }
@@ -129,49 +135,40 @@ class TagList extends Component<TagListProps, TagListState> {
     });
   };
 
-  handleAdd = (values: object, callback?: () => void) => {
-    const { dispatch } = this.props;
-    dispatch({
+  handleAdd = async (values: object) => {
+    await this.props.dispatch({
       type: 'tagList/create',
       payload: {
         ...values,
       },
-      callback: () => {
-        if (callback) {
-          callback();
-        }
-        this.handleCreateModalVisible();
-        this.queryList(this.props.location.search);
-      },
     });
+    message.success('添加成功！');
+    this.handleCreateModalVisible();
+    this.queryList(this.props.location.search);
   };
 
-  handleUpdate = (id: number, values: object, callback?: () => void) => {
-    const { dispatch } = this.props;
-    dispatch({
+  handleUpdate = async (id: number, values: object) => {
+    await this.props.dispatch({
       type: 'tagList/update',
       id,
       payload: {
         ...values,
       },
-      callback: () => {
-        if (callback) {
-          callback();
-        }
-        this.handleUpdateModalVisible();
-        this.queryList(this.props.location.search);
-      },
     });
+
+    message.success('修改成功！');
+    this.handleUpdateModalVisible();
+    this.queryList(this.props.location.search);
   };
 
-  renderSearchForm() {
+  renderSearchForm () {
     const { form } = this.props;
     const { getFieldDecorator } = form;
     return (
       <Form onSubmit={this.handleSearch} layout="inline">
         <Row gutter={{ md: 8, lg: 24, xl: 48 }}>
           <Col md={8} sm={24}>
-            <FormItem label="权限标识">
+            <FormItem label="标签名称">
               {getFieldDecorator('name')(<Input placeholder="请输入" />)}
             </FormItem>
           </Col>
@@ -201,9 +198,9 @@ class TagList extends Component<TagListProps, TagListState> {
     );
   }
 
-  render() {
+  render () {
     const {
-      tagList: { list, pagination },
+      tagList: { list, meta },
       loading,
       location: { pathname, search },
     } = this.props;
@@ -222,43 +219,7 @@ class TagList extends Component<TagListProps, TagListState> {
             <div className={styles.searchForm}>{this.renderSearchForm()}</div>
             <Table
               dataSource={list}
-              pagination={{
-                ...pagination,
-                simple: window.innerWidth < 768,
-                itemRender(page, type, originalElement) {
-                  let children: any = page;
-
-                  if (type === 'prev') {
-                    children = <Icon type="left" />;
-                  } else if (type === 'next') {
-                    children = <Icon type="right" />;
-                  } else if (type === 'jump-prev') {
-                    children = (
-                      <div className="ant-pagination-item-container">
-                        <Icon className="ant-pagination-item-link-icon" type="double-left" />
-                        <span className="ant-pagination-item-ellipsis">•••</span>
-                      </div>
-                    );
-                  } else if (type === 'jump-next') {
-                    children = (
-                      <div className="ant-pagination-item-container">
-                        <Icon className="ant-pagination-item-link-icon" type="double-right" />
-                        <span className="ant-pagination-item-ellipsis">•••</span>
-                      </div>
-                    );
-                  }
-
-                  return (
-                    // @ts-ignore
-                    <Link
-                      {...originalElement.props}
-                      to={`${pathname}?${stringify({ ...query, page })}`}
-                    >
-                      {children}
-                    </Link>
-                  );
-                },
-              }}
+              pagination={getAntdPaginationProps(meta, pathname, query)}
               columns={this.columns}
               loading={loading.effects['tagList/fetch']}
               rowKey="id"

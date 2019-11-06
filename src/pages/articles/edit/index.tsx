@@ -4,7 +4,6 @@ import emojiDependencies from 'yt-simplemde-editor/dist/emoji';
 // @ts-ignore
 import emojiToolkit from 'emoji-toolkit';
 import marked from 'marked';
-import cookie from 'cookie';
 import React, { Component } from 'react';
 import { get } from 'lodash';
 import { connect } from 'dva';
@@ -15,8 +14,7 @@ import { PageHeaderWrapper } from '@ant-design/pro-layout';
 import { getToken } from '@/utils/authority';
 import { ConnectState, ConnectProps } from '@/models/connect';
 import { IArticle, ITag } from '@/models/data';
-import { queryArticle } from '../show/service';
-import { queryAllTags } from '../list/service';
+import * as services from './services';
 import styles from './style.less';
 
 const FormItem = Form.Item;
@@ -26,13 +24,13 @@ const uploadUrl = '/api/attachments/upload';
 
 type GetBase64Callback = (base64: any) => void;
 
-function getBase64(img: File | Blob, cb: GetBase64Callback): void {
+function getBase64 (img: File | Blob, cb: GetBase64Callback): void {
   const reader = new FileReader();
   reader.addEventListener('load', () => cb(reader.result));
   reader.readAsDataURL(img);
 }
 
-function beforeUpload(file: File): boolean {
+function beforeUpload (file: File): boolean {
   const isLt2M = file.size / 1024 / 1024 < 2;
   if (!isLt2M) {
     message.error('Image must smaller than 2MB!');
@@ -65,9 +63,9 @@ class ArticleEdit extends Component<ArticleEditProps, ArticleEditState> {
     previewBase64: '',
   };
 
-  async UNSAFE_componentWillMount() {
-    const onePromise = queryArticle(this.props.match.params.id, { include: 'tags' });
-    const tagsPromise = queryAllTags();
+  async UNSAFE_componentWillMount () {
+    const onePromise = services.queryArticle(this.props.match.params.id, { include: 'tags' });
+    const tagsPromise = services.queryAllTags();
     const { data: article } = await onePromise;
     const { data: allTags } = await tagsPromise;
     this.setState({ article, allTags, previewBase64: article.preview });
@@ -80,16 +78,16 @@ class ArticleEdit extends Component<ArticleEditProps, ArticleEditState> {
       form,
       match: { params },
     } = this.props;
-    form.validateFieldsAndScroll((err, values: IArticle) => {
+    form.validateFieldsAndScroll(async (err, values: IArticle) => {
       if (!err) {
-        dispatch({
+        await dispatch({
           type: 'articleEdit/submitForm',
           id: params.id,
           payload: values,
-          callback() {
-            router.push('/articles/list');
-          },
         });
+
+        message.success('修改成功！');
+        router.push('/articles/list');
       }
     });
   };
@@ -109,7 +107,7 @@ class ArticleEdit extends Component<ArticleEditProps, ArticleEditState> {
             uploading: false,
           },
           () => {
-            setFieldsValue({ preview: file.response.data.fileUrl });
+            setFieldsValue({ preview: file.response.data.url });
           },
         ),
       );
@@ -121,12 +119,8 @@ class ArticleEdit extends Component<ArticleEditProps, ArticleEditState> {
     return emojiToolkit.toImage(html);
   };
 
-  render() {
-    const {
-      submitting,
-      form: { getFieldDecorator },
-      match: { params },
-    } = this.props;
+  render () {
+    const { submitting, form: { getFieldDecorator }, match: { params } } = this.props;
     const { article, allTags, uploading, previewBase64 } = this.state;
 
     const formItemLayout = {
@@ -187,14 +181,13 @@ class ArticleEdit extends Component<ArticleEditProps, ArticleEditState> {
       },
       uploadOptions: {
         action: uploadUrl,
-        jsonName: 'data.fileUrl',
+        jsonName: 'data.url',
         beforeUpload,
         headers: {
-          Accept: `application/x.sheng.${API_VERSION}+json`, // eslint-disable-line
+          Accept: `application/json`,
           Authorization: getToken(),
-          'X-XSRF-TOKEN': cookie.parse(document.cookie)['XSRF-TOKEN'],
         },
-        onError(err: any, response: { message?: string }) {
+        onError (err: any, response: { message?: string }) {
           if (response.message) {
             message.error(response.message);
           }
@@ -215,13 +208,13 @@ class ArticleEdit extends Component<ArticleEditProps, ArticleEditState> {
           <Form onSubmit={this.handleSubmit} hideRequiredMark style={{ marginTop: 8 }}>
             <FormItem {...formItemLayout} label="标题">
               {getFieldDecorator('title', {
-                initialValue: get(article, 'title'),
+                initialValue: article.title,
                 rules: [{ required: true, message: '请输入标题' }],
               })(<Input placeholder="给文章起个名字" disabled={String(article.id) !== params.id} />)}
             </FormItem>
             <FormItem {...formItemLayout} label="状态">
-              {getFieldDecorator('status', {
-                initialValue: get(article, 'status'),
+              {getFieldDecorator('visible', {
+                initialValue: article.visible,
               })(
                 <Radio.Group>
                   <Radio value={1}>显示</Radio>
@@ -278,8 +271,8 @@ class ArticleEdit extends Component<ArticleEditProps, ArticleEditState> {
               )}
             </FormItem>
             <FormItem {...formItemLayout} label="内容">
-              {getFieldDecorator('content', {
-                initialValue: get(article, 'content'),
+              {getFieldDecorator('content.markdown', {
+                initialValue: get(article, 'content.markdown'),
                 rules: [{ required: true, message: '请输入文章内容' }],
               })(<SimpleMDEEditor {...editorProps} />)}
             </FormItem>

@@ -16,11 +16,7 @@ const formItemLayout = {
 
 interface UpdateFormProps extends FormComponentProps {
   modalVisible: boolean;
-  handleUpdate: (
-    id: number,
-    values: Partial<ITag>,
-    callback?: () => void,
-  ) => void;
+  handleUpdate: (id: number, values: Partial<ITag>) => Promise<void>;
   handleModalVisible: () => void;
   loading: boolean;
   tag: ITag;
@@ -38,11 +34,10 @@ const UpdateForm: React.FC<UpdateFormProps> = props => {
   const { getFieldDecorator } = form;
 
   const okHandle = () => {
-    form.validateFields((err, values) => {
+    form.validateFields(async (err, values) => {
       if (err) return;
-      handleUpdate(tag.id as number, values, () => {
-        form.resetFields();
-      });
+      await handleUpdate(tag.id as number, values);
+      form.resetFields();
     });
   };
 
@@ -60,6 +55,11 @@ const UpdateForm: React.FC<UpdateFormProps> = props => {
           initialValue: tag.name,
           rules: [{ required: true, message: '请填写标签名称' }],
         })(<Input placeholder="请输入标签名称" disabled={loading} />)}
+      </FormItem>
+      <FormItem {...formItemLayout} label="slug" hasFeedback>
+        {getFieldDecorator('slug', {
+          initialValue: tag.slug,
+        })(<Input disabled={loading} />)}
       </FormItem>
       <FormItem {...formItemLayout} label="排序" hasFeedback>
         {getFieldDecorator('order', {

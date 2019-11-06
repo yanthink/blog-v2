@@ -1,12 +1,11 @@
 import { Reducer } from 'redux';
-import { message } from 'antd';
 import { Effect } from '@/models/connect';
 import { ITag, IMeta } from '@/models/data';
-import { queryList, store, update } from './service';
+import * as services from './services';
 
 export interface StateType {
   list: ITag[];
-  pagination: IMeta;
+  meta: IMeta;
 }
 
 export interface ModelType {
@@ -27,35 +26,27 @@ const Model: ModelType = {
 
   state: {
     list: [],
-    pagination: {},
+    meta: {},
   },
 
   effects: {
-    * fetch({ payload }, { call, put }) {
-      const { data: list, pagination } = yield call(queryList, payload);
+    * fetch ({ payload }, { call, put }) {
+      const { data: list, meta } = yield call(services.queryTags, payload);
       yield put({
         type: 'queryList',
-        payload: { list, pagination },
+        payload: { list, meta },
       });
     },
-    * create({ payload, callback }, { call }) {
-      yield call(store, payload);
-      message.success('添加成功！');
-      if (callback) {
-        callback();
-      }
+    * create ({ payload }, { call }) {
+      yield call(services.storeTag, payload);
     },
-    * update({ id, payload, callback }, { call }) {
-      yield call(update, id, payload);
-      message.success('修改成功！');
-      if (callback) {
-        callback();
-      }
+    * update ({ id, payload }, { call }) {
+      yield call(services.updateTag, id, payload);
     },
   },
 
   reducers: {
-    queryList(state, { payload }) {
+    queryList (state, { payload }) {
       return {
         ...state,
         ...payload,
