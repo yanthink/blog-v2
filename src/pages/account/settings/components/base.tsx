@@ -13,12 +13,11 @@ import {
   message,
 } from 'antd';
 import { FormComponentProps } from 'antd/es/form';
-import { get } from 'lodash';
-import { ConnectProps, Loading } from '@/models/connect';
-import { IUser } from '@/models/data';
+import { get, debounce } from 'lodash';
+import { ConnectProps, Loading, AuthStateType } from '@/models/connect';
 import GeographicView from './GeographicView';
 import AvatarView from './AvatarView';
-import { sendEmailCode } from '../service';
+import { sendEmailCode } from '../services';
 import styles from './BaseView.less';
 
 const FormItem = Form.Item;
@@ -48,7 +47,7 @@ const validatorGeographic = (
 };
 
 interface BaseViewProps extends ConnectProps, FormComponentProps {
-  currentUser: IUser;
+  auth: AuthStateType;
   loading: Loading;
 }
 
@@ -69,37 +68,35 @@ class BaseView extends Component<BaseViewProps, BaseViewState> {
 
   interval: number | undefined = undefined;
 
-  componentWillUnmount() {
+  componentWillUnmount () {
     clearInterval(this.interval);
   }
 
-  handlerSubmit = (event: React.MouseEvent) => {
+  handleSubmit = debounce((event: React.MouseEvent) => {
     event.preventDefault();
     const { form } = this.props;
     const { identifyingCode } = this.state;
-    form.validateFieldsAndScroll((err, values) => {
+    form.validateFieldsAndScroll(async (err, values) => {
       if (!err) {
-        this.props.dispatch({
+        await this.props.dispatch({
           type: 'accountSettings/updateBaseInfo',
           payload: { ...values, identifyingCode },
-          callback: () => {
-            message.success('更新基本信息成功!');
-          },
         });
+
+        message.success('更新基本信息成功!');
       }
     });
-  };
+  }, 600);
 
   handleEmailChange = (value: any) => {
     this.setState({
-      emails:
-        !value || value.indexOf('@') >= 0
-          ? []
-          : [`${value}@qq.com`, `${value}@163.com`, `${value}@gmail.com`],
+      emails: !value || value.indexOf('@') >= 0
+        ? []
+        : [`${value}@qq.com`, `${value}@163.com`, `${value}@gmail.com`],
     });
   };
 
-  onSendEmailCode = async () => {
+  onSendEmailCode = debounce(async () => {
     const { form: { getFieldValue } } = this.props;
     const email = getFieldValue('email');
 
@@ -111,7 +108,7 @@ class BaseView extends Component<BaseViewProps, BaseViewState> {
     } catch (e) {
       this.setState({ emailCodeSending: false });
     }
-  };
+  }, 1000);
 
   runSendEmailCodeCountDown = () => {
     let countDown = 119;
@@ -125,9 +122,9 @@ class BaseView extends Component<BaseViewProps, BaseViewState> {
     }, 1000);
   };
 
-  render() {
+  render () {
     const {
-      currentUser,
+      auth,
       loading,
       form: { getFieldDecorator, isFieldTouched, getFieldError, getFieldValue },
     } = this.props;
@@ -156,19 +153,19 @@ class BaseView extends Component<BaseViewProps, BaseViewState> {
               }
               extra="用户名只能修改一次，请谨慎操作！"
             >
-              {getFieldDecorator('name', {
-                initialValue: currentUser.name,
+              {getFieldDecorator('username', {
+                initialValue: auth.user.username,
                 rules: [
                   { required: true, message: '请输入您的用户名!' },
                   { pattern: /^(?!_)(?!.*?_$)[a-zA-Z0-9_\u4e00-\u9fa5]{1,10}$/, message: '用户名格式不正确!' },
                 ],
               })(
-                <Input disabled={currentUser.name !== get(currentUser, 'user_info.nickName')} />
+                <Input disabled={get(auth.user, 'cache.username_modify_count', 0) > 0} />,
               )}
             </FormItem>
             <FormItem label="邮箱">
               {getFieldDecorator('email', {
-                initialValue: currentUser.email,
+                initialValue: auth.user.email,
                 rules: [
                   { type: 'email', message: '邮箱格式不正确!' },
                 ],
@@ -184,7 +181,7 @@ class BaseView extends Component<BaseViewProps, BaseViewState> {
               isFieldTouched('email') &&
               !getFieldError('email') &&
               getFieldValue('email') &&
-              getFieldValue('email') !== currentUser.email &&
+              getFieldValue('email') !== auth.user.email &&
               <FormItem label="验证码">
                 <Row gutter={8}>
                   <Col span={14}>
@@ -211,8 +208,8 @@ class BaseView extends Component<BaseViewProps, BaseViewState> {
               </FormItem>
             }
             <FormItem label="个人简介">
-              {getFieldDecorator('user_info.signature', {
-                initialValue: get(currentUser, 'user_info.signature'),
+              {getFieldDecorator('bio', {
+                initialValue: auth.user.bio,
               })(
                 <Input.TextArea
                   placeholder="个人简介"
@@ -222,8 +219,8 @@ class BaseView extends Component<BaseViewProps, BaseViewState> {
               )}
             </FormItem>
             <FormItem label="国家/地区">
-              {getFieldDecorator('user_info.country', {
-                initialValue: get(currentUser, 'user_info.country'),
+              {getFieldDecorator('extends.country', {
+                initialValue: get(auth.user, 'extends.country'),
                 rules: [{ required: true, message: '请输入您的国家或地区!' }],
               })(
                 <Select style={{ display: 'block' }}>
@@ -232,10 +229,10 @@ class BaseView extends Component<BaseViewProps, BaseViewState> {
               )}
             </FormItem>
             <FormItem label="所在省市">
-              {getFieldDecorator('user_info.geographic', {
-                initialValue: get(currentUser, 'user_info.geographic', {
-                  city: {key: '', label: ''},
-                  province: {key: '', label: ''}
+              {getFieldDecorator('extends.geographic', {
+                initialValue: get(auth.user, 'extends.geographic', {
+                  city: { key: '', label: '' },
+                  province: { key: '', label: '' }
                 }),
                 rules: [
                   { required: true, message: '请输入您的所在省市!' },
@@ -244,13 +241,13 @@ class BaseView extends Component<BaseViewProps, BaseViewState> {
               })(<GeographicView />)}
             </FormItem>
             <FormItem label="街道地址">
-              {getFieldDecorator('user_info.address', {
-                initialValue: get(currentUser, 'user_info.address'),
+              {getFieldDecorator('extends.address', {
+                initialValue: get(auth.user, 'extends.address'),
               })(<Input />)}
             </FormItem>
             <Button
               type="primary"
-              onClick={this.handlerSubmit}
+              onClick={this.handleSubmit}
               loading={loading.effects['accountSettings/updateBaseInfo']}
             >
               更新基本信息
@@ -258,8 +255,8 @@ class BaseView extends Component<BaseViewProps, BaseViewState> {
           </Form>
         </div>
         <div className={styles.right}>
-          {getFieldDecorator('user_info.avatarUrl', {
-            initialValue: get(currentUser, 'user_info.avatarUrl'),
+          {getFieldDecorator('avatar', {
+            initialValue: auth.user.avatar,
           })(
             <AvatarView />,
           )}

@@ -1,9 +1,9 @@
 import React, { Component } from 'react';
 import { Button, Form, Input, message } from 'antd';
+import { debounce } from 'lodash';
 import { FormComponentProps } from 'antd/es/form';
 import { router } from 'umi';
-import { ConnectProps, Loading } from '@/models/connect';
-import { IUser } from '@/models/data';
+import { ConnectProps, Loading, AuthStateType } from '@/models/connect';
 
 const FormItem = Form.Item;
 
@@ -22,7 +22,7 @@ interface SecurityViewState {
 }
 
 interface SecurityViewProps extends ConnectProps, FormComponentProps {
-  currentUser: IUser;
+  auth: AuthStateType;
   loading: Loading;
 }
 
@@ -31,22 +31,21 @@ class SecurityView extends Component<SecurityViewProps, SecurityViewState> {
     confirmDirty: false,
   };
 
-  handlerSubmit = (event: React.MouseEvent) => {
+  handleSubmit = debounce((event: React.MouseEvent) => {
     event.preventDefault();
     const { form } = this.props;
-    form.validateFields((err, values) => {
+    form.validateFields(async (err, values) => {
       if (!err) {
-        this.props.dispatch({
+        await this.props.dispatch({
           type: 'accountSettings/updatePassword',
           payload: values,
-          callback: () => {
-            message.success('密码修改成功，请重新登录！');
-            router.replace('/auth/login');
-          },
         });
+
+        message.success('密码修改成功，请重新登录！');
+        router.replace('/auth/login');
       }
     });
-  };
+  }, 600);
 
   handleConfirmBlur = (e: any) => {
     const { value } = e.target;
@@ -71,18 +70,14 @@ class SecurityView extends Component<SecurityViewProps, SecurityViewState> {
     callback();
   };
 
-  render() {
-    const {
-      form: { getFieldDecorator },
-      currentUser,
-      loading,
-    } = this.props;
+  render () {
+    const { form: { getFieldDecorator }, auth, loading } = this.props;
     return (
       <Form layout="vertical" hideRequiredMark>
         <FormItem {...formItemLayout} label="用户名" extra="设置密码后将可以使用此用户名登录">
-          <Input value={currentUser.name} disabled />
+          <Input value={auth.user.username} disabled />
         </FormItem>
-        {currentUser.has_password && (
+        {auth.user.has_password && (
           <FormItem {...formItemLayout} label="旧密码">
             {getFieldDecorator('old_password', {
               rules: [{ required: true, message: '请输入您的旧密码!' }],
@@ -108,7 +103,7 @@ class SecurityView extends Component<SecurityViewProps, SecurityViewState> {
         </FormItem>
         <Button
           type="primary"
-          onClick={this.handlerSubmit}
+          onClick={this.handleSubmit}
           loading={loading.effects['accountSettings/updatePassword']}
         >
           应用修改

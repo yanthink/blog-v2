@@ -2,8 +2,7 @@ import React, { Component } from 'react';
 import { Menu, Icon } from 'antd';
 import { GridContent } from '@ant-design/pro-layout';
 import { connect } from 'dva';
-import { ConnectState, ConnectProps, AccountSettingsModelState, Loading } from '@/models/connect';
-import { IUser } from '@/models/data';
+import { ConnectState, ConnectProps, AuthStateType, AccountSettingsModelState, Loading } from '@/models/connect';
 import BaseView from './components/base';
 import NotificationView from './components/notification';
 import SecurityView from './components/security';
@@ -13,7 +12,7 @@ const { Item } = Menu;
 
 interface SettingsProps extends ConnectProps {
   accountSettings: AccountSettingsModelState;
-  currentUser: IUser;
+  auth: AuthStateType;
   loading: Loading;
 }
 
@@ -27,18 +26,18 @@ interface SettingsState {
   selectKey: SettingsStateKeys;
 }
 
-@connect(({ accountSettings, user, loading }: ConnectState) => ({
+@connect(({ accountSettings, auth, loading }: ConnectState) => ({
   accountSettings,
-  currentUser: user.currentUser,
+  auth,
   loading,
 }))
 class Settings extends Component<SettingsProps, SettingsState> {
-  constructor(props: SettingsProps) {
+  constructor (props: SettingsProps) {
     super(props);
     const menuMap = {
       base: <span><Icon type="profile" />基本设置</span>,
       notification: <span><Icon type="mail" />通知设置</span>,
-      security:  <span><Icon type="safety" />修改密码</span>,
+      security: <span><Icon type="safety" />修改密码</span>,
     };
     this.state = {
       mode: 'inline',
@@ -47,12 +46,12 @@ class Settings extends Component<SettingsProps, SettingsState> {
     };
   }
 
-  componentDidMount() {
+  componentDidMount () {
     window.addEventListener('resize', this.resize);
     this.resize();
   }
 
-  componentWillUnmount() {
+  componentWillUnmount () {
     window.removeEventListener('resize', this.resize);
   }
 
@@ -90,7 +89,7 @@ class Settings extends Component<SettingsProps, SettingsState> {
       case 'base':
         return <BaseView {...this.props} />;
       case 'notification':
-        return <NotificationView {...this.props} />
+        return <NotificationView {...this.props} />;
       case 'security':
         return <SecurityView {...this.props} />;
       default:
@@ -100,9 +99,9 @@ class Settings extends Component<SettingsProps, SettingsState> {
     return null;
   };
 
-  render() {
-    const { currentUser } = this.props;
-    if (!currentUser.id) {
+  render () {
+    const { auth } = this.props;
+    if (!auth.logged) {
       return '';
     }
     const { mode, selectKey } = this.state;

@@ -40,7 +40,7 @@ class AvatarView extends React.Component<AvatarViewProps, AvatarViewState> {
           message.success(`${info.file.name} file uploaded successfully`);
           const { onChange } = this.props;
           if (onChange) {
-            onChange(info.file.response.data.fileUrl);
+            onChange(info.file.response.data.url);
           }
         } else if (info.file.status === 'error') {
           message.error(`${info.file.name} file upload failed.`);

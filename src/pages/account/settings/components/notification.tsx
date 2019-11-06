@@ -1,9 +1,8 @@
 import React, { Component } from 'react';
 import { Button, Form, List, Switch, message } from 'antd';
 import { FormComponentProps } from 'antd/es/form';
-import { get } from 'lodash';
-import { ConnectProps, Loading } from '@/models/connect';
-import { IUser } from '@/models/data';
+import { get, debounce } from 'lodash';
+import { ConnectProps, Loading, AuthStateType } from '@/models/connect';
 
 const FormItem = Form.Item;
 
@@ -11,24 +10,21 @@ interface NotificationViewState {
 }
 
 interface NotificationViewProps extends ConnectProps, FormComponentProps {
-  currentUser: IUser;
+  auth: AuthStateType;
   loading: Loading;
 }
 
 class NotificationView extends Component<NotificationViewProps, NotificationViewState> {
   getData = () => {
-    const {
-      form: { getFieldDecorator },
-      currentUser,
-    } = this.props;
+    const { form: { getFieldDecorator }, auth } = this.props;
 
     return [
       {
         title: '评论通知',
         description: '系统在你离线时将以邮件的形式通知',
         actions: [
-          getFieldDecorator('settings.reply_notify', {
-            initialValue: get(currentUser, 'settings.reply_notify', true),
+          getFieldDecorator('settings.comment_email_notify', {
+            initialValue: get(auth.user, 'settings.comment_email_notify', true),
             valuePropName: 'checked',
           })(
             <Switch
@@ -42,8 +38,8 @@ class NotificationView extends Component<NotificationViewProps, NotificationView
         title: '点赞通知',
         description: '系统在你离线时将以邮件的形式通知',
         actions: [
-          getFieldDecorator('settings.like_notify', {
-            initialValue: get(currentUser, 'settings.like_notify', true),
+          getFieldDecorator('settings.liked_email_notify', {
+            initialValue: get(auth.user, 'settings.liked_email_notify', true),
             valuePropName: 'checked',
           })(
             <Switch
@@ -56,23 +52,22 @@ class NotificationView extends Component<NotificationViewProps, NotificationView
     ];
   };
 
-  handlerSubmit = (event: React.MouseEvent) => {
+  handleSubmit = debounce((event: React.MouseEvent) => {
     event.preventDefault();
     const { form } = this.props;
-    form.validateFields((err, values) => {
+    form.validateFields(async (err, values) => {
       if (!err) {
-        this.props.dispatch({
+        await this.props.dispatch({
           type: 'accountSettings/updateSettings',
           payload: values,
-          callback: () => {
-            message.success('修改成功！');
-          },
         });
+
+        message.success('修改成功！');
       }
     });
-  };
+  }, 600);
 
-  render() {
+  render () {
     const data = this.getData();
     const { loading } = this.props;
 
@@ -92,7 +87,7 @@ class NotificationView extends Component<NotificationViewProps, NotificationView
         <FormItem>
           <Button
             type="primary"
-            onClick={this.handlerSubmit}
+            onClick={this.handleSubmit}
             loading={loading.effects['accountSettings/updateSettings']}
           >
             应用修改

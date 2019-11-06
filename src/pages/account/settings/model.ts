@@ -1,13 +1,7 @@
 import { Reducer } from 'redux';
 import { Effect } from '@/models/connect';
 import { GeographicItemType } from './data.d';
-import {
-  queryCity,
-  queryProvince,
-  updateBaseInfo,
-  updateSettings,
-  updatePassword,
-} from './service';
+import * as services from './services';
 
 export interface StateType {
   province?: GeographicItemType[];
@@ -42,71 +36,59 @@ const Model: ModelType = {
   },
 
   effects: {
-    * fetchProvince(_, { call, put }) {
+    * fetchProvince (_, { call, put }) {
       yield put({
         type: 'changeLoading',
         payload: true,
       });
-      const response = yield call(queryProvince);
+      const response = yield call(services.queryProvince);
       yield put({
         type: 'setProvince',
         payload: response,
       });
     },
-    * fetchCity({ payload }, { call, put }) {
-      const response = yield call(queryCity, payload);
+    * fetchCity ({ payload }, { call, put }) {
+      const response = yield call(services.queryCity, payload);
       yield put({
         type: 'setCity',
         payload: response,
       });
     },
-    * updateBaseInfo({ payload, callback }, { call }) {
-      const { data } = yield call(updateBaseInfo, payload);
+    * updateBaseInfo ({ payload }, { call }) {
+      const { data } = yield call(services.updateBaseInfo, payload);
 
       window.g_app._store.dispatch({
-        type: 'user/saveCurrentUser',
-        payload: data,
+        type: 'auth/setUser',
+        user: data,
       });
-
-      if (callback) {
-        callback();
-      }
     },
-    * updateSettings({ payload, callback }, { call }) {
-      const { data } = yield call(updateSettings, payload);
+    * updateSettings ({ payload }, { call }) {
+      const { data } = yield call(services.updateSettings, payload);
 
       window.g_app._store.dispatch({
-        type: 'user/saveCurrentUser',
-        payload: data,
+        type: 'auth/setUser',
+        user: data,
       });
-
-      if (callback) {
-        callback();
-      }
     },
-    * updatePassword({ payload, callback }, { call }) {
-      yield call(updatePassword, payload);
-
-      if (callback) {
-        callback();
-      }
+    * updatePassword ({ payload }, { call }) {
+      yield call(services.updatePassword, payload);
     },
   },
 
   reducers: {
-    setProvince(state, action) {
+    setProvince (state, action) {
       return {
         ...state,
         province: action.payload,
       };
     },
-    setCity(state, action) {
+    setCity (state, action) {
       return {
         ...state,
         city: action.payload,
       };
     },
-    changeLoading(state, action) {
+    changeLoading (state, action) {
       return {
         ...state,
         isLoading: action.payload,
