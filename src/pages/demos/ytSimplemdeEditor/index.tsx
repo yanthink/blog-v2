@@ -1,15 +1,12 @@
 import React from 'react';
 import { message, Form } from 'antd';
 import { FormComponentProps } from 'antd/es/form';
-import cookie from 'cookie';
 import SimpleMDEEditor, { SimpleMDEEditorProps } from 'yt-simplemde-editor';
 import emojiDependencies from 'yt-simplemde-editor/dist/emoji';
 // @ts-ignore
 import emojiToolkit from 'emoji-toolkit';
 import marked from 'marked';
 import { getToken } from '@/utils/authority';
-import 'yt-simplemde-editor/dist/style.css';
-import 'emoji-assets/sprites/joypixels-sprite-32.min.css';
 import styles from './index.less';
 
 const uploadUrl = '/api/attachments/upload';
@@ -17,7 +14,7 @@ const uploadUrl = '/api/attachments/upload';
 export interface YtSimplemdeEditorProps extends FormComponentProps {
 }
 
-function beforeUpload(file: File): boolean {
+function beforeUpload (file: File): boolean {
   const isLt200K = file.size / 1024 < 200;
   if (!isLt200K) {
     message.error('Image must smaller than 200Kb!');
@@ -42,7 +39,7 @@ class Index extends React.Component<YtSimplemdeEditorProps> {
     return emojiToolkit.toImage(html);
   };
 
-  render() {
+  render () {
     const {
       form: { getFieldDecorator },
     } = this.props;
@@ -93,14 +90,13 @@ class Index extends React.Component<YtSimplemdeEditorProps> {
       },
       uploadOptions: {
         action: uploadUrl,
-        jsonName: 'data.fileUrl',
+        jsonName: 'data.url',
         beforeUpload,
         headers: {
-          Accept: `application/x.sheng.${API_VERSION}+json`, // eslint-disable-line
+          Accept: `application/json`,
           Authorization: getToken(),
-          'X-XSRF-TOKEN': cookie.parse(document.cookie)['XSRF-TOKEN'],
         },
-        onError(err: any, response: { message?: string }) {
+        onError (err: any, response: { message?: string }) {
           if (response.message) {
             message.error(response.message);
           }

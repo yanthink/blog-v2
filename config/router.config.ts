@@ -1,34 +1,34 @@
 export default [
-  // {
-  //   path: '/demos',
-  //   component: '../layouts/BlankLayout',
-  //   routes: [
-  //     {
-  //       path: 'yt-simplemde-editor',
-  //       name: 'ytSimplemdeEditor',
-  //       component: './demos/ytSimplemdeEditor',
-  //     },
-  //     {
-  //       path: 'yt-emoji-picker',
-  //       name: 'ytEmojiPicker',
-  //       component: './demos/ytEmojiPicker',
-  //     },
-  //     {
-  //       component: './404',
-  //     },
-  //   ],
-  // },
-  // {
-  //   path: '/tools',
-  //   component: '../layouts/BlankLayout',
-  //   routes: [
-  //     {
-  //       path: 'emoji-cheat-sheet',
-  //       name: 'emojiCheatSheet',
-  //       component: './tools/emojiCheatSheet',
-  //     },
-  //   ],
-  // },
+  {
+    path: '/demos',
+    component: '../layouts/BlankLayout',
+    routes: [
+      {
+        path: 'yt-simplemde-editor',
+        name: 'ytSimplemdeEditor',
+        component: './demos/ytSimplemdeEditor',
+      },
+      {
+        path: 'yt-emoji-picker',
+        name: 'ytEmojiPicker',
+        component: './demos/ytEmojiPicker',
+      },
+      {
+        component: './404',
+      },
+    ],
+  },
+  {
+    path: '/tools',
+    component: '../layouts/BlankLayout',
+    routes: [
+      {
+        path: 'emoji-cheat-sheet',
+        name: 'emojiCheatSheet',
+        component: './tools/emojiCheatSheet',
+      },
+    ],
+  },
   {
     path: '/auth',
     component: '../layouts/AuthLayout',
