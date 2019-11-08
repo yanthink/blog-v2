@@ -214,8 +214,8 @@ class ArticleEdit extends Component<ArticleEditProps, ArticleEditState> {
               })(<Input placeholder="给文章起个名字" disabled={String(article.id) !== params.id} />)}
             </FormItem>
             <FormItem {...formItemLayout} label="状态">
-              {getFieldDecorator('visible', {
-                initialValue: article.visible,
+              {getFieldDecorator('state', {
+                initialValue: article.state,
               })(
                 <Radio.Group>
                   <Radio value={1}>显示</Radio>

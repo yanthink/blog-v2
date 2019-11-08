@@ -29,7 +29,7 @@ export interface IUser {
 export interface IArticle {
   id?: number;
   user_id?: number;
-  visible?: boolean;
+  state?: number;
   title?: string;
   preview?: string;
   cache?: {

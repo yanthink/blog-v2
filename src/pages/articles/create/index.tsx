@@ -203,7 +203,7 @@ class ArticleCreate extends Component<ArticleCreateProps, ArticleCreateState> {
               })(<Input placeholder="给文章起个名字" />)}
             </FormItem>
             <FormItem {...formItemLayout} label="状态">
-              {getFieldDecorator('visible', {
+              {getFieldDecorator('state', {
                 initialValue: 1,
               })(
                 <Radio.Group>

@@ -161,7 +161,7 @@ class ArticleList extends Component<ArticleListProps, ArticleListState> {
                     <Link
                       className={styles.listItemMetaTitle}
                       style={{
-                        textDecoration: article.visible ? 'none' : 'line-through',
+                        textDecoration: article.state ? 'none' : 'line-through',
                       }}
                       to={`/articles/${article.id}`}
                     >
