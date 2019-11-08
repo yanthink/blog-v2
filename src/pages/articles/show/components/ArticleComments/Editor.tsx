@@ -10,6 +10,7 @@ import EmojiPicker from 'yt-emoji-picker';
 // @ts-ignore
 import emojiToolkit from 'emoji-toolkit';
 import MarkdownBody from '@/components/MarkdownBody';
+import InlineUpload from './InlineUpload';
 import { ConnectProps, ConnectState, AuthStateType } from '@/models/connect';
 import { getPageQuery, getPositions, insertText, isParentElement } from '@/utils/utils';
 import { getToken } from '@/utils/authority';
@@ -40,6 +41,8 @@ interface ArticleCommentEditorProps extends ConnectProps {
   defaultMentionUsers?: IUser[];
 }
 
+const uploadUrl = '/api/attachments/upload';
+
 /* eslint max-len: 0 */
 class ArticleCommentEditor extends React.Component<ArticleCommentEditorProps, ArticleCommentEditorState> {
   static emojiPickerPopup?: HTMLDivElement;
@@ -61,6 +64,7 @@ class ArticleCommentEditor extends React.Component<ArticleCommentEditorProps, Ar
     };
   }
 
+  inlineUpload?: InlineUpload;
 
   emojiPickerBtn: any;
 
@@ -68,6 +72,22 @@ class ArticleCommentEditor extends React.Component<ArticleCommentEditorProps, Ar
 
   componentDidMount () {
     this.resizeTextarea();
+
+    if (this.textarea) {
+      this.inlineUpload = new InlineUpload(this.textarea, value => this.setState({ value }), {
+        action: uploadUrl,
+        jsonName: 'data.url',
+        headers: {
+          Accept: `application/json`,
+          Authorization: getToken(),
+        },
+        onError (err: any, response: { message?: string }) {
+          if (response.message) {
+            message.error(response.message);
+          }
+        },
+      });
+    }
 
     ArticleCommentEditor.stackCount++;
 
@@ -97,7 +117,6 @@ class ArticleCommentEditor extends React.Component<ArticleCommentEditorProps, Ar
       ReactDOM.render(<EmojiPicker {...emojiPickerProps} />, ArticleCommentEditor.emojiPickerPopup);
     }
 
-
     this.textarea.addEventListener('keydown', this.handleKeydownEvent);
   }
 
@@ -118,6 +137,7 @@ class ArticleCommentEditor extends React.Component<ArticleCommentEditorProps, Ar
     }
 
     this.textarea.removeEventListener('keydown', this.handleKeydownEvent);
+    this.inlineUpload && this.inlineUpload.destroy();
   }
 
   handleKeydownEvent = (e: KeyboardEvent) => {
