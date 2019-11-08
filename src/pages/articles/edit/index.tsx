@@ -15,6 +15,7 @@ import { getToken } from '@/utils/authority';
 import { ConnectState, ConnectProps } from '@/models/connect';
 import { IArticle, ITag } from '@/models/data';
 import * as services from './services';
+import 'yt-simplemde-editor/dist/style.css';
 import styles from './style.less';
 
 const FormItem = Form.Item;

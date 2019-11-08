@@ -7,6 +7,7 @@ import emojiDependencies from 'yt-simplemde-editor/dist/emoji';
 import emojiToolkit from 'emoji-toolkit';
 import marked from 'marked';
 import { getToken } from '@/utils/authority';
+import 'yt-simplemde-editor/dist/style.css';
 import styles from './index.less';
 
 const uploadUrl = '/api/attachments/upload';

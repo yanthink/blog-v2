@@ -84,9 +84,9 @@ class ArticleShow extends React.Component<ArticleShowProps, ArticleShowState> {
     await fetchComments;
 
     this.setState({ fetchingArticle: false }, () => {
-      if (defaultCommentsQueryParams.top_comment) {
+      if (this.props.location.hash) {
         setTimeout(() => {
-          this.scrollToAnchor(`comment-${defaultCommentsQueryParams.top_comment}`);
+          this.scrollToAnchor(this.props.location.hash.substr(1));
         }, 500);
       }
     });

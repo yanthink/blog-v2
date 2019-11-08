@@ -1,5 +1,4 @@
 @import '~antd/es/style/themes/default.less';
-@import '~yt-simplemde-editor/dist/style.css';
 @import '~emoji-assets/sprites/joypixels-sprite-32.min.css';
 @import '~yt-emoji-picker/dist/style.css';
 
@@ -90,11 +89,11 @@ img.joypixels {
 }
 
 // highlight
-.markdown-body,
-.editor-preview,
-.editor-preview-active,
-.editor-preview-side,
-.editor-preview-active-side {
+body .markdown-body,
+body .editor-preview,
+body .editor-preview-active,
+body .editor-preview-side,
+body .editor-preview-active-side {
   background-color: transparent;
 
   ul {
@@ -121,6 +120,13 @@ img.joypixels {
       }
     }
   }
+}
+
+body .editor-preview,
+body .editor-preview-active,
+body .editor-preview-side,
+body .editor-preview-active-side {
+  background-color: #fff;
 }
 
 .emoji-dropdown-menu span.joypixels {
