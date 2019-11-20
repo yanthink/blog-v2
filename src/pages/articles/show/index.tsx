@@ -34,6 +34,7 @@ interface ArticleShowProps extends ConnectProps, FormComponentProps {
 }
 
 interface ArticleShowState {
+  fetchingArticle: boolean;
   renderComments: boolean;
   tocify?: Tocify;
 }
@@ -43,10 +44,15 @@ interface ArticleShowState {
   articleShow,
 }))
 class ArticleShow extends React.Component<ArticleShowProps, ArticleShowState> {
-  state: ArticleShowState = {
-    renderComments: false,
-    tocify: undefined,
-  };
+  constructor (props: ArticleShowProps) {
+    super(props);
+
+    this.state = {
+      fetchingArticle: true,
+      renderComments: false,
+      tocify: undefined,
+    };
+  }
 
   async UNSAFE_componentWillMount () {
     const { dispatch, match: { params }, location } = this.props;
@@ -78,6 +84,7 @@ class ArticleShow extends React.Component<ArticleShowProps, ArticleShowState> {
     });
 
     await fetchArticle;
+    this.setState({ fetchingArticle: false });
     await fetchComments;
 
     // 文章内容渲染完成后再渲染评论来提升渲染速度
@@ -159,7 +166,7 @@ class ArticleShow extends React.Component<ArticleShowProps, ArticleShowState> {
       loading,
     } = this.props;
 
-    const { renderComments, tocify } = this.state;
+    const { fetchingArticle, renderComments, tocify } = this.state;
 
     const HeaderAction = (
       <Link to={`/articles/${params.id}/edit`}>
@@ -178,7 +185,7 @@ class ArticleShow extends React.Component<ArticleShowProps, ArticleShowState> {
               <Skeleton
                 active
                 paragraph={{ rows: 13 }}
-                loading={!loading.effects['articleShow/fetchArticle'] === false}
+                loading={fetchingArticle}
               >
                 <ArticleContent article={article} getTocify={this.setTocify} />
               </Skeleton>
