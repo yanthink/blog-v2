@@ -97,9 +97,9 @@ class MarkdownBody extends React.Component<MarkdownBodyProps> {
       marked.setOptions({ renderer, ...otherOptions });
     }
 
-    const markdown = this.replaceUserMention(DOMPurify.sanitize(this.props.markdown));
+    const markdown = this.replaceUserMention(this.props.markdown);
 
-    const markup = emojiToolkit.toImage(marked(markdown));
+    const markup = DOMPurify.sanitize(emojiToolkit.toImage(marked(markdown)));
 
     resetMarkedOptions();
 

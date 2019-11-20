@@ -117,8 +117,8 @@ class ArticleEdit extends Component<ArticleEditProps, ArticleEditState> {
   };
 
   renderMarkdown = (text: string) => {
-    let html = marked(DOMPurify.sanitize(text));
-    return emojiToolkit.toImage(html);
+    let html = marked(text);
+    return DOMPurify.sanitize(emojiToolkit.toImage(html));
   };
 
   render () {
@@ -274,7 +274,7 @@ class ArticleEdit extends Component<ArticleEditProps, ArticleEditState> {
             </FormItem>
             <FormItem {...formItemLayout} label="内容">
               {getFieldDecorator('content.markdown', {
-                initialValue: get(article, 'content.markdown'),
+                initialValue: get(article, 'content.combine_markdown'),
                 rules: [{ required: true, message: '请输入文章内容' }],
               })(<SimpleMDEEditor {...editorProps} />)}
             </FormItem>

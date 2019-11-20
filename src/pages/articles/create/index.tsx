@@ -103,8 +103,8 @@ class ArticleCreate extends Component<ArticleCreateProps, ArticleCreateState> {
   };
 
   renderMarkdown = (text: string) => {
-    let html = marked(DOMPurify.sanitize(text));
-    return emojiToolkit.toImage(html);
+    let html = marked(text);
+    return DOMPurify.sanitize(emojiToolkit.toImage(html));
   };
 
   render () {

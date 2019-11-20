@@ -71,7 +71,7 @@ const errorHandler = async (error: { response: Response }): Promise<void> => {
 const request = extend({
   prefix: API_URL,
   errorHandler, // 默认错误处理
-  credentials: 'include', // 默认请求是否带上cookie
+  credentials: 'omit', // 默认请求是否带上cookie
   headers: {
     Accept: 'application/json', // eslint-disable-line
     'Content-Type': 'application/json; charset=utf-8',
