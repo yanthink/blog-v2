@@ -1,7 +1,6 @@
 import moment from 'moment';
 import marked from 'marked';
 import Prism from 'prismjs';
-import DOMPurify from 'dompurify';
 import { parse } from 'qs';
 
 export function getPageQuery () {
@@ -64,10 +63,6 @@ export function getDefaultMarkedOptions () {
     headerIds: false,
     gfm: true,
     breaks: true,
-    sanitize: true,
-    sanitizer(html: string){
-      return DOMPurify.sanitize(html);
-    },
     highlight (code: string, lang: string) {
       if (lang) {
         const language = lang.toLowerCase();

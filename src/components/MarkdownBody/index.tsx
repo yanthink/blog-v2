@@ -1,5 +1,6 @@
 import React from 'react';
 import marked from 'marked';
+import DOMPurify from 'dompurify';
 // @ts-ignore
 import emojiToolkit from 'emoji-toolkit';
 import Prism from 'prismjs';
@@ -96,7 +97,7 @@ class MarkdownBody extends React.Component<MarkdownBodyProps> {
       marked.setOptions({ renderer, ...otherOptions });
     }
 
-    const markdown = this.replaceUserMention(this.props.markdown);
+    const markdown = this.replaceUserMention(DOMPurify.sanitize(this.props.markdown));
 
     const markup = emojiToolkit.toImage(marked(markdown));
 

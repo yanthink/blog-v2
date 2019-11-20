@@ -1,6 +1,7 @@
 import { Button, Card, Form, Icon, Input, Radio, Select, Upload, message } from 'antd';
 import SimpleMDEEditor, { SimpleMDEEditorProps } from 'yt-simplemde-editor';
 import emojiDependencies from 'yt-simplemde-editor/dist/emoji';
+import DOMPurify from 'dompurify';
 // @ts-ignore
 import emojiToolkit from 'emoji-toolkit';
 import marked from 'marked';
@@ -102,7 +103,7 @@ class ArticleCreate extends Component<ArticleCreateProps, ArticleCreateState> {
   };
 
   renderMarkdown = (text: string) => {
-    let html = marked(text);
+    let html = marked(DOMPurify.sanitize(text));
     return emojiToolkit.toImage(html);
   };
 
