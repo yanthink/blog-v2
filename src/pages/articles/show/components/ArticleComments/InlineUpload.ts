@@ -233,7 +233,8 @@ export default class InlineUpload {
     const { textarea, options: { onError }, lastValue, onChange } = this;
 
     const text = textarea.value.replace(lastValue as string, '');
-    onChange(insertText(textarea, text));
+    textarea.value = text;
+    onChange(text);
 
     if (onError) {
       onError(getError(this.options, xhr), getBody(xhr), file);

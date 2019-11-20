@@ -51,7 +51,7 @@ export default class ArticleContent extends React.Component<ArticleContentProps>
 
         <div className={styles.content}>
           <MarkdownBody
-            markdown={article.content.markdown as string}
+            markdown={article.content.combine_markdown as string}
             prismPlugin
             toc
             getTocify={this.props.getTocify}

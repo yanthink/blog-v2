@@ -34,7 +34,7 @@ interface ArticleShowProps extends ConnectProps, FormComponentProps {
 }
 
 interface ArticleShowState {
-  fetchingArticle: boolean;
+  renderComments: boolean;
   tocify?: Tocify;
 }
 
@@ -44,14 +44,12 @@ interface ArticleShowState {
 }))
 class ArticleShow extends React.Component<ArticleShowProps, ArticleShowState> {
   state: ArticleShowState = {
-    fetchingArticle: true,
+    renderComments: false,
     tocify: undefined,
   };
 
   async UNSAFE_componentWillMount () {
     const { dispatch, match: { params }, location } = this.props;
-
-    this.setState({ fetchingArticle: true });
 
     const fetchArticle = dispatch({
       type: 'articleShow/fetchArticle',
@@ -62,13 +60,12 @@ class ArticleShow extends React.Component<ArticleShowProps, ArticleShowState> {
       },
     });
 
+    delete defaultCommentsQueryParams.top_comment;
     if (this.props.location.hash) {
       const arr = this.props.location.hash.split('-');
 
       if (arr.length === 2 && arr[0] === '#comment' && arr[1] !== undefined && Number(arr[1]) > 0) {
         defaultCommentsQueryParams.top_comment = Number(arr[1]);
-      } else {
-        delete defaultCommentsQueryParams.top_comment;
       }
     }
 
@@ -83,13 +80,14 @@ class ArticleShow extends React.Component<ArticleShowProps, ArticleShowState> {
     await fetchArticle;
     await fetchComments;
 
-    this.setState({ fetchingArticle: false }, () => {
-      if (this.props.location.hash) {
-        setTimeout(() => {
-          this.scrollToAnchor(this.props.location.hash.substr(1));
-        }, 500);
-      }
-    });
+    // 文章内容渲染完成后再渲染评论来提升渲染速度
+    setTimeout(() => {
+      this.setState({ renderComments: true }, () => {
+        if (this.props.location.hash) {
+          setTimeout(() => this.scrollToAnchor(this.props.location.hash.substr(1)), 200);
+        }
+      });
+    }, 0);
   }
 
   scrollToAnchor = (id: string) => {
@@ -161,7 +159,7 @@ class ArticleShow extends React.Component<ArticleShowProps, ArticleShowState> {
       loading,
     } = this.props;
 
-    const { fetchingArticle, tocify } = this.state;
+    const { renderComments, tocify } = this.state;
 
     const HeaderAction = (
       <Link to={`/articles/${params.id}/edit`}>
@@ -180,24 +178,27 @@ class ArticleShow extends React.Component<ArticleShowProps, ArticleShowState> {
               <Skeleton
                 active
                 paragraph={{ rows: 13 }}
-                loading={fetchingArticle}
+                loading={!loading.effects['articleShow/fetchArticle'] === false}
               >
                 <ArticleContent article={article} getTocify={this.setTocify} />
               </Skeleton>
             </Card>
 
             <Card bordered={false} style={{ marginTop: 24 }} id="comments">
-              <ArticleComments
-                article={article}
-                comments={comments}
-                meta={meta}
-                loading={loading.effects['articleShow/fetchComments']}
-                onPageChange={this.handleCommentsPageChange}
-                onFetchMoreChildrenComments={this.handleFetchMoreChildrenComments}
-                onSubmitComment={this.handleSubmitComment}
-                submittingComment={loading.effects['articleShow/submitComment']}
-                topComment={defaultCommentsQueryParams.top_comment}
-              />
+              {
+                renderComments &&
+                <ArticleComments
+                  article={article}
+                  comments={comments}
+                  meta={meta}
+                  loading={loading.effects['articleShow/fetchComments']}
+                  onPageChange={this.handleCommentsPageChange}
+                  onFetchMoreChildrenComments={this.handleFetchMoreChildrenComments}
+                  onSubmitComment={this.handleSubmitComment}
+                  submittingComment={loading.effects['articleShow/submitComment']}
+                  topComment={defaultCommentsQueryParams.top_comment}
+                />
+              }
             </Card>
           </Col>
           <Col xl={6} lg={0} md={0} sm={0} xs={0}>

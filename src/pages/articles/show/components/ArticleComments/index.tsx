@@ -157,7 +157,7 @@ class ArticleComments extends React.Component<ArticleCommentsProps, ArticleComme
                   </span>
                 }
                 avatar={get(comment, 'user.avatar')}
-                content={<MarkdownBody markdown={get(comment, 'content.markdown')} />}
+                content={<MarkdownBody markdown={get(comment, 'content.combine_markdown')} />}
                 datetime={
                   <Tooltip title={comment.created_at}>
                     <span>{comment.created_at_timeago}</span>

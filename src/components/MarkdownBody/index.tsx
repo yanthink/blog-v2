@@ -31,11 +31,11 @@ class MarkdownBody extends React.Component<MarkdownBodyProps> {
       this.props.getTocify(this.tocify);
     }
 
-    this.runPlugin();
+    // this.runPlugin();
   }
 
   async componentDidUpdate (prevProps: Readonly<MarkdownBodyProps>, prevState: Readonly<{}>, snapshot?: any) {
-    this.runPlugin();
+    // this.runPlugin();
   }
 
   componentWillUnmount () {
