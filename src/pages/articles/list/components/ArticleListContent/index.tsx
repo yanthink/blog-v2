@@ -46,7 +46,7 @@ const ArticleListContent: React.FC<ArticleListContentProps> = ({ data: article }
               }}
             />
           ))
-          : get(article, 'content.markdown', '').substr(0, 300)}
+          : get(article, 'content.combine_markdown', '').substr(0, 300)}
       </Ellipsis>
     </div>
     <div className={styles.extra}>

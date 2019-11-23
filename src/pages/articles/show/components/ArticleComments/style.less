@@ -67,9 +67,11 @@
 .topComment {
   background-color: #fffbe6;
 
-  :global {
-    .ant-comment-nested, .loadMoreReplysBtn {
-      background-color: #fffbe6;
-    }
+  .loadMoreReplysBtn {
+    background-color: #fffbe6;
+  }
+
+  :global(.ant-comment-nested) {
+    background-color: #fffbe6;
   }
 }
