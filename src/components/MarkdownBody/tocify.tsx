@@ -23,7 +23,7 @@ export default class Tocify {
     this.tocItems = [];
   }
 
-  add (text: string, level: number, id = '') {
+  add (text: string, level: number, id: string = '') {
     const count = this.anchors.filter(anchor => anchor === text).length;
     const anchor = id || (count ? `${text}${count}` : text);
     this.anchors.push(anchor);

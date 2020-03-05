@@ -13,7 +13,6 @@ import { StateType as AccountNotificationsModelState } from '@/pages/account/not
 import { StateType as AccountSettingsModelState } from '@/pages/account/settings/model';
 import { StateType as RoleListModelState } from '@/pages/roles/list/model';
 import { StateType as PermissionListModelState } from '@/pages/permissions/list/model';
-import { StateType as NotificationListModelState } from '@/pages/notifications/list/model';
 import { StateType as TagListModelState } from '@/pages/tags/list/model';
 import { GlobalModelState } from './global';
 import { DefaultSettings as SettingModelState } from '../../config/defaultSettings';
@@ -32,7 +31,6 @@ export {
   AccountSettingsModelState,
   RoleListModelState,
   PermissionListModelState,
-  NotificationListModelState,
   TagListModelState,
 };
 
@@ -74,7 +72,6 @@ export interface ConnectState {
   accountSettings: AccountSettingsModelState;
   roleList: RoleListModelState;
   permissionList: PermissionListModelState;
-  notificationList: NotificationListModelState;
   tagList?: TagListModelState;
 }
 

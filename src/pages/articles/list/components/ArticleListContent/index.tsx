@@ -50,7 +50,7 @@ const ArticleListContent: React.FC<ArticleListContentProps> = ({ data: article }
       </Ellipsis>
     </div>
     <div className={styles.extra}>
-      <IconText type="user" text={get(article, 'author.name', '')} />
+      <IconText type="user" text={get(article, 'user.username', '')} />
       <IconText type="clock-circle-o" text={article.created_at_timeago} tooltip={article.created_at} />
       <IconText type="eye" text={article.friendly_views_count} />
       <IconText key="like" type="like-o" text={article.friendly_likes_count} />

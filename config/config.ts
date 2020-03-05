@@ -126,6 +126,7 @@ export default {
         languages: [
           'markup',
           'markup-templating',
+          'cpp',
           'css',
           'less',
           'scss',
