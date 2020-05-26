@@ -17,7 +17,7 @@ const Notifications: React.FC<NotificationsProps> = () => {
   const { loading, data, pagination } = useRequest<
     ResponseResultType<INotification[]>,
     INotification
-  >(service.queryNotifications, {
+  >(({ current, pageSize }) => service.queryNotifications({ page: current, per_page: pageSize }), {
     paginated: true,
     formatResult: umiformatPaginationResult,
   });

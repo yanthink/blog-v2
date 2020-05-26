@@ -77,13 +77,13 @@ export default [
             name: '系统管理',
             icon: 'setting',
             path: 'system',
-            authority: ['tags.index', 'roles.index', 'permissions.index'],
+            authority: ['comments.index', 'tags.index', 'roles.index', 'permissions.index'],
             routes: [
               {
                 name: '评论管理',
                 icon: 'message',
                 path: 'comments/list',
-                // authority: 'comments.index',
+                authority: 'comments.index',
                 component: './comments/list',
               },
               {
