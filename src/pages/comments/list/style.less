@@ -1,0 +1,45 @@
+@import '~antd/es/style/themes/default.less';
+
+.table {
+  :global {
+    .editable-cell {
+      position: relative;
+    }
+
+    .editable-cell-value-wrap {
+      padding: 5px 12px;
+      cursor: pointer;
+    }
+
+    .editable-row:hover .editable-cell-value-wrap {
+      padding: 4px 11px;
+      border: 1px solid #d9d9d9;
+      border-radius: 4px;
+    }
+
+    [data-theme='dark'] .editable-row:hover .editable-cell-value-wrap {
+      border: 1px solid #434343;
+    }
+  }
+}
+
+.username,
+.articleTitle,
+.content {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  word-break: break-all;
+}
+
+.username {
+  max-width: 80px;
+}
+
+.articleTitle {
+  max-width: 200px;
+}
+
+.content {
+  max-width: 280px;
+}

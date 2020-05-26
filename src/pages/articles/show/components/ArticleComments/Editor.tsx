@@ -1,23 +1,36 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { connect } from 'dva';
-import { router } from 'umi';
-import { Avatar, Button, Icon, Mentions, message, Upload } from 'antd';
-import { RcFile, UploadChangeParam } from 'antd/es/upload/interface';
+import { connect, history } from 'umi';
+import { Avatar, Button, Mentions, message, Upload } from 'antd';
+import { UserOutlined, PictureOutlined, SmileOutlined, MessageOutlined } from '@ant-design/icons';
+import { UploadChangeParam } from 'antd/es/upload/interface';
 import { stringify } from 'qs';
 import { debounce } from 'lodash';
 import EmojiPicker from 'yt-emoji-picker';
 // @ts-ignore
 import emojiToolkit from 'emoji-toolkit';
 import MarkdownBody from '@/components/MarkdownBody';
-import InlineUpload from './InlineUpload';
-import { ConnectProps, ConnectState, AuthStateType } from '@/models/connect';
+import { ConnectProps, ConnectState, AuthModelState } from '@/models/connect';
 import { getPageQuery, getPositions, insertText, isParentElement } from '@/utils/utils';
 import { getToken } from '@/utils/authority';
-import calculateNodeHeight from './calculateNodeHeight';
+import { IUser } from '@/models/I';
 import * as services from '@/services';
-import { IUser } from '@/models/data';
+import InlineUpload from './InlineUpload';
+import calculateNodeHeight from './calculateNodeHeight';
 import styles from './Editor.less';
+
+interface ArticleCommentEditorProps extends Partial<ConnectProps> {
+  onSubmit: (values: { content: { markdown: string } }) => Promise<void>;
+  submitting: boolean;
+  className?: string;
+  placeholder?: string;
+  minRows?: number;
+  maxRows?: number;
+  maxLength?: number;
+  auth?: AuthModelState;
+  preview?: boolean;
+  defaultMentionUsers?: IUser[];
+}
 
 interface ArticleCommentEditorState {
   value: string;
@@ -28,30 +41,18 @@ interface ArticleCommentEditorState {
   loadingMentions: boolean;
 }
 
-interface ArticleCommentEditorProps extends ConnectProps {
-  onSubmit: (values: { content: { markdown: string } }, callback?: () => void) => void;
-  submitting: boolean;
-  className?: string;
-  placeholder?: string;
-  minRows?: number;
-  maxRows?: number;
-  maxLength?: number;
-  auth?: AuthStateType;
-  preview?: boolean;
-  defaultMentionUsers?: IUser[];
-}
-
-const uploadUrl = '/api/attachments/upload';
-
-/* eslint max-len: 0 */
-class ArticleCommentEditor extends React.Component<ArticleCommentEditorProps, ArticleCommentEditorState> {
+/* eslint-disable react/no-unused-state */
+class ArticleCommentEditor extends React.Component<
+  ArticleCommentEditorProps,
+  ArticleCommentEditorState
+> {
   static emojiPickerPopup?: HTMLDivElement;
 
   static instance: ArticleCommentEditor;
 
   static stackCount: number = 0;
 
-  constructor (props: ArticleCommentEditorProps) {
+  constructor(props: ArticleCommentEditorProps) {
     super(props);
 
     this.state = {
@@ -70,18 +71,18 @@ class ArticleCommentEditor extends React.Component<ArticleCommentEditorProps, Ar
 
   textarea: HTMLTextAreaElement | any;
 
-  componentDidMount () {
+  componentDidMount() {
     this.resizeTextarea();
 
     if (this.textarea) {
-      this.inlineUpload = new InlineUpload(this.textarea, value => this.setState({ value }), {
-        action: uploadUrl,
+      this.inlineUpload = new InlineUpload(this.textarea, (value) => this.setState({ value }), {
+        action: UPLOAD_URL,
         jsonName: 'data.url',
         headers: {
           Accept: `application/json`,
           Authorization: getToken(),
         },
-        onError (err: any, response: { message?: string }) {
+        onError(err: any, response: { message?: string }) {
           if (response.message) {
             message.error(response.message);
           }
@@ -93,17 +94,13 @@ class ArticleCommentEditor extends React.Component<ArticleCommentEditorProps, Ar
 
     if (!ArticleCommentEditor.emojiPickerPopup) {
       ArticleCommentEditor.emojiPickerPopup = document.createElement('div');
-      ArticleCommentEditor.emojiPickerPopup.id = 'emoji-picker-popup';
+      // ArticleCommentEditor.emojiPickerPopup.id = 'emoji-picker-popup';
       ArticleCommentEditor.emojiPickerPopup.className = styles.emojiPickerPopup;
       ArticleCommentEditor.emojiPickerPopup.style.display = 'none';
       ArticleCommentEditor.emojiPickerPopup.style.position = 'absolute';
       ArticleCommentEditor.emojiPickerPopup.style.zIndex = '99999';
 
-      document.body.addEventListener(
-        'click',
-        this.hiddenEmojiPickerPopup,
-        false,
-      );
+      document.body.addEventListener('click', this.hiddenEmojiPickerPopup, false);
 
       document.body.appendChild(ArticleCommentEditor.emojiPickerPopup);
 
@@ -120,15 +117,11 @@ class ArticleCommentEditor extends React.Component<ArticleCommentEditorProps, Ar
     this.textarea.addEventListener('keydown', this.handleKeydownEvent);
   }
 
-  componentWillUnmount () {
+  componentWillUnmount() {
     ArticleCommentEditor.stackCount--;
 
     if (ArticleCommentEditor.emojiPickerPopup && ArticleCommentEditor.stackCount === 0) {
-      document.body.removeEventListener(
-        'click',
-        this.hiddenEmojiPickerPopup,
-        false,
-      );
+      document.body.removeEventListener('click', this.hiddenEmojiPickerPopup, false);
 
       document.body.removeChild(ArticleCommentEditor.emojiPickerPopup);
 
@@ -137,7 +130,7 @@ class ArticleCommentEditor extends React.Component<ArticleCommentEditorProps, Ar
     }
 
     this.textarea.removeEventListener('keydown', this.handleKeydownEvent);
-    this.inlineUpload && this.inlineUpload.destroy();
+    this.inlineUpload?.destroy();
   }
 
   handleKeydownEvent = (e: KeyboardEvent) => {
@@ -149,16 +142,15 @@ class ArticleCommentEditor extends React.Component<ArticleCommentEditorProps, Ar
     }
   };
 
-  handleSubmit = (e?: React.FormEvent) => {
+  handleSubmit = async (e?: React.FormEvent) => {
     e && e.preventDefault();
 
     const { onSubmit, submitting } = this.props;
     const { value } = this.state;
 
     if (value && !submitting) {
-      onSubmit({ content: { markdown: value } }, () => {
-        this.setState({ value: '' });
-      });
+      await onSubmit({ content: { markdown: value } });
+      this.setState({ value: '' });
     }
   };
 
@@ -172,7 +164,7 @@ class ArticleCommentEditor extends React.Component<ArticleCommentEditorProps, Ar
     this.setState({ value }, () => this.resizeTextarea());
   };
 
-  handleBeforeUpload = (file: RcFile, fileList: RcFile[]) => {
+  handleBeforeUpload = () => {
     message.loading('正在上传...');
     return true;
   };
@@ -190,6 +182,8 @@ class ArticleCommentEditor extends React.Component<ArticleCommentEditorProps, Ar
       case 'error':
         message.destroy();
         message.error(file.response.message);
+        break;
+      default:
         break;
     }
   };
@@ -219,7 +213,10 @@ class ArticleCommentEditor extends React.Component<ArticleCommentEditorProps, Ar
   };
 
   hiddenEmojiPickerPopup = (e: any) => {
-    if (ArticleCommentEditor.emojiPickerPopup && ArticleCommentEditor.emojiPickerPopup.style.display !== 'none') {
+    if (
+      ArticleCommentEditor.emojiPickerPopup &&
+      ArticleCommentEditor.emojiPickerPopup.style.display !== 'none'
+    ) {
       if (
         !isParentElement(e.target, [
           ArticleCommentEditor.emojiPickerPopup,
@@ -238,9 +235,11 @@ class ArticleCommentEditor extends React.Component<ArticleCommentEditorProps, Ar
       return this.setState({ mentionUsers: defaultMentionUsers.slice(0, 6) });
     }
 
-    const mentionUsers = defaultMentionUsers.filter((user) => {
-      return (user.username as string).toLowerCase().indexOf(search.toLowerCase()) >= 0;
-    }).slice(0, 6);
+    const mentionUsers = defaultMentionUsers
+      .filter((user) => {
+        return (user.username as string).toLowerCase().indexOf(search.toLowerCase()) >= 0;
+      })
+      .slice(0, 6);
     if (mentionUsers.length) {
       return this.setState({ mentionUsers });
     }
@@ -250,16 +249,20 @@ class ArticleCommentEditor extends React.Component<ArticleCommentEditorProps, Ar
     const { data } = await services.searchUsers(search);
 
     if (this.state.search !== search) {
-      return;
+      return false;
     }
 
     this.setState({ mentionUsers: data, loadingMentions: false });
+
+    return true;
   }, 600);
 
   setTextarea = (ref: HTMLDivElement) => {
     if (!ref) {
       return;
     }
+
+    // eslint-disable-next-line prefer-destructuring
     this.textarea = ref.getElementsByTagName('textarea')[0];
   };
 
@@ -279,7 +282,7 @@ class ArticleCommentEditor extends React.Component<ArticleCommentEditorProps, Ar
     const { redirect } = getPageQuery();
     // redirect
     if (window.location.pathname !== '/auth/login' && !redirect) {
-      router.push({
+      history.push({
         pathname: '/auth/login',
         search: stringify({
           redirect: window.location.href,
@@ -288,7 +291,7 @@ class ArticleCommentEditor extends React.Component<ArticleCommentEditorProps, Ar
     }
   };
 
-  render () {
+  render() {
     const {
       submitting,
       className,
@@ -315,7 +318,11 @@ class ArticleCommentEditor extends React.Component<ArticleCommentEditorProps, Ar
               value={value}
             >
               {mentionUsers.map(({ avatar, username }) => (
-                <Mentions.Option key={username} value={username} className="antd-demo-dynamic-option">
+                <Mentions.Option
+                  key={username}
+                  value={username}
+                  className="antd-demo-dynamic-option"
+                >
                   <img src={avatar} alt={username} className={styles.mentionsAvatar} />
                   <span>{username}</span>
                 </Mentions.Option>
@@ -324,23 +331,21 @@ class ArticleCommentEditor extends React.Component<ArticleCommentEditorProps, Ar
           </div>
           <div className={styles.toolbar}>
             <div className={styles.info}>
-              {
-                logged ?
-                  (
-                    <div>
-                      <Avatar
-                        className={styles.avatar}
-                        src={user.avatar}
-                        alt={user.username}
-                        icon="user"
-                      />
-                      {user.username}
-                    </div>
-                  ) :
-                  (
-                    <div>您需要 <a onClick={this.jumpToLogin}>登录</a> 才能发表评论</div>
-                  )
-              }
+              {logged ? (
+                <div>
+                  <Avatar
+                    className={styles.avatar}
+                    src={user.avatar}
+                    alt={user.username}
+                    icon={<UserOutlined />}
+                  />
+                  {user.username}
+                </div>
+              ) : (
+                <div>
+                  您需要 <a onClick={this.jumpToLogin}>登录</a> 才能发表评论
+                </div>
+              )}
             </div>
             <div className={styles.actions}>
               <div className={styles.action}>
@@ -354,7 +359,7 @@ class ArticleCommentEditor extends React.Component<ArticleCommentEditorProps, Ar
                   beforeUpload={this.handleBeforeUpload}
                   onChange={this.handleUploadChange}
                 >
-                  <Icon type="picture" />
+                  <PictureOutlined />
                 </Upload>
               </div>
               <div
@@ -362,7 +367,9 @@ class ArticleCommentEditor extends React.Component<ArticleCommentEditorProps, Ar
                 className={styles.action}
                 onClick={() => this.toggleEmojiPickerPopup(this.emojiPickerBtn)}
               >
-                <span className={styles.emojiPickerBtn}><Icon type="smile" theme="outlined" /></span>
+                <span className={styles.emojiPickerBtn}>
+                  <SmileOutlined />
+                </span>
               </div>
               <div className={styles.action}>
                 <Button
@@ -372,7 +379,7 @@ class ArticleCommentEditor extends React.Component<ArticleCommentEditorProps, Ar
                   onClick={this.handleSubmit}
                   disabled={!logged}
                   type="primary"
-                  icon="message"
+                  icon={<MessageOutlined />}
                 >
                   评论
                 </Button>
@@ -380,12 +387,11 @@ class ArticleCommentEditor extends React.Component<ArticleCommentEditorProps, Ar
             </div>
           </div>
         </div>
-        {
-          preview && value &&
+        {preview && value && (
           <div className={styles.preview}>
             <MarkdownBody markdown={value} />
           </div>
-        }
+        )}
       </div>
     );
   }

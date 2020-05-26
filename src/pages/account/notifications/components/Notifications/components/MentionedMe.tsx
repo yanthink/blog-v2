@@ -1,81 +1,69 @@
 import React from 'react';
-import { Avatar, Icon, Tooltip } from 'antd';
 import { Link } from 'umi';
-import { get } from 'lodash';
-import { INotification } from '@/models/data';
+import { Avatar, Tooltip } from 'antd';
+import { ClockCircleOutlined } from '@ant-design/icons';
 import MarkdownBody from '@/components/MarkdownBody';
+import { INotification } from '@/models/I';
 import styles from './style.less';
 
-export interface MentionedMeProps {
+interface MentionedMeProps {
   notification: INotification;
 }
 
-class MentionedMe extends React.Component<MentionedMeProps> {
-  renderContentHead = () => {
-    const { notification } = this.props;
-
-    switch (get(notification, 'data.contentable_type')) {
+const MentionedMe: React.FC<MentionedMeProps> = ({ notification }) => {
+  function renderContentHead() {
+    switch (notification.data.contentable_type) {
       case 'App\\Models\\Article':
         return (
           <>
-            <Link to={`/${get(notification, 'data.username')}`}>
-              {get(notification, 'data.username')}
-            </Link>
+            <Link to={`/${notification.data.username}`}>{notification.data.username}</Link>
             <span> 在 </span>
-            <Link to={`/articles/${get(notification, 'data.contentable_id')}`}>
-              {get(notification, 'data.contentable_title')}
+            <Link to={`/articles/${notification.data.contentable_id}`}>
+              {notification.data.contentable_title}
             </Link>
             <span> 文章中提及了您</span>
           </>
         );
       case 'App\\Models\\Comment':
-        const pathname = `/articles/${get(notification, 'data.commentable_id')}`;
-        const hash = `#comment-${get(notification, 'data.comment_id')}`;
+        // eslint-disable-next-line no-case-declarations
+        const pathname = `/articles/${notification.data.commentable_id}`;
+        // eslint-disable-next-line no-case-declarations
+        const hash = `#comment-${notification.data.comment_id}`;
 
         return (
           <>
-            <Link to={`/${get(notification, 'data.username')}`}>
-              {get(notification, 'data.username')}
-            </Link>
+            <Link to={`/${notification.data.username}`}>{notification.data.username}</Link>
             <span> 在 </span>
-            <Link to={`${pathname}${hash}`}>
-              {get(notification, 'data.commentable_title')}
-            </Link>
+            <Link to={`${pathname}${hash}`}>{notification.data.commentable_title}</Link>
             <span> 的评论中提及了您 </span>
           </>
         );
       default:
         return null;
     }
-  };
+  }
 
-  render () {
-    const { notification } = this.props;
-
-    return (
-      <div className={styles.notification}>
-        <div className={styles.avatar}>
-          <Avatar src={get(notification, 'data.avatar')} />
-        </div>
-        <div className={styles.content}>
-          <div className={styles.contentHead}>
-            {this.renderContentHead()}
-          </div>
-          <div className={styles.contentBody}>
-            <MarkdownBody markdown={get(notification, 'data.content')} />
-          </div>
-        </div>
-        <div className={styles.timeago}>
-          <Tooltip title={notification.created_at}>
-            <span>
-              <Icon type="clock-circle-o" style={{ marginRight: 4 }} />
-              {notification.created_at_timeago}
-            </span>
-          </Tooltip>
+  return (
+    <div className={styles.notification}>
+      <div className={styles.avatar}>
+        <Avatar src={notification.data.avatar} />
+      </div>
+      <div className={styles.content}>
+        <div className={styles.contentHead}>{renderContentHead()}</div>
+        <div className={styles.contentBody}>
+          <MarkdownBody markdown={notification.data.content} />
         </div>
       </div>
-    );
-  }
-}
+      <div className={styles.timeago}>
+        <Tooltip title={notification.created_at}>
+          <span>
+            <ClockCircleOutlined style={{ marginRight: 4 }} />
+            {notification.created_at_timeago}
+          </span>
+        </Tooltip>
+      </div>
+    </div>
+  );
+};
 
 export default MentionedMe;

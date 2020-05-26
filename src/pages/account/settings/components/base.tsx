@@ -1,27 +1,28 @@
-import React, { Component } from 'react';
+import React, { useEffect, useState } from 'react';
+import { connect, useRequest } from 'umi';
 import {
+  AutoComplete,
   Button,
+  Col,
   Form,
   Input,
   InputNumber,
-  Select,
-  Popover,
-  Icon,
-  AutoComplete,
-  Row,
-  Col,
   message,
+  Popover,
+  Row,
+  Select,
 } from 'antd';
-import { FormComponentProps } from 'antd/es/form';
-import { get, debounce } from 'lodash';
-import { ConnectProps, Loading, AuthStateType } from '@/models/connect';
+import { QuestionCircleOutlined } from '@ant-design/icons';
+import { ConnectProps, AuthModelState, ConnectState } from '@/models/connect';
+import { IUser, ResponseResultType } from '@/models/I';
 import GeographicView from './GeographicView';
 import AvatarView from './AvatarView';
-import { sendEmailCode } from '../services';
+import * as services from '../services';
 import styles from './BaseView.less';
 
-const FormItem = Form.Item;
-const { Option } = Select;
+interface BaseViewProps extends Partial<ConnectProps> {
+  auth?: AuthModelState;
+}
 
 interface SelectItem {
   label: string;
@@ -46,97 +47,95 @@ const validatorGeographic = (
   callback();
 };
 
-interface BaseViewProps extends ConnectProps, FormComponentProps {
-  auth: AuthStateType;
-  loading: Loading;
-}
+let timer: number;
 
-interface BaseViewState {
-  emails: string[];
-  emailCodeSending: boolean;
-  emailCodeCountDown: number;
-  identifyingCode: string;
-}
+const BaseView: React.FC<BaseViewProps> = (props) => {
+  const [form] = Form.useForm();
+  const [emails, setEmails] = useState<string[]>([]);
+  const [countdown, setCountdown] = useState<number>(0);
 
-class BaseView extends Component<BaseViewProps, BaseViewState> {
-  state: BaseViewState = {
-    emails: [],
-    emailCodeSending: false,
-    emailCodeCountDown: 0,
-    identifyingCode: '',
-  };
+  useEffect(() => {
+    return () => {
+      clearInterval(timer);
+    };
+  }, []);
 
-  interval: number | undefined = undefined;
+  const {
+    loading: emailCodeSending,
+    data: { identifyingCode } = { identifyingCode: '' },
+    run: sendEmailCode,
+  } = useRequest<ResponseResultType<{ identifyingCode: string }>>(
+    () => services.sendEmailCode(form.getFieldValue('email')),
+    {
+      manual: true,
+      onSuccess() {
+        clearInterval(timer);
+        let t = 119;
+        setCountdown(t);
+        timer = window.setInterval(() => {
+          t -= 1;
+          setCountdown(t);
+          if (t === 0) {
+            clearInterval(timer);
+          }
+        }, 1000);
+      },
+    },
+  );
 
-  componentWillUnmount () {
-    clearInterval(this.interval);
+  const { loading: submitting, run: updateBaseInfo } = useRequest<ResponseResultType<IUser>>(
+    services.updateBaseInfo,
+    {
+      manual: true,
+      onSuccess(data) {
+        props.dispatch!({
+          type: 'auth/setUser',
+          user: data,
+        });
+        message.success('更新基本信息成功!');
+      },
+    },
+  );
+
+  async function handleSubmit(values: object) {
+    await updateBaseInfo(values);
   }
 
-  handleSubmit = debounce((event: React.MouseEvent) => {
-    event.preventDefault();
-    const { form } = this.props;
-    const { identifyingCode } = this.state;
-    form.validateFieldsAndScroll(async (err, values) => {
-      if (!err) {
-        await this.props.dispatch({
-          type: 'accountSettings/updateBaseInfo',
-          payload: { ...values, identifyingCode },
-        });
-
-        message.success('更新基本信息成功!');
-      }
-    });
-  }, 600);
-
-  handleEmailChange = (value: any) => {
-    this.setState({
-      emails: !value || value.indexOf('@') >= 0
+  function handleEmailChange(value?: string) {
+    const completeEmails =
+      !value || value.indexOf('@') >= 0
         ? []
-        : [`${value}@qq.com`, `${value}@163.com`, `${value}@gmail.com`],
-    });
-  };
+        : [`${value}@qq.com`, `${value}@163.com`, `${value}@gmail.com`];
+    setEmails(completeEmails);
+  }
 
-  onSendEmailCode = debounce(async () => {
-    const { form: { getFieldValue } } = this.props;
-    const email = getFieldValue('email');
-
-    try {
-      this.setState({ identifyingCode: '', emailCodeSending: true });
-      const { data: { identifyingCode } } = await sendEmailCode(email);
-      this.setState({ identifyingCode, emailCodeSending: false });
-      this.runSendEmailCodeCountDown();
-    } catch (e) {
-      this.setState({ emailCodeSending: false });
-    }
-  }, 1000);
-
-  runSendEmailCodeCountDown = () => {
-    let countDown = 119;
-    this.setState({ emailCodeCountDown: countDown });
-    this.interval = window.setInterval(() => {
-      countDown -= 1;
-      this.setState({ emailCodeCountDown: countDown });
-      if (countDown === 0) {
-        clearInterval(this.interval);
-      }
-    }, 1000);
-  };
-
-  render () {
-    const {
-      auth,
-      loading,
-      form: { getFieldDecorator, isFieldTouched, getFieldError, getFieldValue },
-    } = this.props;
-    const { emails, emailCodeSending, emailCodeCountDown, identifyingCode } = this.state;
-
-    return (
-      <div className={styles.baseView}>
-        <div className={styles.left}>
-          <Form layout="vertical" hideRequiredMark>
-            <FormItem
+  return (
+    <div className={styles.baseView}>
+      <Form
+        form={form}
+        layout="vertical"
+        initialValues={{
+          username: props.auth!.user.username,
+          email: props.auth!.user.email,
+          bio: props.auth!.user.bio,
+          extends: {
+            country: props.auth!.user.extends?.country,
+            geographic: props.auth!.user.extends?.geographic || {
+              city: { key: '', label: '' },
+              province: { key: '', label: '' },
+              address: props.auth!.user.extends?.address,
+            },
+          },
+          avatar: props.auth!.user.avatar,
+        }}
+        onFinish={handleSubmit}
+        hideRequiredMark
+      >
+        <div style={{ display: 'flex' }}>
+          <div className={styles.left}>
+            <Form.Item
               label={
-                <span>
+                <div>
                   用户名&nbsp;
                   <Popover
                     placement="top"
@@ -147,123 +146,101 @@ class BaseView extends Component<BaseViewProps, BaseViewState> {
                       </div>
                     }
                   >
-                    <Icon type="question-circle-o" />
+                    <QuestionCircleOutlined />
                   </Popover>
-                </span>
+                </div>
               }
+              name="username"
+              rules={[
+                { required: true, message: '请输入您的用户名!' },
+                {
+                  pattern: /^(?!_)(?!.*?_$)[a-zA-Z0-9_\u4e00-\u9fa5]{1,10}$/,
+                  message: '用户名格式不正确!',
+                },
+              ]}
               extra="用户名只能修改一次，请谨慎操作！"
             >
-              {getFieldDecorator('username', {
-                initialValue: auth.user.username,
-                rules: [
-                  { required: true, message: '请输入您的用户名!' },
-                  { pattern: /^(?!_)(?!.*?_$)[a-zA-Z0-9_\u4e00-\u9fa5]{1,10}$/, message: '用户名格式不正确!' },
-                ],
-              })(
-                <Input disabled={get(auth.user, 'cache.username_modify_count', 0) > 0} />,
-              )}
-            </FormItem>
-            <FormItem label="邮箱">
-              {getFieldDecorator('email', {
-                initialValue: auth.user.email,
-                rules: [
-                  { type: 'email', message: '邮箱格式不正确!' },
-                ],
-              })(
-                <AutoComplete
-                  dataSource={emails}
-                  onChange={this.handleEmailChange}
-                  placeholder="Email"
-                />
-              )}
-            </FormItem>
-            {
-              isFieldTouched('email') &&
-              !getFieldError('email') &&
-              getFieldValue('email') &&
-              getFieldValue('email') !== auth.user.email &&
-              <FormItem label="验证码">
-                <Row gutter={8}>
-                  <Col span={14}>
-                    {getFieldDecorator('email_code', {
-                      rules: [
-                        { required: true, message: '请填写验证码!' },
-                        { pattern: /^\d{4}$/, message: '验证码格式不正确!' },
-                      ],
-                    })(
-                      <InputNumber style={{ width: '100%' }} placeholder={`识别码：${identifyingCode}`} />
-                    )}
-                  </Col>
-                  <Col span={10}>
-                    <Button
-                      disabled={!!emailCodeCountDown}
-                      loading={emailCodeSending}
-                      onClick={this.onSendEmailCode}
-                      style={{ minWidth: '100%', padding: 'auto 12px' }}
-                    >
-                      {emailCodeCountDown ? `${emailCodeCountDown} second` : '获取验证码'}
-                    </Button>
-                  </Col>
-                </Row>
-              </FormItem>
-            }
-            <FormItem label="个人简介">
-              {getFieldDecorator('bio', {
-                initialValue: auth.user.bio,
-              })(
-                <Input.TextArea
-                  placeholder="个人简介"
-                  rows={4}
-                  maxLength={20}
-                />,
-              )}
-            </FormItem>
-            <FormItem label="国家/地区">
-              {getFieldDecorator('extends.country', {
-                initialValue: get(auth.user, 'extends.country'),
-                rules: [{ required: true, message: '请输入您的国家或地区!' }],
-              })(
-                <Select style={{ display: 'block' }}>
-                  <Option value="China">中国</Option>
-                </Select>,
-              )}
-            </FormItem>
-            <FormItem label="所在省市">
-              {getFieldDecorator('extends.geographic', {
-                initialValue: get(auth.user, 'extends.geographic', {
-                  city: { key: '', label: '' },
-                  province: { key: '', label: '' }
-                }),
-                rules: [
-                  { required: true, message: '请输入您的所在省市!' },
-                  { validator: validatorGeographic },
-                ],
-              })(<GeographicView />)}
-            </FormItem>
-            <FormItem label="街道地址">
-              {getFieldDecorator('extends.address', {
-                initialValue: get(auth.user, 'extends.address'),
-              })(<Input />)}
-            </FormItem>
-            <Button
-              type="primary"
-              onClick={this.handleSubmit}
-              loading={loading.effects['accountSettings/updateBaseInfo']}
+              <Input disabled={props.auth!.user.cache?.username_modify_count! > 0} />
+            </Form.Item>
+            <Form.Item
+              label="邮箱"
+              name="email"
+              rules={[{ type: 'email', message: '邮箱格式不正确!' }]}
             >
+              <AutoComplete dataSource={emails} onChange={handleEmailChange} placeholder="Email" />
+            </Form.Item>
+            {form.isFieldTouched('email') &&
+              !form.getFieldError('email').length &&
+              form.getFieldValue('email') &&
+              form.getFieldValue('email') !== props.auth!.user.email && (
+                <Form.Item label="验证码">
+                  <Row gutter={8}>
+                    <Col span={14}>
+                      <Form.Item
+                        name="email_code"
+                        rules={[
+                          { required: true, message: '请填写验证码!' },
+                          { pattern: /^\d{4}$/, message: '验证码格式不正确!' },
+                        ]}
+                        noStyle
+                      >
+                        <InputNumber
+                          style={{ width: '100%' }}
+                          placeholder={`识别码：${identifyingCode}`}
+                        />
+                      </Form.Item>
+                    </Col>
+                    <Col span={10}>
+                      <Button
+                        disabled={countdown > 0}
+                        loading={emailCodeSending}
+                        onClick={sendEmailCode}
+                        style={{ minWidth: '100%', padding: 'auto 12px' }}
+                      >
+                        {countdown ? `${countdown} 秒` : '获取验证码'}
+                      </Button>
+                    </Col>
+                  </Row>
+                </Form.Item>
+              )}
+            <Form.Item label="个人简介" name="bio">
+              <Input.TextArea placeholder="个人简介" rows={4} maxLength={20} />
+            </Form.Item>
+            <Form.Item
+              label="国家/地区"
+              name={['extends', 'country']}
+              rules={[{ required: true, message: '请输入您的国家或地区!' }]}
+            >
+              <Select style={{ display: 'block' }}>
+                <Select.Option value="China">中国</Select.Option>
+              </Select>
+            </Form.Item>
+            <Form.Item
+              label="所在省市"
+              name={['extends', 'geographic']}
+              rules={[
+                { required: true, message: '请输入您的所在省市!' },
+                { validator: validatorGeographic },
+              ]}
+            >
+              <GeographicView />
+            </Form.Item>
+            <Form.Item label="街道地址" name={['extends', 'address']}>
+              <Input />
+            </Form.Item>
+            <Button type="primary" htmlType="submit" loading={submitting}>
               更新基本信息
             </Button>
-          </Form>
+          </div>
+          <div className={styles.right}>
+            <Form.Item name="avatar" noStyle>
+              <AvatarView />
+            </Form.Item>
+          </div>
         </div>
-        <div className={styles.right}>
-          {getFieldDecorator('avatar', {
-            initialValue: auth.user.avatar,
-          })(
-            <AvatarView />,
-          )}
-        </div>
-      </div>
-    );
-  }
-}
+      </Form>
+    </div>
+  );
+};
 
-export default Form.create<BaseViewProps>()(BaseView);
+export default connect(({ auth }: ConnectState) => ({ auth }))(BaseView);

@@ -1,5 +1,6 @@
 import React from 'react';
-import { Icon, Tooltip } from 'antd';
+import { Tooltip } from 'antd';
+import { LikeOutlined, LikeTwoTone } from '@ant-design/icons';
 import RelationBtn from './RelationBtn';
 
 export interface LikeBtnProps {
@@ -14,18 +15,18 @@ export interface LikeBtnState {
 }
 
 class LikeBtn extends React.Component<LikeBtnProps, LikeBtnState> {
-  constructor (props: LikeBtnProps) {
+  constructor(props: LikeBtnProps) {
     super(props);
 
     const { item } = props;
 
     this.state = {
-      likesCount: item.cache.likes_count,
+      likesCount: item.cache?.likes_count || 0,
     };
   }
 
-  componentWillReceiveProps (nextProps: Readonly<LikeBtnProps>, nextContext: any): void {
-    this.setState({ likesCount: nextProps.item.cache.likes_count });
+  componentWillReceiveProps(nextProps: Readonly<LikeBtnProps>) {
+    this.setState({ likesCount: nextProps.item.cache.likes_count || 0 });
   }
 
   onAfterToggle = (status: boolean) => {
@@ -41,17 +42,13 @@ class LikeBtn extends React.Component<LikeBtnProps, LikeBtnState> {
   getChildren = (slot: 'on' | 'off') => (
     <Tooltip title="点赞">
       <div className="btn like-btn">
-        <Icon
-          type="like"
-          theme={slot === 'on' ? 'twoTone' : 'outlined'}
-          twoToneColor="#13C2C2"
-        />
+        {slot === 'on' ? <LikeTwoTone twoToneColor="#13C2C2" /> : <LikeOutlined />}
         {!this.props.hideText && <span>{this.state.likesCount}</span>}
       </div>
     </Tooltip>
   );
 
-  render () {
+  render() {
     const { relation, item } = this.props;
 
     return (

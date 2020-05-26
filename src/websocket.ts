@@ -1,20 +1,20 @@
 import Echo from 'laravel-echo';
 // @ts-ignore
 import io from 'socket.io-client';
-import { AuthStateType } from '@/models/connect';
+import { AuthModelState } from '@/models/connect';
 import { getToken, setSocketId } from '@/utils/authority';
-import { INotification } from '@/models/data';
+import { INotification } from '@/models/I';
 
-function createWebSocket () {
+function createWebSocket() {
   let echo: Echo;
 
-  return (state: AuthStateType) => {
+  return (state: AuthModelState) => {
     if (echo) {
       setSocketId('');
       echo.disconnect();
     }
 
-    if (!state.user.id) {
+    if (!state.logged) {
       return;
     }
 
@@ -32,17 +32,19 @@ function createWebSocket () {
 
     setSocketId(echo.socketId());
 
-    echo.private(`App.Models.User.${state.user.id}`)
+    echo
+      .private(`App.Models.User.${state.user.id}`)
       .listen('UnreadNotificationsChange', (data: { unread_count: number }) => {
+        // eslint-disable-next-line no-underscore-dangle
         window.g_app._store.dispatch({
           type: 'auth/setUnreadCount',
           unread_count: data.unread_count,
         });
       })
       .notification((notification: INotification) => {
+        // eslint-disable-next-line no-console
         console.info(notification);
       });
-
   };
 }
 

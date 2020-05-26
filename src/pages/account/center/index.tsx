@@ -1,14 +1,19 @@
-import React, { PureComponent } from 'react';
-import { connect } from 'dva';
-import { Card, Col, Row, Button, Icon, Divider, Affix } from 'antd';
-import { router } from 'umi';
+import React, { useState } from 'react';
+import { connect, history } from 'umi';
 import { GridContent } from '@ant-design/pro-layout';
-import { get } from 'lodash';
-import { ConnectState, ConnectProps, Loading, AuthStateType, AccountCenterModelState } from '@/models/connect';
+import { Affix, Button, Card, Col, Divider, Row } from 'antd';
+import { MailOutlined, EnvironmentOutlined, EditOutlined } from '@ant-design/icons';
+import { AuthModelState, ConnectProps, ConnectState } from '@/models/connect';
 import Favorites from './components/Favorites';
 import Comments from './components/Comments';
 import Likers from './components/Likers';
 import styles from './style.less';
+
+interface AccountCenterProps extends ConnectProps {
+  auth: AuthModelState;
+}
+
+type TabKeyType = 'favorites' | 'comments' | 'likers';
 
 const operationTabList = [
   {
@@ -25,105 +30,73 @@ const operationTabList = [
   },
 ];
 
-interface CenterProps extends ConnectProps {
-  loading: Loading;
-  auth: AuthStateType;
-  accountCenter: AccountCenterModelState;
-}
+const AccountCenter: React.FC<AccountCenterProps> = (props) => {
+  const [tabKey, setTabKey] = useState<TabKeyType>('favorites');
 
-interface CenterState {
-  tabKey: 'favorites' | 'comments' | 'likers';
-}
-
-@connect(({ loading, auth, accountCenter }: ConnectState) => ({
-  loading,
-  auth,
-  accountCenter,
-}))
-class Center extends PureComponent<CenterProps, CenterState> {
-  state: CenterState = {
-    tabKey: 'favorites',
-  };
-
-  onTabChange = (key: string) => {
-    this.setState({
-      tabKey: key as CenterState['tabKey'],
-    });
-  };
-
-  renderChildrenByTabKey = (tabKey: CenterState['tabKey']) => {
-    switch (tabKey) {
+  function renderChildrenByTabKey(key: TabKeyType) {
+    switch (key) {
       case 'favorites':
-        return <Favorites {...this.props} />;
+        return <Favorites />;
       case 'comments':
-        return <Comments {...this.props} />;
+        return <Comments />;
       case 'likers':
-        return <Likers {...this.props} />;
+        return <Likers />;
       default:
         return null;
     }
-  };
-
-
-  render () {
-    const { tabKey } = this.state;
-    const { auth } = this.props;
-
-    const dataLoading = !auth.logged;
-
-    return (
-      <GridContent>
-        <Row gutter={24}>
-          <Col lg={7} md={24}>
-            <Affix className={styles.affix} offsetTop={0}>
-              <Card bordered={false} loading={dataLoading}>
-                <div>
-                  <div className={styles.avatarHolder}>
-                    <img alt="" src={auth.user.avatar} />
-                    <div className={styles.name}>{auth.user.username}</div>
-                    <div>{auth.user.bio || '暂无个人描述~'}</div>
-                  </div>
-                  <div className={styles.detail}>
-                    <p>
-                      <Icon type="mail" />
-                      {auth.user.email || '暂无~'}
-                    </p>
-                    <p>
-                      <Icon type="environment" />
-                      {`${get(auth.user, 'extends.province')} `}
-                      {get(auth.user, 'extends.city')}
-                    </p>
-                  </div>
-                  <Divider />
-                  <div>
-                    <Button
-                      block
-                      size="large"
-                      icon="edit"
-                      onClick={() => router.push('/account/settings')}
-                    >
-                      编辑个人资料
-                    </Button>
-                  </div>
-                </div>
-              </Card>
-            </Affix>
-          </Col>
-          <Col lg={17} md={24}>
-            <Card
-              className={styles.tabsCard}
-              bordered={false}
-              tabList={operationTabList}
-              activeTabKey={tabKey}
-              onTabChange={this.onTabChange}
-            >
-              {this.renderChildrenByTabKey(tabKey)}
-            </Card>
-          </Col>
-        </Row>
-      </GridContent>
-    );
   }
-}
 
-export default Center;
+  return (
+    <GridContent>
+      <Row gutter={24}>
+        <Col lg={7} md={24} className={styles.leftCard}>
+          <Affix className={styles.affix} offsetTop={0}>
+            <Card bordered={false} loading={!props.auth.logged}>
+              <>
+                <div className={styles.avatarHolder}>
+                  <img alt="" src={props.auth.user.avatar} />
+                  <div className={styles.name}>{props.auth.user.username}</div>
+                  <div>{props.auth.user.bio || '暂无个人描述~'}</div>
+                </div>
+                <div className={styles.detail}>
+                  <p>
+                    <MailOutlined />
+                    {props.auth.user.email || '暂无~'}
+                  </p>
+                  <p>
+                    <EnvironmentOutlined />
+                    {props.auth.user.extends?.province}
+                    {props.auth.user.extends?.city}
+                  </p>
+                </div>
+                <Divider />
+                <div>
+                  <Button
+                    block
+                    size="large"
+                    icon={<EditOutlined />}
+                    onClick={() => history.push('/account/settings')}
+                  >
+                    编辑个人资料
+                  </Button>
+                </div>
+              </>
+            </Card>
+          </Affix>
+        </Col>
+        <Col lg={17} md={24} className={styles.tabsCard}>
+          <Card
+            bordered={false}
+            tabList={operationTabList}
+            activeTabKey={tabKey}
+            onTabChange={(key) => setTabKey(key as TabKeyType)}
+          >
+            {renderChildrenByTabKey(tabKey)}
+          </Card>
+        </Col>
+      </Row>
+    </GridContent>
+  );
+};
+
+export default connect(({ auth }: ConnectState) => ({ auth }))(AccountCenter);

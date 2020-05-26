@@ -1,60 +1,59 @@
-import { Icon, Tooltip } from 'antd';
 import React from 'react';
-import { get } from 'lodash';
+import { Tooltip } from 'antd';
+import {
+  UserOutlined,
+  ClockCircleOutlined,
+  EyeOutlined,
+  LikeOutlined,
+  MessageOutlined,
+} from '@ant-design/icons';
 import Ellipsis from '@/components/Ellipsis';
-import { IArticle } from '@/models/data';
+import { IArticle } from '@/models/I';
 import styles from './index.less';
 
 interface ArticleListContentProps {
   data: IArticle;
 }
 
-const IconText: React.FC<{
-  type: string;
-  text: React.ReactNode;
-  tooltip?: string;
-}> = ({ type, text, tooltip }) => {
-  if (tooltip) {
-    return (
-      <Tooltip title={tooltip}>
-        <span style={{ marginRight: 16 }}>
-          <Icon type={type} style={{ marginRight: 4 }} />
-          {text}
-        </span>
-      </Tooltip>
-    );
-  }
-
-  return (
-    <span style={{ marginRight: 16 }}>
-      <Icon type={type} style={{ marginRight: 4 }} />
-      {text}
-    </span>
-  );
-};
-
 const ArticleListContent: React.FC<ArticleListContentProps> = ({ data: article }) => (
   <div className={styles.listContent}>
     <div className={styles.description}>
       <Ellipsis lines={3}>
-        {article.highlights && article.highlights.content
+        {article.highlights?.content
           ? article.highlights.content.map((html, key) => (
-            <span
-              key={key}
-              dangerouslySetInnerHTML={{
-                __html: html,
-              }}
-            />
-          ))
-          : get(article, 'content.combine_markdown', '').substr(0, 300)}
+              <span
+                key={key}
+                dangerouslySetInnerHTML={{
+                  __html: html,
+                }}
+              />
+            ))
+          : article.content?.combine_markdown?.substr(0, 300)}
       </Ellipsis>
     </div>
     <div className={styles.extra}>
-      <IconText type="user" text={get(article, 'user.username', '')} />
-      <IconText type="clock-circle-o" text={article.created_at_timeago} tooltip={article.created_at} />
-      <IconText type="eye" text={article.friendly_views_count} />
-      <IconText key="like" type="like-o" text={article.friendly_likes_count} />
-      <IconText type="message" key="message" text={article.friendly_comments_count} />
+      <span style={{ marginRight: 16 }}>
+        <UserOutlined style={{ marginRight: 4 }} />
+        {article.user?.username}
+      </span>
+      <Tooltip title={article.created_at}>
+        <span style={{ marginRight: 16 }}>
+          <ClockCircleOutlined style={{ marginRight: 4 }} />
+          {article.created_at_timeago}
+        </span>
+      </Tooltip>
+      <span style={{ marginRight: 16 }}>
+        <EyeOutlined style={{ marginRight: 4 }} />
+        {article.friendly_views_count}
+      </span>
+      <span style={{ marginRight: 16 }}>
+        <LikeOutlined style={{ marginRight: 4 }} />
+        {article.friendly_likes_count}
+      </span>
+      <span style={{ marginRight: 16 }}>
+        <MessageOutlined style={{ marginRight: 4 }} />
+        {article.friendly_comments_count}
+      </span>
     </div>
   </div>
 );

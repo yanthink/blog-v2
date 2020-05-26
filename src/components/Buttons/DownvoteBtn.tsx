@@ -1,5 +1,5 @@
 import React from 'react';
-import { Icon } from 'antd';
+import { DislikeOutlined, DislikeTwoTone } from '@ant-design/icons';
 import RelationBtn from './RelationBtn';
 
 export interface DownvoteBtnProps {
@@ -14,18 +14,18 @@ export interface DownvoteBtnState {
 }
 
 class DownvoteBtn extends React.Component<DownvoteBtnProps, DownvoteBtnState> {
-  constructor (props: DownvoteBtnProps) {
+  constructor(props: DownvoteBtnProps) {
     super(props);
 
     const { item } = props;
 
     this.state = {
-      downVotesCount: item.cache.down_voters_count,
+      downVotesCount: item.cache?.down_voters_count || 0,
     };
   }
 
-  componentWillReceiveProps (nextProps: Readonly<DownvoteBtnProps>, nextContext: any): void {
-    this.setState({ downVotesCount: nextProps.item.cache.down_voters_count });
+  componentWillReceiveProps(nextProps: Readonly<DownvoteBtnProps>) {
+    this.setState({ downVotesCount: nextProps.item.cache?.down_voters_count || 0 });
   }
 
   onAfterToggle = (status: boolean) => {
@@ -40,16 +40,12 @@ class DownvoteBtn extends React.Component<DownvoteBtnProps, DownvoteBtnState> {
 
   getChildren = (slot: 'on' | 'off') => (
     <div className="downvote downvote-btn">
-      <Icon
-        type="dislike"
-        theme={slot === 'on' ? 'twoTone' : 'outlined'}
-        twoToneColor="#ff4d4f"
-      />
+      {slot === 'on' ? <DislikeTwoTone twoToneColor="#ff4d4f" /> : <DislikeOutlined />}
       {!this.props.hideText && <span>{this.state.downVotesCount}</span>}
     </div>
   );
 
-  render () {
+  render() {
     const { relation, item } = this.props;
 
     return (

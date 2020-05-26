@@ -28,7 +28,7 @@ class AvatarView extends React.Component<AvatarViewProps, AvatarViewState> {
   render() {
     const uploadProps = {
       name: 'file',
-      action: '/api/attachments/upload',
+      action: UPLOAD_URL,
       accept: 'image/*',
       showUploadList: false,
       headers: {
@@ -52,21 +52,17 @@ class AvatarView extends React.Component<AvatarViewProps, AvatarViewState> {
 
     return (
       <Fragment>
-        <div className={styles.avatar_title}>
-          头像
-        </div>
+        <div className={styles.avatar_title}>头像</div>
         <div className={styles.avatar}>
           <img src={value} alt="avatar" />
         </div>
         <Upload {...uploadProps}>
           <div className={styles.button_view}>
-            <Button icon="upload">
-              更换头像
-            </Button>
+            <Button icon="upload">更换头像</Button>
           </div>
         </Upload>
       </Fragment>
-    )
+    );
   }
 }
 

@@ -1,236 +1,128 @@
-import React, { Component, Fragment } from 'react';
-import { Card, Col, Form, Button, Input, Row, Table } from 'antd';
-import { router } from 'umi';
-import { parse, stringify } from 'qs';
-import { FormComponentProps } from 'antd/es/form';
-import { PageHeaderWrapper } from '@ant-design/pro-layout';
-import { connect } from 'dva';
-import { ConnectState, ConnectProps, PermissionListModelState, Loading } from '@/models/connect';
-import { IPermission } from '@/models/data';
-import { getAntdPaginationProps } from '@/utils/XUtils';
-import CreateForm from './components/CreateForm';
-import UpdateForm from './components/UpdateForm';
-import styles from './style.less';
+import React, { useRef, useState } from 'react';
+import { GridContent } from '@ant-design/pro-layout';
+import ProTable from '@ant-design/pro-table';
+import { useRequest } from 'umi';
+import { Button, Input, message } from 'antd';
+import { ConnectProps } from '@/models/connect';
+import { IPermission } from '@/models/I';
+import CreateModal from './components/CreateModal';
+import UpdateModal from './components/UpdateModal';
+import * as services from './services';
+import { ActionType, ProColumns } from '@ant-design/pro-table/es/Table';
 
-const FormItem = Form.Item;
+interface PermissionListProps extends ConnectProps {}
 
-const defaultQueryParams = {};
+const PermissionList: React.FC<PermissionListProps> = () => {
+  const action = useRef<ActionType>();
+  const [name, setName] = useState();
 
-interface PermissionListProps extends ConnectProps, FormComponentProps {
-  loading: Loading;
-  permissionList: PermissionListModelState;
-}
+  const [createModalVisible, handleCreateModalVisible] = useState<boolean>(false);
+  const [updateModalVisible, handleUpdateModalVisible] = useState<boolean>(false);
+  const [selectedPermission, setSelectedPermission] = useState<IPermission>({});
 
-interface PermissionListState {
-  createModalVisible: boolean;
-  updateModalVisible: boolean;
-  currentPermission: IPermission;
-}
+  function request({ current, pageSize, ...params }: any) {
+    return services.queryPermissions({ ...params, page: current, per_page: pageSize });
+  }
+  // 创建权限
+  const { loading: createModalSubmitting, run: storePermission } = useRequest(
+    services.storePermission,
+    {
+      manual: true,
+      onSuccess() {
+        action.current?.reload();
+        message.success('权限创建成功！');
+      },
+    },
+  );
+  // 更新权限
+  const { loading: updateModalSubmitting, run: updatePermission } = useRequest(
+    services.updatePermission,
+    {
+      manual: true,
+      onSuccess() {
+        action.current?.reload();
+        message.success('权限更新成功！');
+      },
+    },
+  );
 
-@connect(({ permissionList, loading }: ConnectState) => ({
-  permissionList,
-  loading,
-}))
-class PermissionList extends Component<PermissionListProps, PermissionListState> {
-  state: PermissionListState = {
-    createModalVisible: false,
-    updateModalVisible: false,
-    currentPermission: {},
-  };
-
-  columns = [
+  const columns: ProColumns<IPermission>[] = [
     {
       title: '权限标识',
       dataIndex: 'name',
-      key: 'name',
     },
     {
       title: '权限名称',
       dataIndex: 'display_name',
-      key: 'display_name',
     },
     {
       title: '创建时间',
       dataIndex: 'created_at',
-      key: 'created_at',
     },
     {
       title: '更新时间',
       dataIndex: 'updated_at',
-      key: 'updated_at',
     },
     {
       title: '操作',
-      render: (_: any, permission: IPermission) => (
-        <Fragment>
-          <a onClick={() => this.handleUpdateModalVisible(true, permission)}>编辑</a>
-        </Fragment>
-      ),
+      valueType: 'option',
+      dataIndex: 'id',
+      render: (_, permission) => [
+        <a
+          onClick={() => {
+            setSelectedPermission(permission);
+            handleUpdateModalVisible(true);
+          }}
+        >
+          编辑
+        </a>,
+      ],
     },
   ];
 
-  UNSAFE_componentWillMount () {
-    this.queryList(this.props.location.search);
-  }
-
-  UNSAFE_componentWillReceiveProps (nextProps: Readonly<PermissionListProps>): void {
-    if (nextProps.location.search !== this.props.location.search) {
-      this.queryList(nextProps.location.search);
-    }
-  }
-
-  queryList = (params: object | string) => {
-    const query = params instanceof Object ? params : parse(params.replace(/^\?/, ''));
-
-    const queryParams = {
-      ...defaultQueryParams,
-      ...query,
-    };
-
-    this.props.dispatch({
-      type: 'permissionList/fetch',
-      payload: queryParams,
-    });
-  };
-
-  handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-
-    const { location: { pathname }, form: { getFieldsValue } } = this.props;
-
-    router.push({
-      pathname,
-      search: stringify({
-        ...getFieldsValue(),
-      }),
-    });
-  };
-
-  handleFormReset = () => {
-    const { form } = this.props;
-    form.resetFields();
-    this.queryList({});
-  };
-
-  handleCreateModalVisible = (flag?: boolean) => {
-    this.setState({
-      createModalVisible: !!flag,
-    });
-  };
-
-  handleUpdateModalVisible = (flag?: boolean, role?: IPermission) => {
-    this.setState({
-      updateModalVisible: !!flag,
-      currentPermission: role || {},
-    });
-  };
-
-  handleAdd = async (values: object) => {
-    await this.props.dispatch({
-      type: 'permissionList/create',
-      payload: {
-        ...values,
-      },
-    });
-
-    this.handleCreateModalVisible();
-    this.queryList(this.props.location.search);
-  };
-
-  handleUpdate = async (id: number, values: object) => {
-    await this.props.dispatch({
-      type: 'permissionList/update',
-      id,
-      payload: {
-        ...values,
-      },
-    });
-
-    this.handleUpdateModalVisible();
-    this.queryList(this.props.location.search);
-  };
-
-  renderSearchForm () {
-    const { form } = this.props;
-    const { getFieldDecorator } = form;
-    return (
-      <Form onSubmit={this.handleSearch} layout="inline">
-        <Row gutter={{ md: 8, lg: 24, xl: 48 }}>
-          <Col md={8} sm={24}>
-            <FormItem label="权限标识">
-              {getFieldDecorator('name')(<Input placeholder="请输入" />)}
-            </FormItem>
-          </Col>
-          <Col md={16} sm={24}>
-            <div className={styles.action}>
-              <div className={styles.submitButtons}>
-                <Button type="primary" htmlType="submit">
-                  查询
-                </Button>
-                <Button style={{ marginLeft: 8 }} onClick={this.handleFormReset}>
-                  重置
-                </Button>
-              </div>
-              <div className={styles.operator}>
-                <Button
-                  icon="Permission-add"
-                  type="primary"
-                  onClick={() => this.handleCreateModalVisible(true)}
-                >
-                  新建
-                </Button>
-              </div>
-            </div>
-          </Col>
-        </Row>
-      </Form>
-    );
-  }
-
-  render () {
-    const {
-      permissionList: { list, meta },
-      loading,
-      location: { pathname, search },
-    } = this.props;
-    const {
-      createModalVisible,
-      updateModalVisible,
-      currentPermission,
-    } = this.state;
-
-    const query = parse(search.replace(/^\?/, ''));
-
-    return (
-      <PageHeaderWrapper>
-        <Card bordered={false}>
-          <div className={styles.tableList}>
-            <div className={styles.searchForm}>{this.renderSearchForm()}</div>
-            <Table
-              dataSource={list}
-              pagination={getAntdPaginationProps(meta, pathname, query)}
-              columns={this.columns}
-              loading={loading.effects['permissionList/fetch']}
-              rowKey="id"
-            />
-          </div>
-        </Card>
-        <CreateForm
-          handleAdd={this.handleAdd}
-          handleModalVisible={this.handleCreateModalVisible}
-          modalVisible={createModalVisible}
-          loading={loading.effects['permissionList/create']}
+  return (
+    <GridContent>
+      <ProTable<IPermission, { name: string }>
+        actionRef={action}
+        headerTitle="权限列表"
+        rowKey="id"
+        params={{ name }}
+        request={request}
+        columns={columns}
+        toolBarRender={() => [
+          <Input.Search placeholder="权限名称" onSearch={(value) => setName(value)} />,
+          <Button type="primary" onClick={() => handleCreateModalVisible(true)}>
+            新建
+          </Button>,
+        ]}
+        search={false}
+      />
+      <CreateModal
+        title="创建权限"
+        visible={createModalVisible}
+        onCancel={() => handleCreateModalVisible(false)}
+        onSubmit={async (values) => {
+          await storePermission(values);
+          handleCreateModalVisible(false);
+        }}
+        submitting={createModalSubmitting}
+      />
+      {updateModalVisible && (
+        <UpdateModal
+          title="更新权限"
+          visible={updateModalVisible}
+          onCancel={() => handleUpdateModalVisible(false)}
+          onSubmit={async (values) => {
+            await updatePermission(selectedPermission.id as number, values);
+            setSelectedPermission({});
+            handleUpdateModalVisible(false);
+          }}
+          submitting={updateModalSubmitting}
+          initialValues={selectedPermission}
         />
-        <UpdateForm
-          handleUpdate={this.handleUpdate}
-          handleModalVisible={this.handleUpdateModalVisible}
-          modalVisible={updateModalVisible}
-          loading={loading.effects['permissionList/update']}
-          permission={currentPermission}
-        />
-      </PageHeaderWrapper>
-    );
-  }
-}
+      )}
+    </GridContent>
+  );
+};
 
-export default Form.create<PermissionListProps>()(PermissionList);
+export default PermissionList;

@@ -21,10 +21,10 @@
 .contentHead {
   min-height: 32px;
   padding-top: 4px;
-  font-weight: 500;
+  font-weight: bold;
 
   a {
-    color: rgba(0, 0, 0, .65);
+    color: rgba(0, 0, 0, 0.65);
     font-weight: 700;
     text-decoration: underline;
   }
@@ -35,6 +35,13 @@
 
   p:last-child {
     margin-bottom: 0;
+  }
+
+  :global {
+    .markdown-body {
+      font-weight: normal;
+      font-size: 15px;
+    }
   }
 }
 

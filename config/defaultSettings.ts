@@ -1,55 +1,16 @@
-// @ts-ignore
-import { MenuTheme } from 'antd/es/menu';
+import { Settings as ProSettings } from '@ant-design/pro-layout';
 
-export type ContentWidth = 'Fluid' | 'Fixed';
-
-export interface DefaultSettings {
-  /**
-   * theme for nav menu
-   */
-  navTheme: MenuTheme;
-  /**
-   * primary color of ant design
-   */
-  primaryColor: string;
-  /**
-   * nav menu position: `sidemenu` or `topmenu`
-   */
-  layout: 'sidemenu' | 'topmenu';
-  /**
-   * layout of content: `Fluid` or `Fixed`, only works when layout is topmenu
-   */
-  contentWidth: ContentWidth;
-  /**
-   * sticky header
-   */
-  fixedHeader: boolean;
-  /**
-   * auto hide header
-   */
-  autoHideHeader: boolean;
-  /**
-   * sticky siderbar
-   */
-  fixSiderbar: boolean;
-  menu: { locale: boolean };
-  title: string;
+type DefaultSettings = ProSettings & {
   pwa: boolean;
-  // Your custom iconfont Symbol script Url
-  // eg：//at.alicdn.com/t/font_1039637_btcrd5co4w.js
-  // 注意：如果需要图标多色，Iconfont 图标项目里要进行批量去色处理
-  // Usage: https://github.com/ant-design/ant-design-pro/pull/3517
-  iconfontUrl: string;
-  colorWeak: boolean;
-}
+};
 
-export default {
+const proSettings: DefaultSettings = {
   navTheme: 'light',
+  // 拂晓蓝
   primaryColor: '#13C2C2',
   layout: 'topmenu',
   contentWidth: 'Fixed',
   fixedHeader: false,
-  autoHideHeader: false,
   fixSiderbar: false,
   colorWeak: false,
   menu: {
@@ -58,4 +19,8 @@ export default {
   title: '平凡的博客',
   pwa: false,
   iconfontUrl: '',
-} as DefaultSettings;
+};
+
+export { DefaultSettings };
+
+export default proSettings;

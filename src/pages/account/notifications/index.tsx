@@ -1,118 +1,86 @@
-import React from 'react';
-import { connect } from 'dva';
+import React, { useEffect, useState } from 'react';
 import { GridContent } from '@ant-design/pro-layout';
-import { Menu, Icon } from 'antd';
-import { ConnectState, ConnectProps, Loading, AccountNotificationsModelState } from '@/models/connect';
+import { Menu } from 'antd';
+import { BellOutlined, MailOutlined, NotificationOutlined } from '@ant-design/icons';
+import { ConnectProps } from '@/models/connect';
 import Notifications from './components/Notifications';
 import Messages from './components/Messages';
 import Systems from './components/Systems';
 import styles from './style.less';
 
-const MenuItem = Menu.Item;
+interface NoticesProps extends ConnectProps {}
 
-type NoticeStateKeys = 'notifications' | 'messages' | 'systems';
+type StateKeysType = 'notifications' | 'messages' | 'systems';
 
-interface NoticeState {
-  mode: 'inline' | 'horizontal';
-  menuMap: {
-    [key: string]: React.ReactNode;
-  };
-  selectKey: NoticeStateKeys;
-}
+const menuMap: { [key: string]: React.ReactNode } = {
+  notifications: (
+    <span>
+      <BellOutlined />
+      通知
+    </span>
+  ),
+  messages: (
+    <span>
+      <MailOutlined />
+      私信
+    </span>
+  ),
+  systems: (
+    <span>
+      <NotificationOutlined />
+      系统
+    </span>
+  ),
+};
 
-interface NoticeProps extends ConnectProps {
-  loading: Loading,
-  accountNotifications: AccountNotificationsModelState,
-}
+const Notices: React.FC<NoticesProps> = () => {
+  const [mode, setMode] = useState<'inline' | 'horizontal'>();
+  const [selectKey, setSelectKey] = useState<StateKeysType>('notifications');
 
-@connect(({ loading, accountNotifications }: ConnectState) => ({
-  loading,
-  accountNotifications,
-}))
-class Notice extends React.Component<NoticeProps, NoticeState> {
-  state: NoticeState = {
-    mode: 'inline',
-    menuMap: {
-      notifications: <span><Icon type="bell" />通知</span>,
-      messages: <span><Icon type="mail" />私信</span>,
-      systems: <span><Icon type="notification" />系统</span>,
-    },
-    selectKey: 'notifications',
-  };
-
-  componentDidMount () {
-    window.addEventListener('resize', this.resize);
-    this.resize();
+  function resize() {
+    requestAnimationFrame(() => setMode(window.innerWidth < 768 ? 'horizontal' : 'inline'));
   }
 
-  componentWillUnmount () {
-    window.removeEventListener('resize', this.resize);
-  }
+  useEffect(() => {
+    window.addEventListener('resize', resize);
+    resize();
+    return () => window.removeEventListener('resize', resize);
+  }, []);
 
-  getMenu = () => {
-    const { menuMap } = this.state;
-    return Object.keys(menuMap).map(item => <MenuItem key={item}>{menuMap[item]}</MenuItem>);
-  };
-
-  getRightTitle = () => {
-    const { selectKey, menuMap } = this.state;
-    return menuMap[selectKey];
-  };
-
-  selectKey = (key: NoticeStateKeys) => {
-    this.setState({
-      selectKey: key,
-    });
-  };
-
-  resize = () => {
-    requestAnimationFrame(() => {
-      let mode: 'inline' | 'horizontal' = 'inline';
-      if (window.innerWidth < 768) {
-        mode = 'horizontal';
-      }
-      this.setState({
-        mode,
-      });
-    });
-  };
-
-  renderChildren = () => {
-    const { selectKey } = this.state;
+  function renderChildren() {
     switch (selectKey) {
       case 'notifications':
-        return <Notifications {...this.props} />;
+        return <Notifications />;
       case 'messages':
-        return <Messages {...this.props} />;
+        return <Messages />;
       case 'systems':
-        return <Systems {...this.props} />;
+        return <Systems />;
       default:
         return null;
     }
-  };
-
-  render () {
-    const { mode, selectKey } = this.state;
-    return (
-      <GridContent>
-        <div className={styles.main}>
-          <div className={styles.leftMenu}>
-            <Menu
-              mode={mode}
-              selectedKeys={[selectKey]}
-              onClick={({ key }) => this.selectKey(key as NoticeStateKeys)}
-            >
-              {this.getMenu()}
-            </Menu>
-          </div>
-          <div className={styles.right}>
-            <div className={styles.title}>{this.getRightTitle()}</div>
-            {this.renderChildren()}
-          </div>
-        </div>
-      </GridContent>
-    );
   }
-}
 
-export default Notice;
+  return (
+    <GridContent>
+      <div className={styles.main}>
+        <div className={styles.leftMenu}>
+          <Menu
+            mode={mode}
+            selectedKeys={[selectKey]}
+            onClick={({ key }) => setSelectKey(key as StateKeysType)}
+          >
+            {Object.entries(menuMap).map(([key, value]) => (
+              <Menu.Item key={key}>{value}</Menu.Item>
+            ))}
+          </Menu>
+        </div>
+        <div className={styles.right}>
+          <div className={styles.title}>{menuMap[selectKey]}</div>
+          {renderChildren()}
+        </div>
+      </div>
+    </GridContent>
+  );
+};
+
+export default Notices;

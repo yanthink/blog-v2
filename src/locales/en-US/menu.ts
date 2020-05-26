@@ -1,8 +1,8 @@
 export default {
   'menu.welcome': 'Welcome',
   'menu.more-blocks': 'More Blocks',
-
   'menu.home': 'Home',
+  'menu.admin': 'admin',
   'menu.login': 'Login',
   'menu.register': 'Register',
   'menu.register.result': 'Register Result',

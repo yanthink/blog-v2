@@ -1,11 +1,12 @@
-import React, { Component } from 'react';
+import React, { useState } from 'react';
+import { connect, useRequest, history } from 'umi';
 import { Button, Form, Input, message } from 'antd';
-import { debounce } from 'lodash';
-import { FormComponentProps } from 'antd/es/form';
-import { router } from 'umi';
-import { ConnectProps, Loading, AuthStateType } from '@/models/connect';
+import { AuthModelState, ConnectProps, ConnectState } from '@/models/connect';
+import * as services from '../services';
 
-const FormItem = Form.Item;
+interface SecurityViewProps extends Partial<ConnectProps> {
+  auth?: AuthModelState;
+}
 
 const formItemLayout = {
   labelCol: {
@@ -17,100 +18,85 @@ const formItemLayout = {
   },
 };
 
-interface SecurityViewState {
-  confirmDirty: boolean;
-}
+const SecurityView: React.FC<SecurityViewProps> = (props) => {
+  const [form] = Form.useForm();
+  const [confirmDirty, setConfirmDirty] = useState(false);
 
-interface SecurityViewProps extends ConnectProps, FormComponentProps {
-  auth: AuthStateType;
-  loading: Loading;
-}
+  const { loading, run: updatePassword } = useRequest(services.updatePassword, {
+    manual: true,
+    onSuccess() {
+      message.success('密码修改成功，请重新登录！');
+      history.replace('/auth/login');
+    },
+  });
 
-class SecurityView extends Component<SecurityViewProps, SecurityViewState> {
-  state: SecurityViewState = {
-    confirmDirty: false,
-  };
+  async function handleSubmit(values: object) {
+    await updatePassword(values);
+  }
 
-  handleSubmit = debounce((event: React.MouseEvent) => {
-    event.preventDefault();
-    const { form } = this.props;
-    form.validateFields(async (err, values) => {
-      if (!err) {
-        await this.props.dispatch({
-          type: 'accountSettings/updatePassword',
-          payload: values,
-        });
+  function validateToNextPassword(rule: any, value: string, callback: any) {
+    if (value && confirmDirty) {
+      form.validateFields(['password_confirmation']);
+    }
+    callback();
+  }
 
-        message.success('密码修改成功，请重新登录！');
-        router.replace('/auth/login');
-      }
-    });
-  }, 600);
-
-  handleConfirmBlur = (e: any) => {
+  function handleConfirmBlur(e: any) {
     const { value } = e.target;
-    /* eslint react/no-access-state-in-setstate: 0 */
-    this.setState({ confirmDirty: this.state.confirmDirty || !!value });
-  };
+    setConfirmDirty(confirmDirty || !!value);
+  }
 
-  compareToFirstPassword = (rule: any, value: any, callback: any) => {
-    const { form } = this.props;
+  function compareToFirstPassword(rule: any, value: string, callback: any) {
     if (value && value !== form.getFieldValue('password')) {
       callback('您输入的两个密码不一致!');
     } else {
       callback();
     }
-  };
-
-  validateToNextPassword = (rule: any, value: any, callback: any) => {
-    const { form } = this.props;
-    if (value && this.state.confirmDirty) {
-      form.validateFields(['password_confirmation'], { force: true });
-    }
-    callback();
-  };
-
-  render () {
-    const { form: { getFieldDecorator }, auth, loading } = this.props;
-    return (
-      <Form layout="vertical" hideRequiredMark>
-        <FormItem {...formItemLayout} label="用户名" extra="设置密码后将可以使用此用户名登录">
-          <Input value={auth.user.username} disabled />
-        </FormItem>
-        {auth.user.has_password && (
-          <FormItem {...formItemLayout} label="旧密码">
-            {getFieldDecorator('old_password', {
-              rules: [{ required: true, message: '请输入您的旧密码!' }],
-            })(<Input.Password />)}
-          </FormItem>
-        )}
-        <FormItem {...formItemLayout} label="密码">
-          {getFieldDecorator('password', {
-            rules: [
-              { required: true, message: '请输入您的密码!' },
-              { min: 6, message: '密码长度不能小于6位!' },
-              { validator: this.validateToNextPassword },
-            ],
-          })(<Input.Password />)}
-        </FormItem>
-        <FormItem {...formItemLayout} label="确认密码">
-          {getFieldDecorator('password_confirmation', {
-            rules: [
-              { required: true, message: '请输入您的确认密码!' },
-              { validator: this.compareToFirstPassword },
-            ],
-          })(<Input.Password onBlur={this.handleConfirmBlur} />)}
-        </FormItem>
-        <Button
-          type="primary"
-          onClick={this.handleSubmit}
-          loading={loading.effects['accountSettings/updatePassword']}
-        >
-          应用修改
-        </Button>
-      </Form>
-    );
   }
-}
 
-export default Form.create<SecurityViewProps>()(SecurityView);
+  return (
+    <Form form={form} layout="vertical" onFinish={handleSubmit} hideRequiredMark>
+      <Form.Item label="用户名" extra="设置密码后将可以使用此用户名登录" {...formItemLayout}>
+        <Input value={props.auth!.user.username} disabled />
+      </Form.Item>
+      {props.auth!.user.has_password && (
+        <Form.Item
+          label="旧密码"
+          name="old_password"
+          rules={[{ required: true, message: '请输入您的旧密码!' }]}
+          {...formItemLayout}
+        >
+          <Input.Password />
+        </Form.Item>
+      )}
+      <Form.Item
+        label="密码"
+        name="password"
+        rules={[
+          { required: true, message: '请输入您的密码!' },
+          { min: 6, message: '密码长度不能小于6位!' },
+          { validator: validateToNextPassword },
+        ]}
+        {...formItemLayout}
+      >
+        <Input.Password />
+      </Form.Item>
+      <Form.Item
+        label="确认密码"
+        name="password_confirmation"
+        rules={[
+          { required: true, message: '请输入您的确认密码!' },
+          { validator: compareToFirstPassword },
+        ]}
+        {...formItemLayout}
+      >
+        <Input.Password onBlur={handleConfirmBlur} />
+      </Form.Item>
+      <Button type="primary" htmlType="submit" loading={loading}>
+        应用修改
+      </Button>
+    </Form>
+  );
+};
+
+export default connect(({ auth }: ConnectState) => ({ auth }))(SecurityView);

@@ -2,31 +2,53 @@ import moment from 'moment';
 import marked from 'marked';
 import Prism from 'prismjs';
 import { parse } from 'qs';
+import pathRegexp from 'path-to-regexp';
+import { Route } from '@/models/connect';
+import { ResponseResultType } from '@/models/I';
 
-export function getPageQuery () {
-  return parse(window.location.href.split('?')[1]);
-}
+export const getPageQuery = () => parse(window.location.href.split('?')[1]);
 
-export function diffForHumans (time?: string) {
+/**
+ * props.route.routes
+ * @param router [{}]
+ * @param pathname string
+ */
+export const getAuthorityFromRouter = <T extends Route>(
+  router: T[] = [],
+  pathname: string,
+): T | undefined => {
+  const authority = router.find(
+    // @ts-ignore
+    ({ routes, path = '/', target = '_self' }) =>
+      (path && target !== '_blank' && pathRegexp(path).exec(pathname)) ||
+      (routes && getAuthorityFromRouter(routes, pathname)),
+  );
+  if (authority) return authority;
+  return undefined;
+};
+
+export function diffForHumans(time?: string) {
   const mtime = moment(time);
   const now = moment();
 
   if (now.diff(mtime, 'day') > 15) {
-    return mtime.year() === now.year() ? mtime.format('MM-DD HH:ss') : mtime.format('YYYY-MM-DD HH:ss');
+    return mtime.year() === now.year()
+      ? mtime.format('MM-DD HH:ss')
+      : mtime.format('YYYY-MM-DD HH:ss');
   }
 
   return mtime.fromNow();
 }
 
-export function friendlyNumbers (n: number) {
+export function friendlyNumbers(n: number) {
   if (n >= 1000) {
-    return Math.floor(n / 1000) + 'k';
+    return `${Math.floor(n / 1000)}k`;
   }
 
   return String(n);
 }
 
-export function rendererLink (href: string, title: string, text: string) {
+export function rendererLink(href: string, title: string, text: string) {
   let url = href;
   let target: boolean | string = false;
 
@@ -54,16 +76,23 @@ export function rendererLink (href: string, title: string, text: string) {
   return out;
 }
 
-export function getDefaultMarkedOptions () {
+export function rendererParagraph(text: string) {
+  // replaceUserMention
+  const regExp = /(^| +)@(?!_)(?!.*?_$)(?<username>[a-zA-Z0-9_\u4e00-\u9fa5]{1,10})( +|$)/g;
+  return `<p>${text.replace(regExp, '$1<a href="/$2">@$2</a>$3')}</p>`;
+}
+
+export function getDefaultMarkedOptions() {
   const renderer = new marked.Renderer();
   renderer.link = rendererLink;
+  renderer.paragraph = rendererParagraph;
 
   return {
     renderer,
     headerIds: false,
     gfm: true,
     breaks: true,
-    highlight (code: string, lang: string) {
+    highlight(code: string, lang: string) {
       if (lang) {
         const language = lang.toLowerCase();
         const grammar = Prism.languages[language];
@@ -73,15 +102,16 @@ export function getDefaultMarkedOptions () {
       }
 
       return code;
-    }
+    },
   };
 }
 
-export function resetMarkedOptions () {
+export function resetMarkedOptions() {
   marked.setOptions(getDefaultMarkedOptions());
 }
 
 /* eslint no-param-reassign:0, one-var:0, object-shorthand:0, no-loop-func:0 */
+
 /* eslint eqeqeq:0, no-multi-assign:0, no-multiple-empty-lines:0 */
 export function getPositions(dom: HTMLElement) {
   let left = dom.offsetLeft,
@@ -102,7 +132,7 @@ export function getPositions(dom: HTMLElement) {
 export function isParentElement(childElement: any, parentElement: any) {
   const pEls = !Array.isArray(parentElement) ? [parentElement] : parentElement;
   while (childElement.tagName.toUpperCase() !== 'BODY') {
-    if (pEls.some(el => childElement == el)) {
+    if (pEls.some((el) => childElement == el)) {
       return true;
     }
     // @ts-ignore
@@ -117,7 +147,10 @@ export function insertText(texteara: HTMLTextAreaElement, str: string): string {
     // @ts-ignore
     const sel = document.selection.createRange();
     sel.text = str;
-  } else if (typeof texteara.selectionStart === 'number' && typeof texteara.selectionEnd === 'number') {
+  } else if (
+    typeof texteara.selectionStart === 'number' &&
+    typeof texteara.selectionEnd === 'number'
+  ) {
     const startPos = texteara.selectionStart;
     const endPos = texteara.selectionEnd;
     let cursorPos = startPos;
@@ -142,7 +175,27 @@ export function moveEnd(texteara: HTMLTextAreaElement) {
     sel.moveStart('character', len);
     sel.collapse();
     sel.select();
-  } else if (typeof texteara.selectionStart == 'number' && typeof texteara.selectionEnd == 'number') {
+  } else if (
+    typeof texteara.selectionStart == 'number' &&
+    typeof texteara.selectionEnd == 'number'
+  ) {
     texteara.selectionStart = texteara.selectionEnd = len;
   }
+}
+
+export function scrollToAnchor(id: string) {
+  const dom = document.getElementById(id);
+  dom?.scrollIntoView({
+    behavior: 'smooth',
+    block: 'start',
+    inline: 'start',
+  });
+}
+
+export function umiformatPaginationResult(res: ResponseResultType<any>) {
+  return {
+    list: res.data,
+    total: res.meta!.total!,
+    meta: res.meta!,
+  };
 }

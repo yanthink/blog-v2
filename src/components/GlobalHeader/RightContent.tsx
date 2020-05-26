@@ -1,22 +1,34 @@
-import React from 'react';
-import { connect } from 'dva';
-import { router } from 'umi';
-import { Icon } from 'antd';
-import { ConnectProps, ConnectState } from '@/models/connect';
-
+import React, { useEffect } from 'react';
+import { connect, history, useRequest } from 'umi';
+import { GithubOutlined } from '@ant-design/icons';
+import { ConnectState, ConnectProps } from '@/models/connect';
+import { ResponseResultType } from '@/models/I';
+import * as services from '@/services';
 import NoticeIcon from './NoticeIcon';
 import Avatar from './AvatarDropdown';
 import HeaderSearch from '../HeaderSearch';
 import styles from './index.less';
 
-export type SiderTheme = 'light' | 'dark';
+export type SiderTheme = 'light' | 'dark' | 'realDark';
 
-export interface GlobalHeaderRightProps extends ConnectProps {
+export interface GlobalHeaderRightProps extends Partial<ConnectProps> {
   theme?: SiderTheme;
   layout: 'sidemenu' | 'topmenu';
 }
 
-const GlobalHeaderRight: React.FC<GlobalHeaderRightProps> = props => {
+const GlobalHeaderRight: React.FC<GlobalHeaderRightProps> = (props) => {
+  const { data: keywords = [], run: getHotKeywords } = useRequest<ResponseResultType<string[]>>(
+    services.getHotKeywords,
+    {
+      manual: true,
+      throttleInterval: 3600000,
+    },
+  );
+
+  useEffect(() => {
+    getHotKeywords();
+  }, []);
+
   const { theme, layout } = props;
   let className = styles.right;
 
@@ -29,17 +41,16 @@ const GlobalHeaderRight: React.FC<GlobalHeaderRightProps> = props => {
       <HeaderSearch
         className={`${styles.action} ${styles.search}`}
         placeholder="站内搜索"
-        dataSource={[]}
-        onSearch={() => {
-        }}
-        onPressEnter={value => {
-          router.push({
+        onVisibleChange={(b) => b && getHotKeywords()}
+        onSearch={(value) => {
+          history.push({
             pathname: '/articles/list',
             query: {
               q: value,
             },
           });
         }}
+        options={keywords.map((keyword) => ({ label: keyword, value: keyword }))}
       />
       <NoticeIcon />
       <Avatar />
@@ -49,7 +60,7 @@ const GlobalHeaderRight: React.FC<GlobalHeaderRightProps> = props => {
         rel="noopener noreferrer"
         target="_blank"
       >
-        <Icon type="github" className={styles.github} />
+        <GithubOutlined className={styles.github} />
       </a>
     </div>
   );

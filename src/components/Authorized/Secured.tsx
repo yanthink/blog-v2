@@ -44,7 +44,7 @@ const checkIsInstantiation = (target: React.ComponentClass | React.ReactNode) =>
  * @param {string | function | Promise} authority
  * @param {ReactNode} error 非必需参数
  */
-const authorize = (authority: any, error?: React.ReactNode): Function => {
+const authorize = (authority: string, error?: React.ReactNode) => {
   /**
    * conversion into a class
    * 防止传入字符串时找不到staticContext造成报错

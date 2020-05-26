@@ -1,5 +1,5 @@
 import React from 'react';
-import { Icon } from 'antd';
+import { LikeOutlined, LikeTwoTone } from '@ant-design/icons';
 import RelationBtn from './RelationBtn';
 
 export interface UpvoteBtnProps {
@@ -14,18 +14,18 @@ export interface UpvoteBtnState {
 }
 
 class UpvoteBtn extends React.Component<UpvoteBtnProps, UpvoteBtnState> {
-  constructor (props: UpvoteBtnProps) {
+  constructor(props: UpvoteBtnProps) {
     super(props);
 
     const { item } = props;
 
     this.state = {
-      upVotersCount: item.cache.up_voters_count,
+      upVotersCount: item.cache?.up_voters_count || 0,
     };
   }
 
-  componentWillReceiveProps (nextProps: Readonly<UpvoteBtnProps>, nextContext: any): void {
-    this.setState({ upVotersCount: nextProps.item.cache.up_voters_count });
+  componentWillReceiveProps(nextProps: Readonly<UpvoteBtnProps>) {
+    this.setState({ upVotersCount: nextProps.item.cache?.up_voters_count || 0 });
   }
 
   onAfterToggle = (status: boolean) => {
@@ -40,16 +40,12 @@ class UpvoteBtn extends React.Component<UpvoteBtnProps, UpvoteBtnState> {
 
   getChildren = (slot: 'on' | 'off') => (
     <div className="upvote upvote-btn">
-      <Icon
-        type="like"
-        theme={slot === 'on' ? 'twoTone' : 'outlined'}
-        twoToneColor="#13C2C2"
-      />
+      {slot === 'on' ? <LikeTwoTone twoToneColor="#13C2C2" /> : <LikeOutlined />}
       {!this.props.hideText && <span>{this.state.upVotersCount}</span>}
     </div>
   );
 
-  render () {
+  render() {
     const { relation, item } = this.props;
 
     return (

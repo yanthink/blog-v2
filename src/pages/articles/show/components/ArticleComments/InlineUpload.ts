@@ -1,14 +1,14 @@
 import { get } from 'lodash';
 import { insertText } from '@/utils/utils';
 
-function getError (options: Options, xhr: XMLHttpRequest) {
+function getError(options: Options, xhr: XMLHttpRequest) {
   const msg = `cannot post ${options.action} ${xhr.status}`;
   const err: any = new Error(msg);
   err.status = xhr.status;
   return err;
 }
 
-function getBody (xhr: XMLHttpRequest) {
+function getBody(xhr: XMLHttpRequest) {
   const text = xhr.responseText || xhr.response;
 
   if (!text) {
@@ -22,13 +22,13 @@ function getBody (xhr: XMLHttpRequest) {
   }
 }
 
-function isPattern (pattern: string | string[], value: string): boolean {
+function isPattern(pattern: string | string[], value: string): boolean {
   if (!pattern) {
     return false;
   }
 
   if (Array.isArray(pattern)) {
-    return pattern.some(item => isPattern(item, value));
+    return pattern.some((item) => isPattern(item, value));
   }
 
   if (pattern === value) {
@@ -87,7 +87,7 @@ export interface Options {
   /**
    * 上传失败事件
    */
-  onError?: (err: any, response: any, file: File) => any
+  onError?: (err: any, response: any, file: File) => any;
 }
 
 export default class InlineUpload {
@@ -110,14 +110,14 @@ export default class InlineUpload {
 
   lastValue?: string;
 
-  constructor (textarea: HTMLTextAreaElement, onChange: (text: string) => void, options: Options) {
+  constructor(textarea: HTMLTextAreaElement, onChange: (text: string) => void, options: Options) {
     this.textarea = textarea;
     this.onChange = onChange;
     this.options = { ...InlineUpload.defaultOptions, ...options };
     this.addEvents();
   }
 
-  uploadFiles (files: File[]) {
+  uploadFiles(files: File[]) {
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       if (this.isFileAllowed(file)) {
@@ -126,6 +126,7 @@ export default class InlineUpload {
         if (!beforeUpload) {
           this.insertProgressText();
           this.upload(file);
+          // eslint-disable-next-line no-continue
           continue;
         }
 
@@ -143,17 +144,11 @@ export default class InlineUpload {
     }
   }
 
-  upload (file: File) {
+  upload(file: File) {
     const formData = new FormData();
     const xhr = new XMLHttpRequest();
     const {
-      options: {
-        action,
-        name,
-        headers,
-        withCredentials,
-        onError,
-      }
+      options: { action, name, headers, withCredentials, onError },
     } = this;
 
     let { data } = this.options;
@@ -163,9 +158,7 @@ export default class InlineUpload {
     }
 
     if (data) {
-      Object.keys(data).map(key => {
-        formData.append(key, (data as THeaders)[key]);
-      });
+      Object.entries(data).map(([key, value]) => formData.append(key, value));
     }
 
     formData.append(name as string, file);
@@ -176,6 +169,7 @@ export default class InlineUpload {
       }
     };
 
+    // eslint-disable-next-line consistent-return
     xhr.onload = () => {
       if (xhr.status === 200 || xhr.status === 201) {
         return this.onUploadSuccess(xhr, file);
@@ -191,6 +185,7 @@ export default class InlineUpload {
     }
 
     xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+    // eslint-disable-next-line no-restricted-syntax
     for (const h in headers) {
       if (headers.hasOwnProperty(h)) {
         xhr.setRequestHeader(h, headers[h]);
@@ -198,22 +193,27 @@ export default class InlineUpload {
     }
 
     xhr.send(formData);
-  };
+  }
 
-  insertProgressText () {
+  insertProgressText() {
     const { progressText } = this.options;
     this.lastValue = progressText as string;
     const text = insertText(this.textarea, this.lastValue);
     this.onChange(text);
   }
 
-  isFileAllowed (file: File) {
+  isFileAllowed(file: File) {
     const { allowedTypes = '*' } = this.options;
     return isPattern(allowedTypes, file.type);
   }
 
-  onUploadSuccess (xhr: XMLHttpRequest, file: File) {
-    const { textarea, options: { jsonName, onSuccess }, lastValue, onChange } = this;
+  onUploadSuccess(xhr: XMLHttpRequest, file: File) {
+    const {
+      textarea,
+      options: { jsonName, onSuccess },
+      lastValue,
+      onChange,
+    } = this;
 
     const response = getBody(xhr);
     const fileUrl = get(response, jsonName as string);
@@ -229,8 +229,13 @@ export default class InlineUpload {
     }
   }
 
-  onUploadError (xhr: XMLHttpRequest, file: File) {
-    const { textarea, options: { onError }, lastValue, onChange } = this;
+  onUploadError(xhr: XMLHttpRequest, file: File) {
+    const {
+      textarea,
+      options: { onError },
+      lastValue,
+      onChange,
+    } = this;
 
     const text = textarea.value.replace(lastValue as string, '');
     textarea.value = text;
@@ -275,17 +280,17 @@ export default class InlineUpload {
     this.uploadFiles(files);
   };
 
-  removeEvents () {
+  removeEvents() {
     this.textarea.removeEventListener('paste', this.onPaste, false);
     this.textarea.removeEventListener('drop', this.onDrop, false);
   }
 
-  addEvents () {
+  addEvents() {
     this.textarea.addEventListener('paste', this.onPaste, false);
     this.textarea.addEventListener('drop', this.onDrop, false);
-  };
+  }
 
-  destroy () {
+  destroy() {
     this.removeEvents();
   }
 }

@@ -8,39 +8,55 @@
   padding-bottom: 16px;
   overflow: auto;
   background-color: @menu-bg;
+
   .leftMenu {
     width: 224px;
     border-right: @border-width-base @border-style-base @border-color-split;
+
     :global {
       .ant-menu-inline {
         border: none;
       }
+
       .ant-menu:not(.ant-menu-horizontal) .ant-menu-item-selected {
         font-weight: bold;
       }
     }
   }
+
   .right {
     flex: 1;
     padding: 8px 40px;
     overflow: hidden;
+
     .title {
       margin-bottom: 12px;
       color: @heading-color;
       font-weight: 500;
       font-size: 20px;
       line-height: 28px;
+
       :global {
         .anticon {
           margin-right: 8px;
         }
       }
     }
+
+    :global {
+      .ant-list-item {
+        &:hover {
+          background-color: @item-hover-bg;
+        }
+      }
+    }
   }
+
   :global {
     .ant-list-split .ant-list-item:last-child {
       border-bottom: 1px solid @border-color-split;
     }
+
     .ant-list-item {
       padding-top: 14px;
       padding-bottom: 14px;
@@ -52,15 +68,18 @@
   .main {
     flex-direction: column;
     padding-top: 8px;
+
     .leftMenu {
       width: 100%;
       border: none;
+
       :global {
         .ant-menu-item {
           padding-left: 12px !important;
         }
       }
     }
+
     .right {
       padding: 24px 12px 0 12px;
     }

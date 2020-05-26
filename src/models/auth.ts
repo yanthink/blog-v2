@@ -1,10 +1,8 @@
-import { Reducer } from 'redux';
-import { routerRedux } from 'dva/router';
-import { Effect } from '@/models/connect';
+import { Effect, Reducer, history } from 'umi';
 import { setToken, setAuthority, getToken } from '@/utils/authority';
 import { reloadAuthorized } from '@/utils/Authorized';
 import { getPageQuery } from '@/utils/utils';
-import { IUser } from '@/models/data';
+import { IUser } from '@/models/I';
 import * as services from '@/services';
 import createWebSocket from '@/websocket';
 
@@ -39,7 +37,7 @@ const Model: ModelType = {
   },
 
   effects: {
-    * attemptLogin ({ payload }, { call, put }) {
+    *attemptLogin({ payload }, { call, put }) {
       const { data } = yield call(services.login, payload);
       const { access_token, permissions } = data;
       yield put({
@@ -48,7 +46,8 @@ const Model: ModelType = {
         permissions,
       });
     },
-    * loginSuccess ({ token, permissions, callback }, { put }) {
+    // eslint-disable-next-line require-yield
+    *loginSuccess({ token, permissions, callback }) {
       setToken(token);
       setAuthority(permissions);
       reloadAuthorized();
@@ -74,15 +73,15 @@ const Model: ModelType = {
         }
       }
 
-      yield put(routerRedux.replace(redirect || '/'));
+      history.replace(redirect || '/');
     },
-    * loadUser (_, { call, put }) {
+    *loadUser(_, { call, put }) {
       if (getToken()) {
         const { data } = yield call(services.loadUserData);
         yield put({ type: 'setUser', user: data });
       }
     },
-    * logout (_, { put }) {
+    *logout(_, { put }) {
       setToken('');
       setAuthority([]);
       reloadAuthorized();
@@ -92,7 +91,7 @@ const Model: ModelType = {
   },
 
   reducers: {
-    setUser (state, { user }) {
+    setUser(state, { user }) {
       const newState = {
         ...state,
         logged: !!user.id,
@@ -105,7 +104,7 @@ const Model: ModelType = {
       return newState;
     },
 
-    setUnreadCount (state, { unread_count }) {
+    setUnreadCount(state, { unread_count }) {
       return {
         ...state,
         unread_count,

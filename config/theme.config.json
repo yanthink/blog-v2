@@ -1,0 +1,44 @@
+{
+  "theme": [
+    {
+      "key": "dark",
+      "theme": "dark",
+      "fileName": "dark.css"
+    },
+    {
+      "key": "volcano",
+      "fileName": "volcano.css",
+      "modifyVars": {
+        "@primary-color": "#FA541C"
+      }
+    },
+    {
+      "key": "cyan",
+      "fileName": "cyan.css",
+      "modifyVars": {
+        "@primary-color": "#13C2C2"
+      }
+    },
+    {
+      "key": "volcano",
+      "theme": "dark",
+      "fileName": "dark-volcano.css",
+      "modifyVars": {
+        "@primary-color": "#FA541C"
+      }
+    },
+    {
+      "key": "cyan",
+      "theme": "dark",
+      "fileName": "dark-cyan.css",
+      "modifyVars": {
+        "@primary-color": "#13C2C2"
+      }
+    }
+  ],
+  "min": false,
+  "isModule": true,
+  "ignoreAntd": false,
+  "ignoreProLayout": false,
+  "cache": true
+}

@@ -1,5 +1,6 @@
 import React from 'react';
-import { Icon, Tooltip } from 'antd';
+import { Tooltip } from 'antd';
+import { HeartOutlined, HeartTwoTone } from '@ant-design/icons';
 import RelationBtn from './RelationBtn';
 
 export interface FavoriteBtnProps {
@@ -14,18 +15,18 @@ export interface FavoriteBtnState {
 }
 
 class FavoriteBtn extends React.Component<FavoriteBtnProps, FavoriteBtnState> {
-  constructor (props: FavoriteBtnProps) {
+  constructor(props: FavoriteBtnProps) {
     super(props);
 
     const { item } = props;
 
     this.state = {
-      favoritesCount: item.cache.favorites_count,
+      favoritesCount: item.cache?.favorites_count || 0,
     };
   }
 
-  componentWillReceiveProps (nextProps: Readonly<FavoriteBtnProps>, nextContext: any): void {
-    this.setState({ favoritesCount: nextProps.item.cache.favorites_count });
+  componentWillReceiveProps(nextProps: Readonly<FavoriteBtnProps>) {
+    this.setState({ favoritesCount: nextProps.item.cache?.favorites_count || 0 });
   }
 
   onAfterToggle = (status: boolean) => {
@@ -41,17 +42,13 @@ class FavoriteBtn extends React.Component<FavoriteBtnProps, FavoriteBtnState> {
   getChildren = (slot: 'on' | 'off') => (
     <Tooltip title="收藏">
       <div className="btn favorite-btn">
-        <Icon
-          type="heart"
-          theme={slot === 'on' ? 'twoTone' : 'outlined'}
-          twoToneColor="#eb2f96"
-        />
+        {slot === 'on' ? <HeartTwoTone twoToneColor="#eb2f96" /> : <HeartOutlined />}
         {!this.props.hideText && <span>{this.state.favoritesCount}</span>}
       </div>
     </Tooltip>
   );
 
-  render () {
+  render() {
     const { relation, item } = this.props;
 
     return (

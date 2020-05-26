@@ -1,59 +1,71 @@
-import React, { Component, Fragment } from 'react';
-import { Card, Col, Form, Button, Input, Row, Table, Avatar, Divider, message } from 'antd';
-import { router } from 'umi';
-import { parse, stringify } from 'qs';
-import { get } from 'lodash';
-import { FormComponentProps } from 'antd/es/form';
-import { PageHeaderWrapper } from '@ant-design/pro-layout';
-import { connect } from 'dva';
-import { ConnectState, ConnectProps, UserListModelState, Loading } from '@/models/connect';
-import { IPermission, IRole, IUser } from '@/models/data';
-import { getAntdPaginationProps } from '@/utils/XUtils';
-import RoleForm from './components/RoleForm';
-import PermissionForm from './components/PermissionForm';
+import React, { useRef, useState } from 'react';
+import { GridContent } from '@ant-design/pro-layout';
+import ProTable from '@ant-design/pro-table';
+import { ActionType, ProColumns } from '@ant-design/pro-table/es/Table';
+import { UserOutlined } from '@ant-design/icons';
+import { Avatar, Input, message } from 'antd';
+import { useRequest } from 'umi';
+import { ConnectProps } from '@/models/connect';
+import { IPermission, IRole, IUser, ResponseResultType } from '@/models/I';
+import AssignRoleModal from '@/components/AssignRoleModal';
+import AssignPermissionModal from '@/components/AssignPermissionModal';
+import { getAllRoles, getAllPermissions } from '@/services';
 import * as services from './services';
-import styles from './style.less';
 
-const FormItem = Form.Item;
+interface UserListProps extends ConnectProps {}
 
-const defaultQueryParams = {};
+const UserList: React.FC<UserListProps> = () => {
+  const action = useRef<ActionType>();
 
-interface UserListProps extends ConnectProps, FormComponentProps {
-  loading: Loading;
-  userList: UserListModelState;
-}
+  const [username, setUsername] = useState();
+  const [assignRoleModalVisible, handleAssignRoleModalVisible] = useState<boolean>(false);
+  const [assignPermissionModalVisible, handleAssignPermissionModalVisible] = useState<boolean>(
+    false,
+  );
+  const [selectedUser, setSelectedUser] = useState<IUser>({});
 
-interface UserListState {
-  permissionModalVisible: boolean;
-  roleModalVisible: boolean;
-  currentUser: IUser;
-  allRoles: IRole[];
-  currentRoles: IRole[];
-  allPermissions: IPermission[];
-  currentPermissions: IPermission[];
-}
+  // 获取所有角色
+  const { data: allRoles } = useRequest<ResponseResultType<IRole[]>>(getAllRoles, {
+    cacheKey: 'allRoles',
+  });
+  // 获取所有权限
+  const { data: allPermissions } = useRequest<ResponseResultType<IPermission[]>>(
+    getAllPermissions,
+    { cacheKey: 'allPermissions' },
+  );
+  // 分配角色
+  const { loading: assignRoleModalSubmitting, run: assignRoles } = useRequest(
+    services.assignRoles,
+    {
+      manual: true,
+      onSuccess() {
+        action.current?.reload();
+        message.success('角色分配成功！');
+      },
+    },
+  );
+  // 分配权限
+  const { loading: assignPermissionsModalSubmitting, run: assignPermissions } = useRequest(
+    services.assignPermissions,
+    {
+      manual: true,
+      onSuccess() {
+        action.current?.reload();
+        message.success('权限分配成功！');
+      },
+    },
+  );
 
-@connect(({ userList, loading }: ConnectState) => ({
-  userList,
-  loading,
-}))
-class UserList extends Component<UserListProps, UserListState> {
-  state: UserListState = {
-    permissionModalVisible: false,
-    roleModalVisible: false,
-    currentUser: {},
-    allRoles: [],
-    currentRoles: [],
-    allPermissions: [],
-    currentPermissions: [],
-  };
+  function request({ current, pageSize, ...params }: any) {
+    return services.queryUsers({ ...params, page: current, per_page: pageSize });
+  }
 
-  columns = [
+  const columns: ProColumns<IUser>[] = [
     {
       title: '头像',
       dataIndex: 'avatar',
-      render (avatar: string) {
-        return <Avatar src={avatar} icon="user" />;
+      render(avatar: string) {
+        return <Avatar src={avatar} icon={<UserOutlined />} />;
       },
     },
     {
@@ -71,12 +83,12 @@ class UserList extends Component<UserListProps, UserListState> {
     {
       title: '所在地区',
       dataIndex: 'extends',
-      render (ext: any) {
+      render(_, user) {
         return (
-          <span>
-            {`${get(ext, 'province')} `}
-            {get(ext, 'city')}
-          </span>
+          <>
+            <span>{user.extends?.province}</span>
+            <span>{user.extends?.city}</span>
+          </>
         );
       },
     },
@@ -86,213 +98,109 @@ class UserList extends Component<UserListProps, UserListState> {
     },
     {
       title: '操作',
-      render: (_: any, user: IUser) => (
-        <Fragment>
-          <a onClick={() => this.handleRoleModalVisible(true, user)}>分配角色</a>
-          <Divider type="vertical" />
-          <a onClick={() => this.handlePermissionModalVisible(true, user)}>分配权限</a>
-        </Fragment>
-      ),
+      valueType: 'option',
+      dataIndex: 'id',
+      render: (_, user) => [
+        <a
+          key="assignRoles"
+          onClick={async () => {
+            if (!user.roles) {
+              const hide = message.loading('正在加载角色数据...', 0);
+              try {
+                const { data } = await services.getUserRoles(user.id as number);
+                // eslint-disable-next-line no-param-reassign
+                user.roles = data;
+              } finally {
+                hide();
+              }
+            }
+            setSelectedUser(user);
+            handleAssignRoleModalVisible(true);
+          }}
+        >
+          分配角色
+        </a>,
+        <a
+          key="assignPermissions"
+          onClick={async () => {
+            if (!user.permissions) {
+              const hide = message.loading('正在加载权限数据...', 0);
+              try {
+                const { data } = await services.getUserPermissions(user.id as number);
+                // eslint-disable-next-line no-param-reassign
+                user.permissions = data;
+              } finally {
+                hide();
+              }
+            }
+            setSelectedUser(user);
+            handleAssignPermissionModalVisible(true);
+          }}
+        >
+          分配权限
+        </a>,
+      ],
     },
   ];
 
-  UNSAFE_componentWillMount () {
-    this.queryList(this.props.location.search);
-  }
+  return (
+    <GridContent>
+      <ProTable<IUser, { username: string }>
+        actionRef={action}
+        headerTitle="用户列表"
+        rowKey="id"
+        params={{ username }}
+        request={request}
+        columns={columns}
+        toolBarRender={() => [
+          <Input.Search placeholder="用户名" onSearch={(value) => setUsername(value)} />,
+        ]}
+        search={false}
+        pagination={{
+          defaultPageSize: 10,
+          showQuickJumper: false,
+          showSizeChanger: false,
+          // showTotal: undefined,
+        }}
+      />
+      {assignRoleModalVisible && (
+        <AssignRoleModal
+          title={`给「${selectedUser.username}」分配角色`}
+          visible={assignRoleModalVisible}
+          allRoles={allRoles}
+          currentRoles={selectedUser.roles}
+          onSubmit={async (values) => {
+            await assignRoles(selectedUser.id as number, values);
+            setSelectedUser({});
+            handleAssignRoleModalVisible(false);
+          }}
+          onCancel={() => {
+            setSelectedUser({});
+            handleAssignRoleModalVisible(false);
+          }}
+          submitting={assignRoleModalSubmitting}
+        />
+      )}
+      {assignPermissionModalVisible && (
+        <AssignPermissionModal
+          title={`给「${selectedUser.username}」分配权限`}
+          visible={assignPermissionModalVisible}
+          allPermissions={allPermissions}
+          currentPermissions={selectedUser.permissions}
+          onSubmit={async (values) => {
+            await assignPermissions(selectedUser.id as number, values);
+            setSelectedUser({});
+            handleAssignPermissionModalVisible(false);
+          }}
+          onCancel={() => {
+            setSelectedUser({});
+            handleAssignPermissionModalVisible(false);
+          }}
+          submitting={assignPermissionsModalSubmitting}
+        />
+      )}
+    </GridContent>
+  );
+};
 
-  UNSAFE_componentWillReceiveProps (nextProps: Readonly<UserListProps>): void {
-    if (nextProps.location.search !== this.props.location.search) {
-      this.queryList(nextProps.location.search);
-    }
-  }
-
-  queryList = (params: object | string) => {
-    const query = params instanceof Object ? params : parse(params.replace(/^\?/, ''));
-
-    const queryParams = {
-      ...defaultQueryParams,
-      ...query,
-    };
-
-    this.props.dispatch({
-      type: 'userList/fetch',
-      payload: queryParams,
-    });
-  };
-
-  handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-
-    const { location: { pathname }, form: { getFieldsValue } } = this.props;
-
-    router.push({
-      pathname,
-      search: stringify({
-        ...getFieldsValue(),
-      }),
-    });
-  };
-
-  handleFormReset = () => {
-    const { form } = this.props;
-    form.resetFields();
-    this.queryList({});
-  };
-
-  handlePermissionModalVisible = async (flag?: boolean, user?: IUser) => {
-    if (!!flag && user) {
-      const hide = message.loading('正在加载权限数据...', 0);
-
-      try {
-        const { allPermissions } = this.state;
-        if (allPermissions.length === 0) {
-          const { data: allPermissions } = await services.getAllPermissions();
-          this.setState({ allPermissions });
-        }
-
-        const { data: currentPermissions } = await services.getUserPermissions(user.id as number);
-        this.setState({ currentPermissions });
-      } finally {
-        hide();
-      }
-    }
-
-    this.setState({
-      permissionModalVisible: !!flag,
-      currentUser: user || {},
-    });
-  };
-
-  handleRoleModalVisible = async (flag?: boolean, user?: IUser) => {
-    if (!!flag && user) {
-      const hide = message.loading('正在加载角色数据...', 0);
-
-      try {
-        const { allRoles } = this.state;
-        if (allRoles.length === 0) {
-          const { data: allRoles } = await services.getAllRoles();
-          this.setState({ allRoles });
-        }
-
-        const { data: currentRoles } = await services.getUserRoles(user.id as number);
-        this.setState({ currentRoles });
-      } finally {
-        hide();
-      }
-    }
-
-    this.setState({
-      roleModalVisible: !!flag,
-      currentUser: user || {},
-    });
-  };
-
-
-  handleAssignPermissions = async (user_id: number, values: { permissions: number }) => {
-    await this.props.dispatch({
-      type: 'userList/assignPermissions',
-      user_id,
-      payload: {
-        ...values,
-      },
-    });
-    message.success('权限分配成功！');
-    this.handlePermissionModalVisible();
-  };
-
-  handleAssignRoles = async (user_id: number, values: { roles: number }) => {
-    await this.props.dispatch({
-      type: 'userList/assignRoles',
-      user_id,
-      payload: {
-        ...values,
-      },
-    });
-    message.success('角色分配成功！');
-    this.handleRoleModalVisible();
-  };
-
-  renderSearchForm () {
-    const { form } = this.props;
-    const { getFieldDecorator } = form;
-    return (
-      <Form onSubmit={this.handleSearch} layout="inline">
-        <Row gutter={{ md: 12, lg: 24 }}>
-          <Col md={8} sm={24}>
-            <FormItem label="用户名称">
-              {getFieldDecorator('username')(<Input placeholder="请输入" />)}
-            </FormItem>
-          </Col>
-          <Col md={16} sm={24}>
-            <div className={styles.action}>
-              <div className={styles.submitButtons}>
-                <Button type="primary" htmlType="submit">
-                  查询
-                </Button>
-                <Button style={{ marginLeft: 8 }} onClick={this.handleFormReset}>
-                  重置
-                </Button>
-              </div>
-            </div>
-          </Col>
-        </Row>
-      </Form>
-    );
-  }
-
-  render () {
-    const {
-      userList: { list, meta },
-      loading,
-      location: { pathname, search },
-    } = this.props;
-    const {
-      roleModalVisible,
-      permissionModalVisible,
-      currentUser,
-      allRoles,
-      currentRoles,
-      allPermissions,
-      currentPermissions,
-    } = this.state;
-
-    const query = parse(search.replace(/^\?/, ''));
-
-    return (
-      <PageHeaderWrapper>
-        <Card bordered={false}>
-          <div className={styles.tableList}>
-            <div className={styles.searchForm}>{this.renderSearchForm()}</div>
-            <Table
-              dataSource={list}
-              pagination={getAntdPaginationProps(meta, pathname, query)}
-              columns={this.columns}
-              loading={loading.effects['userList/fetch']}
-              rowKey="id"
-            />
-          </div>
-          <RoleForm
-            handleAssignRoles={this.handleAssignRoles}
-            handleModalVisible={this.handleRoleModalVisible}
-            modalVisible={roleModalVisible}
-            loading={loading.effects['userList/assignRoles']}
-            currentUser={currentUser}
-            allRoles={allRoles}
-            currentRoles={currentRoles}
-          />
-          <PermissionForm
-            handleAssignPermissions={this.handleAssignPermissions}
-            handleModalVisible={this.handlePermissionModalVisible}
-            modalVisible={permissionModalVisible}
-            loading={loading.effects['userList/assignPermissions']}
-            currentUser={currentUser}
-            allPermissions={allPermissions}
-            currentPermissions={currentPermissions}
-          />
-        </Card>
-      </PageHeaderWrapper>
-    );
-  }
-}
-
-export default Form.create<UserListProps>()(UserList);
+export default UserList;

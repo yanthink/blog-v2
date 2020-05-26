@@ -39,11 +39,49 @@
   }
 }
 
+.tabsCard {
+  :global {
+    .ant-card-body {
+      padding-top: 8px;
+    }
+
+    .ant-list-item-meta-title {
+      margin-top: 16px;
+      margin-bottom: 0;
+      color: black;
+      font-weight: bold;
+    }
+
+    .ant-list-item-meta-description {
+      margin-top: 8px;
+    }
+
+    .ant-list-item {
+      padding-top: 0;
+      padding-right: 0;
+      padding-left: 0;
+      &:hover {
+        background-color: @item-hover-bg;
+      }
+    }
+  }
+}
+
 @media (max-width: @screen-md) {
+  .leftCard {
+    width: 100%;
+    margin-bottom: 12px;
+  }
+
+  .tabsCard {
+    width: 100%;
+  }
+
   .affix {
-    > div:first-child[aria-hidden="true"] {
+    > div:first-child[aria-hidden='true'] {
       display: none;
     }
+
     :global(.ant-affix) {
       position: static !important;
     }

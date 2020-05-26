@@ -1,87 +1,11 @@
-import React from 'react';
-import { Button, message, notification } from 'antd';
+import moment from 'moment';
+import 'moment/locale/zh-cn';
 // @ts-ignore
 import emojiToolkit from 'emoji-toolkit';
 import { resetMarkedOptions } from '@/utils/utils';
-import defaultSettings from '../config/defaultSettings';
+
+moment.locale('zh-en');
 
 emojiToolkit.sprites = true;
 emojiToolkit.spriteSize = 32;
 resetMarkedOptions();
-
-const { pwa } = defaultSettings;
-// if pwa is true
-if (pwa) {
-  // Notify user if offline now
-  window.addEventListener('sw.offline', () => {
-    message.warning('当前处于离线状态');
-  });
-
-  // Pop up a prompt on the page asking the user if they want to use the latest version
-  window.addEventListener('sw.updated', (event: Event) => {
-    const e = event as CustomEvent;
-    const reloadSW = async () => {
-      // Check if there is sw whose state is waiting in ServiceWorkerRegistration
-      // https://developer.mozilla.org/en-US/docs/Web/API/ServiceWorkerRegistration
-      const worker = e.detail && e.detail.waiting;
-      if (!worker) {
-        return true;
-      }
-      // Send skip-waiting event to waiting SW with MessageChannel
-      await new Promise((resolve, reject) => {
-        const channel = new MessageChannel();
-        channel.port1.onmessage = msgEvent => {
-          if (msgEvent.data.error) {
-            reject(msgEvent.data.error);
-          } else {
-            resolve(msgEvent.data);
-          }
-        };
-        worker.postMessage({ type: 'skip-waiting' }, [channel.port2]);
-      });
-      // Refresh current page to use the updated HTML and other assets after SW has skiped waiting
-      window.location.reload(true);
-      return true;
-    };
-    const key = `open${Date.now()}`;
-    const btn = (
-      <Button
-        type="primary"
-        onClick={() => {
-          notification.close(key);
-          reloadSW();
-        }}
-      >
-        刷新
-      </Button>
-    );
-    notification.open({
-      message: '有新内容',
-      description: '请点击“刷新”按钮或者手动刷新页面',
-      btn,
-      key,
-      onClose: async () => {
-      },
-    });
-  });
-} else if ('serviceWorker' in navigator) {
-  // eslint-disable-next-line compat/compat
-  navigator.serviceWorker.ready
-    .then(registration => {
-      registration.unregister();
-      return true;
-    })
-    .catch(() => {
-      /* eslint no-console:0 */
-      console.log('serviceWorker unregister error');
-    });
-}
-
-if (window.location.hostname === 'www.einsition.com') {
-  // 百度统计
-  (function () {
-    const hm = document.createElement('script');
-    hm.src = 'https://hm.baidu.com/hm.js?ac1bc08008f195f8b3c753b4b718104b';
-    document.head && document.head.appendChild(hm);
-  })();
-}

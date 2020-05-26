@@ -1,101 +1,81 @@
-import React, { Component } from 'react';
-import { Button, Form, List, Switch, message } from 'antd';
-import { FormComponentProps } from 'antd/es/form';
-import { get, debounce } from 'lodash';
-import { ConnectProps, Loading, AuthStateType } from '@/models/connect';
+import React from 'react';
+import { Button, Form, List, message, Switch } from 'antd';
+import { connect, useRequest } from 'umi';
+import { AuthModelState, ConnectProps, ConnectState } from '@/models/connect';
+import { IUser, ResponseResultType } from '@/models/I';
+import * as services from '../services';
 
-const FormItem = Form.Item;
-
-interface NotificationViewState {
+interface NotificationViewState extends Partial<ConnectProps> {
+  auth?: AuthModelState;
 }
 
-interface NotificationViewProps extends ConnectProps, FormComponentProps {
-  auth: AuthStateType;
-  loading: Loading;
-}
-
-class NotificationView extends Component<NotificationViewProps, NotificationViewState> {
-  getData = () => {
-    const { form: { getFieldDecorator }, auth } = this.props;
-
-    return [
-      {
-        title: '评论通知',
-        description: '系统在你离线时将以邮件的形式通知',
-        actions: [
-          getFieldDecorator('settings.comment_email_notify', {
-            initialValue: get(auth.user, 'settings.comment_email_notify', true),
-            valuePropName: 'checked',
-          })(
-            <Switch
-              checkedChildren="开"
-              unCheckedChildren="关"
-            />
-          ),
-        ],
-      },
-      {
-        title: '点赞通知',
-        description: '系统在你离线时将以邮件的形式通知',
-        actions: [
-          getFieldDecorator('settings.liked_email_notify', {
-            initialValue: get(auth.user, 'settings.liked_email_notify', true),
-            valuePropName: 'checked',
-          })(
-            <Switch
-              checkedChildren="开"
-              unCheckedChildren="关"
-            />
-          ),
-        ],
-      },
-    ];
-  };
-
-  handleSubmit = debounce((event: React.MouseEvent) => {
-    event.preventDefault();
-    const { form } = this.props;
-    form.validateFields(async (err, values) => {
-      if (!err) {
-        await this.props.dispatch({
-          type: 'accountSettings/updateSettings',
-          payload: values,
+const NotificationView: React.FC<NotificationViewState> = (props) => {
+  const { loading, run: updateSettings } = useRequest<ResponseResultType<IUser>>(
+    services.updateSettings,
+    {
+      manual: true,
+      onSuccess(data) {
+        props.dispatch!({
+          type: 'auth/setUser',
+          user: data,
         });
-
         message.success('修改成功！');
-      }
-    });
-  }, 600);
+      },
+    },
+  );
 
-  render () {
-    const data = this.getData();
-    const { loading } = this.props;
-
-    return (
-      <Form layout="vertical">
-        <FormItem>
-          <List
-            itemLayout="horizontal"
-            dataSource={data}
-            renderItem={item => (
-              <List.Item actions={item.actions}>
-                <List.Item.Meta title={item.title} description={item.description} />
-              </List.Item>
-            )}
-          />
-        </FormItem>
-        <FormItem>
-          <Button
-            type="primary"
-            onClick={this.handleSubmit}
-            loading={loading.effects['accountSettings/updateSettings']}
-          >
-            应用修改
-          </Button>
-        </FormItem>
-      </Form>
-    );
+  async function handleSubmit(values: object) {
+    await updateSettings(values);
   }
-}
 
-export default Form.create<NotificationViewProps>()(NotificationView);
+  return (
+    <Form
+      layout="vertical"
+      initialValues={{
+        settings: {
+          comment_email_notify: props.auth!.user.settings?.comment_email_notify,
+          liked_email_notify: props.auth!.user.settings?.liked_email_notify,
+        },
+      }}
+      onFinish={handleSubmit}
+    >
+      <Form.Item>
+        <List
+          itemLayout="horizontal"
+          dataSource={[
+            {
+              title: '评论通知',
+              description: '系统在你离线时将以邮件的形式通知',
+              actions: [
+                <Form.Item name={['settings', 'comment_email_notify']} valuePropName="checked">
+                  <Switch checkedChildren="开" unCheckedChildren="关" />
+                </Form.Item>,
+              ],
+            },
+            {
+              title: '点赞通知',
+              description: '系统在你离线时将以邮件的形式通知',
+              actions: [
+                <Form.Item name={['settings', 'liked_email_notify']} valuePropName="checked">
+                  <Switch checkedChildren="开" unCheckedChildren="关" />
+                </Form.Item>,
+              ],
+            },
+          ]}
+          renderItem={(item) => (
+            <List.Item actions={item.actions}>
+              <List.Item.Meta title={item.title} description={item.description} />
+            </List.Item>
+          )}
+        />
+      </Form.Item>
+      <Form.Item>
+        <Button type="primary" htmlType="submit" loading={loading}>
+          应用修改
+        </Button>
+      </Form.Item>
+    </Form>
+  );
+};
+
+export default connect(({ auth }: ConnectState) => ({ auth }))(NotificationView);

@@ -1,129 +1,111 @@
-import { Form, Tabs, Input, Button, Checkbox, Spin, Icon, message } from 'antd';
-import React, { Component } from 'react';
-import { FormComponentProps } from 'antd/es/form';
-import { connect } from 'dva';
-import { Link } from 'umi';
+import React, { useState, useEffect } from 'react';
+import { connect, Link, useRequest } from 'umi';
+import { Button, Checkbox, Form, Input, message, Spin, Tabs } from 'antd';
+import { CloseCircleOutlined, LoadingOutlined } from '@ant-design/icons';
 import Echo from 'laravel-echo';
 // @ts-ignore
 import io from 'socket.io-client';
-import { ConnectState, ConnectProps } from '@/models/connect';
 import { setSocketId } from '@/utils/authority';
+import { ConnectState, ConnectProps } from '@/models/connect';
+import { ResponseResultType } from '@/models/I';
 import * as services from './services';
 import styles from './style.less';
 
-const FormItem = Form.Item;
-const { TabPane } = Tabs;
-
-interface LoginProps extends ConnectProps, FormComponentProps {
+interface LoginProps extends ConnectProps {
   submitting: boolean;
 }
 
-interface LoginState {
-  uuid: string;
-  base64Img: string;
-  codeExpired: boolean;
-  codeLoading: boolean;
-}
+const { TabPane } = Tabs;
 
-@connect(({ loading }: ConnectState) => ({
-  submitting: loading.effects['auth/attemptLogin'],
-}))
-class Login extends Component<LoginProps, LoginState> {
-  static socketTimeout = 120000;
+let echo: Echo;
+let timer: NodeJS.Timeout;
 
-  state: LoginState = {
-    uuid: '',
-    base64Img: '',
-    codeExpired: false,
-    codeLoading: false,
-  };
+const Login: React.FC<LoginProps> = (props) => {
+  const [loginCodeExpired, setLoginCodeExpired] = useState<Boolean>(false);
 
-  echo: Echo;
+  // 获取小程序码，建立websocket链接
+  const {
+    loading: loginCodeLoading,
+    data: { base64_img: loginCodeBase64 } = { base64_img: '' },
+    run: getLoginCode,
+  } = useRequest<ResponseResultType<{ base64_img: string; uuid: string }>>(services.getLoginCode, {
+    initialData: { base64_img: '', uuid: '' },
+    manual: true,
+    onSuccess(data) {
+      clearTimeout(timer);
+      setLoginCodeExpired(false);
 
-  timer: any;
+      echo
+        .channel(`ScanLogin.${data.uuid}`)
+        .listen(
+          'WechatLogined',
+          ({
+            access_token: token,
+            permissions,
+          }: {
+            access_token: string;
+            permissions: string[];
+          }) => {
+            props.dispatch!({
+              type: 'auth/loginSuccess',
+              token,
+              permissions,
+              callback: () => {
+                message.success('登录成功！');
+              },
+            });
+          },
+        );
 
-  constructor (props: LoginProps) {
-    super(props);
+      timer = setTimeout(() => {
+        echo.leaveChannel(`ScanLogin.${data.uuid}`);
+        setLoginCodeExpired(true);
+      }, 120000);
+    },
+  });
 
-    this.echo = new Echo({
+  useEffect(() => {
+    echo = new Echo({
       client: io,
       broadcaster: 'socket.io',
       host: SOCKET_HOST,
       withoutInterceptors: true,
     });
 
-    setSocketId(this.echo.socketId());
-  }
+    setSocketId(echo.socketId());
 
-  componentDidMount () {
-    this.createWebSocket();
-  }
+    getLoginCode();
 
-  componentWillUnmount () {
-    clearTimeout(this.timer);
-    setSocketId('');
-    this.echo.disconnect();
-  }
-
-  createWebSocket = async () => {
-    clearTimeout(this.timer);
-
-    this.setState({ codeExpired: false, codeLoading: true });
-
-    try {
-      const { data: { base64_img: base64Img, uuid } } = await services.getLoginCode();
-
-      this.echo.channel(`ScanLogin.${uuid}`)
-        .listen('WechatLogined', (data: { access_token: string, permissions: string[] }) => {
-          this.props.dispatch({
-            type: 'auth/loginSuccess',
-            token: data.access_token,
-            permissions: data.permissions,
-            callback: () => {
-              message.success('登录成功！');
-            },
-          });
-        });
-
-      this.setState({ uuid, base64Img, codeExpired: false, codeLoading: false });
-
-      this.timer = setTimeout(this.handleWebSocketTimeout, Login.socketTimeout);
-    } catch (e) {
-      message.error('小程序码获取失败');
-    }
-  };
-
-  handleWebSocketTimeout = () => {
-    this.echo.leaveChannel(`ScanLogin.${this.state.uuid}`);
-    this.setState({ codeExpired: true });
-  };
-
-  handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const { form } = this.props;
-
-    form.validateFields({ force: true }, (err: any, values: object) => {
-      if (!err) {
-        this.props.dispatch({
-          type: 'auth/attemptLogin',
-          payload: values,
-        });
+    return () => {
+      try {
+        clearTimeout(timer);
+        setSocketId('');
+        echo.disconnect();
+      } catch (e) {
+        //
       }
+    };
+  }, []);
+
+  const handleSubmit = (values: object) => {
+    props.dispatch!({
+      type: 'auth/attemptLogin',
+      payload: values,
     });
   };
 
-  renderCode = () => {
-    const { base64Img, codeExpired, codeLoading } = this.state;
-    if (codeExpired) {
+  const renderCode = () => {
+    if (loginCodeExpired && !loginCodeLoading) {
       return (
         <>
-          <Icon type="close-circle" /><span className={styles.noticeTitle}>小程序码已失效</span>
+          <CloseCircleOutlined />
+          <span className={styles.noticeTitle}>小程序码已失效</span>
           <Button
             className={styles.noticeBtn}
             type="primary"
             size="large"
             block
-            onClick={this.createWebSocket}
+            onClick={getLoginCode}
           >
             刷新小程序码
           </Button>
@@ -135,58 +117,68 @@ class Login extends Component<LoginProps, LoginState> {
       <>
         <p>微信扫码后点击“登录”，</p>
         <p>即可完成账号绑定及登录。</p>
-        {
-          codeLoading
-            ? <Spin indicator={<Icon type="loading" spin />} tip="正在加载..." />
-            : <img src={`data:image/png;base64,${base64Img}`} alt="小程序码" width="260" height="260" />
-        }
+        {loginCodeLoading || !loginCodeBase64 ? (
+          <Spin indicator={<LoadingOutlined />} tip="正在加载..." />
+        ) : (
+          <img
+            src={`data:image/png;base64,${loginCodeBase64}`}
+            alt="小程序码"
+            width="260"
+            height="260"
+          />
+        )}
       </>
     );
   };
 
-  render () {
-    const { form, submitting } = this.props;
-    const { getFieldDecorator } = form;
+  return (
+    <div className={styles.main}>
+      <Form onFinish={handleSubmit}>
+        <Tabs size="large">
+          <TabPane tab="微信扫码登录" key="1">
+            <div className={styles.qrcodeBox}>{renderCode()}</div>
+          </TabPane>
+          <TabPane tab="账户密码登录" key="2">
+            <div>
+              <Form.Item
+                name="account"
+                rules={[{ required: true, message: '请输入账户名称！' }]}
+                hasFeedback
+              >
+                <Input size="large" placeholder="账户名称" />
+              </Form.Item>
+              <Form.Item
+                name="password"
+                rules={[{ required: true, message: '请输入账户密码！' }]}
+                hasFeedback
+              >
+                <Input.Password size="large" placeholder="账户密码" />
+              </Form.Item>
+              <Form.Item>
+                <Form.Item name="remember" valuePropName="checked" noStyle>
+                  <Checkbox disabled>自动登录</Checkbox>
+                </Form.Item>
+                <Link style={{ float: 'right' }} to="#">
+                  忘记密码
+                </Link>
+                <Button
+                  size="large"
+                  type="primary"
+                  block
+                  loading={props.submitting}
+                  htmlType="submit"
+                >
+                  登录
+                </Button>
+              </Form.Item>
+            </div>
+          </TabPane>
+        </Tabs>
+      </Form>
+    </div>
+  );
+};
 
-    return (
-      <div className={styles.main}>
-        <Form onSubmit={this.handleSubmit}>
-          <Tabs size="large">
-            <TabPane tab="微信扫码登录" key="1">
-              <div className={styles.qrcodeBox}>
-                {this.renderCode()}
-              </div>
-            </TabPane>
-            <TabPane tab="账户密码登录" key="2">
-              <div>
-                <FormItem hasFeedback>
-                  {getFieldDecorator('account', {
-                    rules: [{ required: true, message: '请输入账户名称！' }],
-                  })(<Input size="large" placeholder="账户名称" />)}
-                </FormItem>
-                <FormItem hasFeedback>
-                  {getFieldDecorator('password', {
-                    rules: [{ required: true, message: '请输入账户密码！' }],
-                  })(<Input.Password size="large" placeholder="账户密码" />)}
-                </FormItem>
-                <FormItem>
-                  {getFieldDecorator('remember', { valuePropName: 'checked' })(
-                    <Checkbox disabled>自动登录</Checkbox>,
-                  )}
-                  <Link style={{ float: 'right' }} to="#">
-                    忘记密码
-                  </Link>
-                  <Button size="large" type="primary" block loading={submitting} htmlType="submit">
-                    登录
-                  </Button>
-                </FormItem>
-              </div>
-            </TabPane>
-          </Tabs>
-        </Form>
-      </div>
-    );
-  }
-}
-
-export default Form.create<LoginProps>()(Login);
+export default connect(({ loading }: ConnectState) => ({
+  submitting: loading.effects['auth/attemptLogin'],
+}))(Login);

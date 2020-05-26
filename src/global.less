@@ -1,5 +1,6 @@
 @import '~antd/es/style/themes/default.less';
 @import '~emoji-assets/sprites/joypixels-sprite-32.min.css';
+@import '~yt-simplemde-editor/dist/style.css';
 @import '~yt-emoji-picker/dist/style.css';
 
 html,
@@ -32,6 +33,11 @@ ol {
   list-style: none;
 }
 
+// 头部样式问题
+.ant-pro-basicLayout-children-content-wrap > .ant-pro-grid-content.wide {
+  max-width: 100%;
+}
+
 // topNav
 .ant-pro-top-nav-header-main {
   position: relative;
@@ -40,22 +46,6 @@ ol {
 // footer
 .ant-pro-global-footer {
   margin-top: 24px !important;
-}
-
-// nprogress
-body #nprogress {
-  .bar {
-    background-color: @primary-color;
-  }
-
-  .spinner {
-    top: 23px !important;
-  }
-
-  .spinner-icon {
-    border-top-color: @primary-color;
-    border-left-color: @primary-color;
-  }
 }
 
 // simplemde-editor
@@ -79,7 +69,7 @@ span.joypixels {
 img.joypixels {
   width: 18px;
   height: 18px;
-  margin: -3px .1em 0 .1em;
+  margin: -3px 0.1em 0 0.1em;
 }
 
 .emoji img.joypixels {
@@ -113,10 +103,10 @@ body .editor-preview-active-side {
       top: -16px;
       bottom: -16px;
       padding: 15px 0;
-      border-right: 1px solid rgba(0, 0, 0, .66);
+      border-right: 1px solid rgba(0, 0, 0, 0.66);
 
       > span::before {
-        color: hsla(0, 0%, 100%, .3);
+        color: hsla(0, 0%, 100%, 0.3);
       }
     }
   }
@@ -146,6 +136,32 @@ body .editor-preview-active-side {
   .ant-pro-grid-content.wide .ant-page-header-heading-extra {
     top: 38px;
     right: 0;
+  }
+}
+
+@media (max-width: @screen-xs) {
+  .ant-table {
+    width: 100%;
+    overflow-x: auto;
+
+    &-thead > tr,
+    &-tbody > tr {
+      > th,
+      > td {
+        white-space: pre;
+
+        > span {
+          display: block;
+        }
+      }
+    }
+  }
+}
+
+// 兼容IE11
+@media screen and(-ms-high-contrast: active), (-ms-high-contrast: none) {
+  body .ant-design-pro > .ant-layout {
+    min-height: 100vh;
   }
 }
 
@@ -189,7 +205,8 @@ body .editor-preview-active-side {
     }
 
     .ant-pro-sider-menu-sider {
-      .ant-menu-item, .ant-menu-submenu {
+      .ant-menu-item,
+      .ant-menu-submenu {
         padding-left: 12px !important;
       }
 

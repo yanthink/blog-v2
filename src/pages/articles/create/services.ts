@@ -1,12 +1,8 @@
-import request from '@/utils/request';
+import { request } from 'umi';
 
-export async function storeArticle (params: object) {
+export async function storeArticle(params: object) {
   return request('articles', {
     method: 'POST',
     data: params,
   });
-}
-
-export async function queryAllTags () {
-  return request('tags/all');
 }

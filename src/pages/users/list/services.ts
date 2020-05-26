@@ -1,36 +1,28 @@
-import request from '@/utils/request';
+import { request } from 'umi';
 
-export async function queryUsers (params: object) {
+export async function queryUsers(params?: object) {
   return request('users', {
     params,
   });
 }
 
-export async function getAllRoles () {
-  return request('roles/all');
+export async function getUserRoles(userId: number) {
+  return request(`users/${userId}/roles`);
 }
 
-export async function getUserRoles (user_id: number | string) {
-  return request(`users/${user_id}/roles`);
+export async function getUserPermissions(userId: number) {
+  return request(`users/${userId}/permissions`);
 }
 
-export async function getAllPermissions () {
-  return request('permissions/all');
-}
-
-export async function getUserPermissions (user_id: number | string) {
-  return request(`users/${user_id}/permissions`);
-}
-
-export async function assignPermissions (user_id: number | string, data: object) {
-  return request(`users/${user_id}/assign_permissions`, {
+export async function assignPermissions(userId: number, data: object) {
+  return request(`users/${userId}/assign_permissions`, {
     method: 'POST',
     data,
   });
 }
 
-export async function assignRoles (user_id: number | string, data: object) {
-  return request(`users/${user_id}/assign_roles`, {
+export async function assignRoles(userId: number, data: object) {
+  return request(`users/${userId}/assign_roles`, {
     method: 'POST',
     data,
   });

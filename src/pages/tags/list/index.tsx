@@ -1,247 +1,131 @@
-import React, { Component, Fragment } from 'react';
-import { Card, Col, Form, Button, Input, Row, Table, message } from 'antd';
-import { router } from 'umi';
-import { parse, stringify } from 'qs';
-import { FormComponentProps } from 'antd/es/form';
-import { PageHeaderWrapper } from '@ant-design/pro-layout';
-import { connect } from 'dva';
-import { ConnectState, ConnectProps, TagListModelState, Loading } from '@/models/connect';
-import { ITag } from '@/models/data';
-import { getAntdPaginationProps } from '@/utils/XUtils';
-import CreateForm from './components/CreateForm';
-import UpdateForm from './components/UpdateForm';
-import styles from './style.less';
+import React, { useRef, useState } from 'react';
+import { GridContent } from '@ant-design/pro-layout';
+import { useRequest } from 'umi';
+import { Button, Input, message } from 'antd';
+import ProTable from '@ant-design/pro-table';
+import { ActionType, ProColumns } from '@ant-design/pro-table/es/Table';
+import { ConnectProps } from '@/models/connect';
+import { ITag } from '@/models/I';
+import CreateModal from './components/CreateModal';
+import UpdateModal from './components/UpdateModal';
+import * as services from './services';
 
-const FormItem = Form.Item;
+interface TagListProps extends ConnectProps {}
 
-const defaultQueryParams = {};
+const TagList: React.FC<TagListProps> = () => {
+  const action = useRef<ActionType>();
+  const [name, setName] = useState();
 
-interface TagListProps extends ConnectProps, FormComponentProps {
-  loading: Loading;
-  tagList: TagListModelState;
-}
+  const [createModalVisible, handleCreateModalVisible] = useState<boolean>(false);
+  const [updateModalVisible, handleUpdateModalVisible] = useState<boolean>(false);
+  const [selectedTag, setSelectedTag] = useState<ITag>({});
 
-interface TagListState {
-  createModalVisible: boolean;
-  updateModalVisible: boolean;
-  currentTag: ITag;
-}
+  function request({ current, pageSize, ...params }: any) {
+    return services.queryTags({ ...params, page: current, per_page: pageSize });
+  }
 
-@connect(({ tagList, loading }: ConnectState) => ({
-  tagList,
-  loading,
-}))
-class TagList extends Component<TagListProps, TagListState> {
-  state: TagListState = {
-    createModalVisible: false,
-    updateModalVisible: false,
-    currentTag: {},
-  };
+  // 创建标签
+  const { loading: createModalSubmitting, run: storeTag } = useRequest(services.storeTag, {
+    manual: true,
+    onSuccess() {
+      action.current?.reload();
+      message.success('标签创建成功！');
+    },
+  });
+  // 更新权限
+  const { loading: updateModalSubmitting, run: updateTag } = useRequest(services.updateTag, {
+    manual: true,
+    onSuccess() {
+      action.current?.reload();
+      message.success('标签更新成功！');
+    },
+  });
 
-  columns = [
+  const columns: ProColumns<ITag>[] = [
     {
       title: '标签编号',
       dataIndex: 'id',
-      key: 'id',
     },
     {
       title: '标签名称',
       dataIndex: 'name',
-      key: 'name',
     },
     {
       title: 'slug',
       dataIndex: 'slug',
-      key: 'slug',
     },
     {
       title: '排序',
       dataIndex: 'order',
-      key: 'order',
     },
     {
       title: '创建时间',
       dataIndex: 'created_at',
-      key: 'created_at',
     },
     {
       title: '更新时间',
       dataIndex: 'updated_at',
-      key: 'updated_at',
     },
     {
       title: '操作',
-      render: (_: any, tag: ITag) => (
-        <Fragment>
-          <a onClick={() => this.handleUpdateModalVisible(true, tag)}>编辑</a>
-        </Fragment>
-      ),
+      valueType: 'option',
+      dataIndex: 'id',
+      render: (_, tag) => [
+        <a
+          onClick={() => {
+            setSelectedTag(tag);
+            handleUpdateModalVisible(true);
+          }}
+        >
+          编辑
+        </a>,
+      ],
     },
   ];
 
-  UNSAFE_componentWillMount () {
-    this.queryList(this.props.location.search);
-  }
-
-  UNSAFE_componentWillReceiveProps (nextProps: Readonly<TagListProps>): void {
-    if (nextProps.location.search !== this.props.location.search) {
-      this.queryList(nextProps.location.search);
-    }
-  }
-
-  queryList = (params: object | string) => {
-    const query = params instanceof Object ? params : parse(params.replace(/^\?/, ''));
-
-    const queryParams = {
-      ...defaultQueryParams,
-      ...query,
-    };
-
-    this.props.dispatch({
-      type: 'tagList/fetch',
-      payload: queryParams,
-    });
-  };
-
-  handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-
-    const { location: { pathname }, form: { getFieldsValue } } = this.props;
-
-    router.push({
-      pathname,
-      search: stringify({
-        ...getFieldsValue(),
-      }),
-    });
-  };
-
-  handleFormReset = () => {
-    const { form } = this.props;
-    form.resetFields();
-    this.queryList({});
-  };
-
-  handleCreateModalVisible = (flag?: boolean) => {
-    this.setState({
-      createModalVisible: !!flag,
-    });
-  };
-
-  handleUpdateModalVisible = (flag?: boolean, role?: ITag) => {
-    this.setState({
-      updateModalVisible: !!flag,
-      currentTag: role || {},
-    });
-  };
-
-  handleAdd = async (values: object) => {
-    await this.props.dispatch({
-      type: 'tagList/create',
-      payload: {
-        ...values,
-      },
-    });
-    message.success('添加成功！');
-    this.handleCreateModalVisible();
-    this.queryList(this.props.location.search);
-  };
-
-  handleUpdate = async (id: number, values: object) => {
-    await this.props.dispatch({
-      type: 'tagList/update',
-      id,
-      payload: {
-        ...values,
-      },
-    });
-
-    message.success('修改成功！');
-    this.handleUpdateModalVisible();
-    this.queryList(this.props.location.search);
-  };
-
-  renderSearchForm () {
-    const { form } = this.props;
-    const { getFieldDecorator } = form;
-    return (
-      <Form onSubmit={this.handleSearch} layout="inline">
-        <Row gutter={{ md: 8, lg: 24, xl: 48 }}>
-          <Col md={8} sm={24}>
-            <FormItem label="标签名称">
-              {getFieldDecorator('name')(<Input placeholder="请输入" />)}
-            </FormItem>
-          </Col>
-          <Col md={16} sm={24}>
-            <div className={styles.action}>
-              <div className={styles.submitButtons}>
-                <Button type="primary" htmlType="submit">
-                  查询
-                </Button>
-                <Button style={{ marginLeft: 8 }} onClick={this.handleFormReset}>
-                  重置
-                </Button>
-              </div>
-              <div className={styles.operator}>
-                <Button
-                  icon="Tag-add"
-                  type="primary"
-                  onClick={() => this.handleCreateModalVisible(true)}
-                >
-                  新建
-                </Button>
-              </div>
-            </div>
-          </Col>
-        </Row>
-      </Form>
-    );
-  }
-
-  render () {
-    const {
-      tagList: { list, meta },
-      loading,
-      location: { pathname, search },
-    } = this.props;
-    const {
-      createModalVisible,
-      updateModalVisible,
-      currentTag,
-    } = this.state;
-
-    const query = parse(search.replace(/^\?/, ''));
-
-    return (
-      <PageHeaderWrapper>
-        <Card bordered={false}>
-          <div className={styles.tableList}>
-            <div className={styles.searchForm}>{this.renderSearchForm()}</div>
-            <Table
-              dataSource={list}
-              pagination={getAntdPaginationProps(meta, pathname, query)}
-              columns={this.columns}
-              loading={loading.effects['tagList/fetch']}
-              rowKey="id"
-            />
-          </div>
-        </Card>
-        <CreateForm
-          handleAdd={this.handleAdd}
-          handleModalVisible={this.handleCreateModalVisible}
-          modalVisible={createModalVisible}
-          loading={loading.effects['tagList/create']}
+  return (
+    <GridContent>
+      <ProTable<ITag, { name: string }>
+        actionRef={action}
+        headerTitle="标签列表"
+        rowKey="id"
+        params={{ name }}
+        request={request}
+        columns={columns}
+        toolBarRender={() => [
+          <Input.Search placeholder="标签名称" onSearch={(value) => setName(value)} />,
+          <Button type="primary" onClick={() => handleCreateModalVisible(true)}>
+            新建
+          </Button>,
+        ]}
+        search={false}
+      />
+      <CreateModal
+        title="创建标签"
+        visible={createModalVisible}
+        onCancel={() => handleCreateModalVisible(false)}
+        onSubmit={async (values) => {
+          await storeTag(values);
+          handleCreateModalVisible(false);
+        }}
+        submitting={createModalSubmitting}
+      />
+      {updateModalVisible && (
+        <UpdateModal
+          title="更新标签"
+          visible={updateModalVisible}
+          onCancel={() => handleUpdateModalVisible(false)}
+          onSubmit={async (values) => {
+            await updateTag(selectedTag.id as number, values);
+            setSelectedTag({});
+            handleUpdateModalVisible(false);
+          }}
+          submitting={updateModalSubmitting}
+          initialValues={selectedTag}
         />
-        <UpdateForm
-          handleUpdate={this.handleUpdate}
-          handleModalVisible={this.handleUpdateModalVisible}
-          modalVisible={updateModalVisible}
-          loading={loading.effects['tagList/update']}
-          tag={currentTag}
-        />
-      </PageHeaderWrapper>
-    );
-  }
-}
+      )}
+    </GridContent>
+  );
+};
 
-export default Form.create<TagListProps>()(TagList);
+export default TagList;

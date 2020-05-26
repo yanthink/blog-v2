@@ -1,19 +1,19 @@
-import request from '@/utils/request';
+import { request } from 'umi';
 
-export async function queryPermissions (params: object) {
+export async function queryPermissions(params?: object) {
   return request('permissions', {
     params,
   });
 }
 
-export async function storePermission (params: object) {
+export async function storePermission(data: object) {
   return request('permissions', {
     method: 'POST',
-    data: params,
+    data,
   });
 }
 
-export async function updatePermission (id: number | string, data: object) {
+export async function updatePermission(id: number, data: object) {
   return request(`permissions/${id}`, {
     method: 'PUT',
     data,

@@ -6,13 +6,20 @@
 
 .list {
   :global {
+    .ant-list-item {
+      padding-right: 0;
+      padding-left: 0;
+    }
+
     .ant-list-item-main {
       display: flex;
       flex-direction: column;
     }
+
     .ant-list-item-action {
       margin-left: 0;
     }
+
     .ant-list-item-extra {
       margin-left: 60px;
     }
@@ -21,14 +28,17 @@
 
 a.listItemMetaTitle {
   color: @heading-color;
+
   strong {
     color: @volcano-6;
   }
+
   em {
     color: @volcano-6;
     font-style: normal;
   }
 }
+
 .listItemExtra {
   width: 320px;
   overflow: hidden;
@@ -47,6 +57,7 @@ a.listItemMetaTitle {
     max-height: 100%;
   }
 }
+
 .selfTrigger {
   margin-left: 12px;
 }
@@ -57,6 +68,7 @@ a.listItemMetaTitle {
     margin-left: 0;
   }
 }
+
 @media screen and (max-width: @screen-md) {
   .selfTrigger {
     display: block;
@@ -67,11 +79,11 @@ a.listItemMetaTitle {
     margin-top: 12px;
   }
 
-  .list :global(.ant-list-item-extra){
+  .list :global(.ant-list-item-extra) {
     margin-left: 0;
-
   }
 }
+
 @media screen and (max-width: @screen-lg) {
   .listItemExtra {
     width: 0;

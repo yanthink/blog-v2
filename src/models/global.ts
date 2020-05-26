@@ -1,5 +1,4 @@
-import { Reducer } from 'redux';
-import { Subscription } from 'dva';
+import { Reducer } from 'umi';
 
 export interface GlobalModelState {
   collapsed: boolean;
@@ -11,7 +10,6 @@ export interface GlobalModelType {
   reducers: {
     changeLayoutCollapsed: Reducer<GlobalModelState>;
   };
-  subscriptions: { setup: Subscription };
 }
 
 const GlobalModel: GlobalModelType = {
@@ -27,17 +25,6 @@ const GlobalModel: GlobalModelType = {
         ...state,
         collapsed: payload,
       };
-    },
-  },
-
-  subscriptions: {
-    setup({ history }): void {
-      // Subscribe history(url) change, trigger `load` action if pathname is `/`
-      history.listen(({ pathname, search }): void => {
-        if (typeof window.ga !== 'undefined') {
-          window.ga('send', 'pageview', pathname + search);
-        }
-      });
     },
   },
 };

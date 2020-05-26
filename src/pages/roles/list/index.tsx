@@ -1,298 +1,181 @@
-import React, { Component, Fragment } from 'react';
-import { Card, Col, Form, Button, Input, Row, Table, Divider, message } from 'antd';
-import { router } from 'umi';
-import { parse, stringify } from 'qs';
-import { FormComponentProps } from 'antd/es/form';
-import { PageHeaderWrapper } from '@ant-design/pro-layout';
-import { connect } from 'dva';
-import { ConnectState, ConnectProps, RoleListModelState, Loading } from '@/models/connect';
-import { IPermission, IRole } from '@/models/data';
-import { getAntdPaginationProps } from '@/utils/XUtils';
-import CreateForm from './components/CreateForm';
-import UpdateForm from './components/UpdateForm';
-import PermissionForm from './components/PermissionForm';
+import React, { useRef, useState } from 'react';
+import { GridContent } from '@ant-design/pro-layout';
+import ProTable from '@ant-design/pro-table';
+import { ActionType, ProColumns } from '@ant-design/pro-table/es/Table';
+import { useRequest } from 'umi';
+import { Button, Input, message } from 'antd';
+import { ConnectProps } from '@/models/connect';
+import { IPermission, IRole, ResponseResultType } from '@/models/I';
+import AssignPermissionModal from '@/components/AssignPermissionModal';
+import { getAllPermissions } from '@/services';
+import CreateModal from './components/CreateModal';
+import UpdateModal from './components/UpdateModal';
 import * as services from './services';
-import styles from './style.less';
 
-const FormItem = Form.Item;
+interface RoleListProps extends ConnectProps {}
 
-const defaultQueryParams = {};
+const RoleList: React.FC<RoleListProps> = () => {
+  const action = useRef<ActionType>();
+  const [name, setName] = useState();
 
-interface RoleListProps extends ConnectProps, FormComponentProps {
-  loading: Loading;
-  roleList: RoleListModelState;
-}
+  const [createModalVisible, handleCreateModalVisible] = useState<boolean>(false);
+  const [updateModalVisible, handleUpdateModalVisible] = useState<boolean>(false);
+  const [assignPermissionModalVisible, handleAssignPermissionModalVisible] = useState<boolean>(
+    false,
+  );
+  const [selectedRole, setSelectedRole] = useState<IRole>({});
 
-interface RoleListState {
-  createModalVisible: boolean;
-  updateModalVisible: boolean;
-  permissionModalVisible: boolean;
-  currentRole: IRole;
-  allPermissions: IPermission[];
-  currentPermissions: IPermission[];
-}
+  // 获取所有权限
+  const { data: allPermissions } = useRequest<ResponseResultType<IPermission[]>>(
+    getAllPermissions,
+    { cacheKey: 'allPermissions' },
+  );
+  // 分配权限
+  const { loading: assignPermissionsModalSubmitting, run: assignPermissions } = useRequest(
+    services.assignPermissions,
+    {
+      manual: true,
+      onSuccess() {
+        action.current?.reload();
+        message.success('权限分配成功！');
+      },
+    },
+  );
+  // 创建角色
+  const { loading: createModalSubmitting, run: storeRole } = useRequest(services.storeRole, {
+    manual: true,
+    onSuccess() {
+      action.current?.reload();
+      message.success('角色创建成功！');
+    },
+  });
+  // 更新角色
+  const { loading: updateModalSubmitting, run: updateRole } = useRequest(services.updateRole, {
+    manual: true,
+    onSuccess() {
+      action.current?.reload();
+      message.success('角色更新成功！');
+    },
+  });
 
-@connect(({ roleList, loading }: ConnectState) => ({
-  roleList,
-  loading,
-}))
-class RoleList extends Component<RoleListProps, RoleListState> {
-  state: RoleListState = {
-    createModalVisible: false,
-    updateModalVisible: false,
-    permissionModalVisible: false,
-    currentRole: {},
-    allPermissions: [],
-    currentPermissions: [],
-  };
+  function request({ current, pageSize, ...params }: any) {
+    return services.queryRoles({ ...params, page: current, per_page: pageSize });
+  }
 
-  columns = [
+  const columns: ProColumns<IRole>[] = [
     {
       title: '角色标识',
       dataIndex: 'name',
-      key: 'name',
     },
     {
       title: '角色名称',
       dataIndex: 'display_name',
-      key: 'display_name',
     },
     {
       title: '创建时间',
       dataIndex: 'created_at',
-      key: 'created_at',
+      valueType: 'dateTime',
     },
     {
       title: '更新时间',
       dataIndex: 'updated_at',
-      key: 'updated_at',
+      valueType: 'dateTime',
     },
     {
       title: '操作',
-      render: (_: any, role: IRole) => (
-        <Fragment>
-          <a onClick={() => this.handleUpdateModalVisible(true, role)}>编辑</a>
-          <Divider type="vertical" />
-          <a onClick={() => this.handlePermissionModalVisible(true, role)}>分配权限</a>
-        </Fragment>
-      ),
+      valueType: 'option',
+      dataIndex: 'id',
+      render: (_, role) => [
+        <a
+          onClick={() => {
+            setSelectedRole(role);
+            handleUpdateModalVisible(true);
+          }}
+        >
+          编辑
+        </a>,
+        <a
+          onClick={async () => {
+            if (!role.permissions) {
+              const hide = message.loading('正在加载权限数据...', 0);
+              try {
+                const { data } = await services.getRolePermissions(role.id as number);
+                // eslint-disable-next-line no-param-reassign
+                role.permissions = data;
+              } finally {
+                hide();
+              }
+            }
+            setSelectedRole(role);
+            handleAssignPermissionModalVisible(true);
+          }}
+        >
+          分配权限
+        </a>,
+      ],
     },
   ];
 
-  UNSAFE_componentWillMount () {
-    this.queryList(this.props.location.search);
-  }
-
-  UNSAFE_componentWillReceiveProps (nextProps: Readonly<RoleListProps>): void {
-    if (nextProps.location.search !== this.props.location.search) {
-      this.queryList(nextProps.location.search);
-    }
-  }
-
-  queryList = (params: object | string) => {
-    const query = params instanceof Object ? params : parse(params.replace(/^\?/, ''));
-
-    const queryParams = {
-      ...defaultQueryParams,
-      ...query,
-    };
-
-    this.props.dispatch({
-      type: 'roleList/fetch',
-      payload: queryParams,
-    });
-  };
-
-  handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-
-    const { location: { pathname }, form: { getFieldsValue } } = this.props;
-
-    router.push({
-      pathname,
-      search: stringify({
-        ...getFieldsValue(),
-      }),
-    });
-  };
-
-  handleFormReset = () => {
-    const { form } = this.props;
-    form.resetFields();
-    this.queryList({});
-  };
-
-  handleCreateModalVisible = (flag?: boolean) => {
-    this.setState({
-      createModalVisible: !!flag,
-    });
-  };
-
-  handleUpdateModalVisible = (flag?: boolean, role?: IRole) => {
-    this.setState({
-      updateModalVisible: !!flag,
-      currentRole: role || {},
-    });
-  };
-
-  handlePermissionModalVisible = async (flag?: boolean, role?: IRole) => {
-    if (!!flag && role) {
-      const hide = message.loading('正在加载权限数据...', 0);
-
-      try {
-        const { allPermissions } = this.state;
-        if (allPermissions.length === 0) {
-          const { data: allPermissions } = await services.getAllPermissions();
-          this.setState({ allPermissions });
-        }
-
-        const { data: currentPermissions } = await services.getRolePermissions(role.id as number);
-        this.setState({ currentPermissions });
-      } finally {
-        hide();
-      }
-    }
-
-    this.setState({
-      permissionModalVisible: !!flag,
-      currentRole: role || {},
-    });
-  };
-
-  handleAdd = async (values: object) => {
-    await this.props.dispatch({
-      type: 'roleList/create',
-      payload: {
-        ...values,
-      },
-    });
-
-    message.success('添加成功！');
-
-    this.handleCreateModalVisible();
-    this.queryList(this.props.location.search);
-  };
-
-  handleUpdate = async (id: number, values: object) => {
-    await this.props.dispatch({
-      type: 'roleList/update',
-      id,
-      payload: {
-        ...values,
-      },
-    });
-
-    message.success('修改成功！');
-
-    this.handleUpdateModalVisible();
-    this.queryList(this.props.location.search);
-  };
-
-  handleAssignPermissions = async (role_id: number, values: { permissions: number }) => {
-    await this.props.dispatch({
-      type: 'roleList/assignPermissions',
-      role_id,
-      payload: { ...values },
-    });
-
-    message.success('权限分配成功');
-    this.handlePermissionModalVisible();
-  };
-
-  renderSearchForm () {
-    const { form } = this.props;
-    const { getFieldDecorator } = form;
-    return (
-      <Form onSubmit={this.handleSearch} layout="inline">
-        <Row gutter={{ md: 8, lg: 24, xl: 48 }}>
-          <Col md={8} sm={24}>
-            <FormItem label="角色标识">
-              {getFieldDecorator('name')(<Input placeholder="请输入" />)}
-            </FormItem>
-          </Col>
-          <Col md={16} sm={24}>
-            <div className={styles.action}>
-              <div className={styles.submitButtons}>
-                <Button type="primary" htmlType="submit">
-                  查询
-                </Button>
-                <Button style={{ marginLeft: 8 }} onClick={this.handleFormReset}>
-                  重置
-                </Button>
-              </div>
-              <div className={styles.operator}>
-                <Button
-                  icon="Role-add"
-                  type="primary"
-                  onClick={() => this.handleCreateModalVisible(true)}
-                >
-                  新建
-                </Button>
-              </div>
-            </div>
-          </Col>
-        </Row>
-      </Form>
-    );
-  }
-
-  render () {
-    const {
-      roleList: { list, meta },
-      loading,
-      location: { pathname, search },
-    } = this.props;
-    const {
-      createModalVisible,
-      updateModalVisible,
-      permissionModalVisible,
-      currentRole,
-      allPermissions,
-      currentPermissions,
-    } = this.state;
-
-    const query = parse(search.replace(/^\?/, ''));
-
-    return (
-      <PageHeaderWrapper>
-        <Card bordered={false}>
-          <div className={styles.tableList}>
-            <div className={styles.searchForm}>{this.renderSearchForm()}</div>
-            <Table
-              dataSource={list}
-              pagination={getAntdPaginationProps(meta, pathname, query)}
-              columns={this.columns}
-              loading={loading.effects['roleList/fetch']}
-              rowKey="id"
-            />
-          </div>
-        </Card>
-        <CreateForm
-          handleAdd={this.handleAdd}
-          handleModalVisible={this.handleCreateModalVisible}
-          modalVisible={createModalVisible}
-          loading={loading.effects['roleList/create']}
+  return (
+    <GridContent>
+      <ProTable<IRole, { name: string }>
+        actionRef={action}
+        headerTitle="角色列表"
+        rowKey="id"
+        params={{ name }}
+        request={request}
+        columns={columns}
+        toolBarRender={() => [
+          <Input.Search placeholder="角色名称" onSearch={(value) => setName(value)} />,
+          <Button type="primary" onClick={() => handleCreateModalVisible(true)}>
+            新建
+          </Button>,
+        ]}
+        search={false}
+      />
+      <CreateModal
+        title="创建角色"
+        visible={createModalVisible}
+        onSubmit={async (values) => {
+          await storeRole(values);
+          handleCreateModalVisible(false);
+        }}
+        onCancel={() => handleCreateModalVisible(false)}
+        submitting={createModalSubmitting}
+      />
+      {updateModalVisible && (
+        <UpdateModal
+          title="编辑角色"
+          visible={updateModalVisible}
+          onSubmit={async (values) => {
+            await updateRole(selectedRole.id as number, values);
+            handleUpdateModalVisible(false);
+          }}
+          onCancel={() => handleUpdateModalVisible(false)}
+          submitting={updateModalSubmitting}
+          initialValues={selectedRole}
         />
-
-        <UpdateForm
-          handleUpdate={this.handleUpdate}
-          handleModalVisible={this.handleUpdateModalVisible}
-          modalVisible={updateModalVisible}
-          loading={loading.effects['roleList/update']}
-          role={currentRole}
-        />
-        <PermissionForm
-          handleAssignPermissions={this.handleAssignPermissions}
-          handleModalVisible={this.handlePermissionModalVisible}
-          modalVisible={permissionModalVisible}
-          loading={loading.effects['roleList/assignPermissions']}
-          currentRole={currentRole}
+      )}
+      {assignPermissionModalVisible && (
+        <AssignPermissionModal
+          title={`给「${selectedRole.name}」分配权限`}
+          visible={assignPermissionModalVisible}
           allPermissions={allPermissions}
-          currentPermissions={currentPermissions}
+          currentPermissions={selectedRole.permissions}
+          onSubmit={async (values) => {
+            await assignPermissions(selectedRole.id as number, values);
+            setSelectedRole({});
+            handleAssignPermissionModalVisible(false);
+          }}
+          onCancel={() => {
+            setSelectedRole({});
+            handleAssignPermissionModalVisible(false);
+          }}
+          submitting={assignPermissionsModalSubmitting}
         />
-      </PageHeaderWrapper>
-    );
-  }
-}
+      )}
+    </GridContent>
+  );
+};
 
-export default Form.create<RoleListProps>()(RoleList);
+export default RoleList;
