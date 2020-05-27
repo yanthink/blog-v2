@@ -65,8 +65,8 @@ const AccountCenter: React.FC<AccountCenterProps> = (props) => {
                   </p>
                   <p>
                     <EnvironmentOutlined />
-                    {props.auth.user.extends?.province}
-                    {props.auth.user.extends?.city}
+                    <span>{props.auth.user.extends?.province}</span>
+                    <span>&nbsp;&nbsp;{props.auth.user.extends?.city}</span>
                   </p>
                 </div>
                 <Divider />

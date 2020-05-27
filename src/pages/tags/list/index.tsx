@@ -61,10 +61,12 @@ const TagList: React.FC<TagListProps> = () => {
     {
       title: '创建时间',
       dataIndex: 'created_at',
+      valueType: 'dateTime',
     },
     {
       title: '更新时间',
       dataIndex: 'updated_at',
+      valueType: 'dateTime',
     },
     {
       title: '操作',

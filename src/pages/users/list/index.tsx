@@ -87,7 +87,7 @@ const UserList: React.FC<UserListProps> = () => {
         return (
           <>
             <span>{user.extends?.province}</span>
-            <span>{user.extends?.city}</span>
+            <span>&nbsp;&nbsp;{user.extends?.city}</span>
           </>
         );
       },

@@ -87,6 +87,13 @@ export default [
                 component: './comments/list',
               },
               {
+                name: '敏感词语',
+                icon: 'security-scan',
+                path: 'sensitivewords',
+                authority: 'comments.update',
+                component: './sensitivewords',
+              },
+              {
                 name: '标签管理',
                 icon: 'tags',
                 path: 'tags/list',
