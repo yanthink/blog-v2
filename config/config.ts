@@ -83,6 +83,11 @@ export default defineConfig({
       },
     ],
   ],
+  // https://umijs.org/zh-CN/guide/boost-compile-speed
+  nodeModulesTransform: {
+    type: prod ? 'all' : 'none',
+    exclude: [],
+  },
   chainWebpack: webpackPlugin,
   devtool: !prod ? 'source-map' : false,
 });

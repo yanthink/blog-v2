@@ -1,6 +1,7 @@
 import Echo from 'laravel-echo';
 // @ts-ignore
 import io from 'socket.io-client';
+import { getDvaApp } from 'umi';
 import { AuthModelState } from '@/models/connect';
 import { getToken, setSocketId } from '@/utils/authority';
 import { INotification } from '@/models/I';
@@ -32,11 +33,15 @@ function createWebSocket() {
 
     setSocketId(echo.socketId());
 
+    // https://umijs.org/zh-CN/plugins/plugin-dva
+    const app = getDvaApp();
+
     echo
       .private(`App.Models.User.${state.user.id}`)
       .listen('UnreadNotificationsChange', (data: { unread_count: number }) => {
+        // @ts-ignore
         // eslint-disable-next-line no-underscore-dangle
-        window.g_app._store.dispatch({
+        app._store.dispatch({
           type: 'auth/setUnreadCount',
           unread_count: data.unread_count,
         });

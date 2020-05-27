@@ -28,11 +28,6 @@ interface Window {
     fieldsObject: GAFieldsObject | string,
   ) => void;
   reloadAuthorized: () => void;
-  g_app: {
-    _store: {
-      dispatch: any;
-    };
-  };
   jQuery?: jQuery;
   SOCKET_ID: string;
 }
